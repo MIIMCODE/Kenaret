@@ -5,8 +5,23 @@ import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
 import { authRedirectUrl, supabase } from '../lib/supabase'
 import { toPersianError } from '../lib/errors'
+import ResendPanel from '../components/ResendPanel'
+import { errorCodeOf } from '../lib/errors'
 
 const MIN_PASSWORD = 6
+
+/** True when Supabase refused to send the confirmation email because of its cap. */
+function isMailRateLimit(error: unknown): boolean {
+  const e = error as { code?: string; status?: number; message?: string } | null
+  if (!e) return false
+  const code = errorCodeOf(error)
+  return (
+    code === 'over_email_send_rate_limit' ||
+    e.code === 'over_email_send_rate_limit' ||
+    e.status === 429 ||
+    /email.*rate limit|rate limit.*email/i.test(e.message ?? '')
+  )
+}
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -16,6 +31,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sentTo, setSentTo] = useState<string | null>(null)
+  /** Shown when the mailer's hourly cap is hit: account exists, mail did not go. */
+  const [deliveryBusy, setDeliveryBusy] = useState(false)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -39,6 +56,14 @@ export default function SignupPage() {
     setLoading(false)
 
     if (signUpError) {
+      // Hitting the mailer cap is not a failure of the visitor's action: the
+      // account may well have been created, so we lead them forward instead of
+      // showing a dead end.
+      if (isMailRateLimit(signUpError)) {
+        setDeliveryBusy(true)
+        setSentTo(cleanEmail)
+        return
+      }
       setError(toPersianError(signUpError))
       return
     }
@@ -76,34 +101,37 @@ export default function SignupPage() {
             علاقه‌مندی‌هات.
           </Alert>
 
-          <Alert tone="error">
-            اگر ایمیل را در چند دقیقه‌ی آینده نگرفتی، احتمالاً سرویس ایمیل کنارت هنوز تنظیم نشده
-            است. این‌جا گیر نکن — به{' '}
+          {deliveryBusy && (
+            <Alert tone="info">
+              حسابت ساخته شد، فقط سرویس ایمیل این لحظه شلوغه و فرستادن ایمیل تأیید را کمی عقب
+              انداخته. نگران نباش — حسابت از بین نمی‌رود. کمی بعد دوباره درخواست بده، یا اگر عجله
+              داری به{' '}
+              <Link to="/login" className="font-bold underline">
+                صفحه‌ی ورود
+              </Link>{' '}
+              برو.
+            </Alert>
+          )}
+
+          <Alert tone="info">
+            اگر ایمیل را در چند دقیقه‌ی آینده نگرفتی، اسپم را چک کن. راه دیگری هم هست: به{' '}
             <Link to="/login" className="font-bold underline">
               صفحه‌ی ورود
             </Link>{' '}
-            برو و با همان ایمیل وارد شو.
+            برو؛ اگر حسابت فعال باشد و ایمیلت تأیید نشده باشد، همان‌جا می‌توانی دوباره درخواست تأیید بدهی.
           </Alert>
 
-          <button
-            type="button"
-            onClick={async () => {
-              setLoading(true)
+          <ResendPanel
+            email={sentTo}
+            onResend={async () => {
               const { error: resendError } = await supabase.auth.resend({
                 type: 'signup',
                 email: sentTo,
                 options: { emailRedirectTo: authRedirectUrl() },
               })
-              setLoading(false)
-              if (resendError) setError(toPersianError(resendError))
-              else alert('ایمیل تأیید دوباره فرستاده شد.')
+              return !resendError
             }}
-            disabled={loading}
-            className="btn-ghost w-full"
-          >
-            {loading ? <Spinner className="h-4 w-4" /> : null}
-            ایمیل را دوباره بفرست
-          </button>
+          />
 
           {error && <Alert tone="error">{error}</Alert>}
 

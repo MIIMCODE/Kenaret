@@ -5,6 +5,7 @@ import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
 import { supabase } from '../lib/supabase'
 import { toPersianError } from '../lib/errors'
+import ResendPanel from '../components/ResendPanel'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -17,12 +18,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     if (loading) return
 
     setError(null)
+    setNotice(null)
     setNeedsConfirmation(false)
 
     const cleanEmail = email.trim().toLowerCase()
@@ -47,11 +50,14 @@ export default function LoginPage() {
     navigate(redirectTo && redirectTo !== '/login' ? redirectTo : '/app', { replace: true })
   }
 
-  async function resendConfirmation() {
+  /** Returns true when a fresh confirmation mail actually left the building. */
+  async function resendConfirmation(): Promise<boolean> {
     const cleanEmail = email.trim().toLowerCase()
-    if (!cleanEmail) return setError('اول ایمیلت را وارد کن.')
+    if (!cleanEmail) {
+      setError('اول ایمیلت را وارد کن.')
+      return false
+    }
 
-    setLoading(true)
     const { error: resendError } = await supabase.auth.resend({
       type: 'signup',
       email: cleanEmail,
@@ -59,22 +65,19 @@ export default function LoginPage() {
         emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}#/auth/callback`,
       },
     })
-    setLoading(false)
 
     if (resendError) {
-      // The built-in mailer caps at 2/hour project-wide and only delivers to the
-      // project owner, so a failed resend is common — explain it instead of
-      // dumping a raw rate-limit error.
-      if (resendError.code === 'over_email_send_rate_limit') {
-        return setError(
-          'سرویس ایمیل کنارت هنوز تنظیم نشده و فعلاً نمی‌توانیم ایمیل بفرستیم. لطفاً به مدیر سایت اطلاع بده.',
-        )
-      }
-      return setError(toPersianError(resendError))
+      setError(null)
+      return false
     }
     setError(null)
+    setNotConfirmation()
+    return true
+  }
+
+  function setNotConfirmation() {
     setNeedsConfirmation(false)
-    alert('ایمیل تأیید دوباره فرستاده شد. صندوق ورودی و پوشه‌ی اسپم را چک کن.')
+    setNotice('ایمیل تأیید دوباره فرستاده شد. صندوق ورودی و پوشه‌ی اسپم را چک کن.')
   }
 
   return (
@@ -145,16 +148,16 @@ export default function LoginPage() {
         </div>
 
         {error && <Alert tone="error">{error}</Alert>}
+        {notice && <Alert tone="success">{notice}</Alert>}
 
         {needsConfirmation && (
-          <button
-            type="button"
-            onClick={resendConfirmation}
-            disabled={loading}
-            className="w-full rounded-2xl border border-blush-200 bg-blush-50 px-4 py-2.5 text-[12.5px] font-bold text-blush-700 transition hover:bg-blush-100"
-          >
-            ایمیل تأیید را دوباره بفرست
-          </button>
+          <div className="space-y-2.5 rounded-2xl border border-blush-200 bg-blush-50/70 p-3.5">
+            <p className="text-[11.5px] leading-6 text-ink-700">
+              ایمیلت هنوز تأیید نشده. لازم نیست چیزی را از نو بسازی؛ فقط روی لینک داخل ایمیل بزن.
+              اگر ایمیل نیامده، دوباره بفرست — این‌جا گیر نمی‌کنی.
+            </p>
+            <ResendPanel email={email.trim().toLowerCase()} onResend={resendConfirmation} />
+          </div>
         )}
 
         <button type="submit" className="btn-primary w-full" disabled={loading}>
