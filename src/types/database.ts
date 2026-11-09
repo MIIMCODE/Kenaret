@@ -36,6 +36,15 @@ export interface CoupleRequestSummary {
   created_at: string
 }
 
+export interface AnniversaryState {
+  needs_answer: boolean
+  date: string | null
+  asked_user_id: string | null
+  /** True when the question is waiting on the signed-in user. */
+  is_your_turn: boolean
+  set_by: string | null
+}
+
 export interface PairingState {
   pairing_code: string | null
   partner: {
@@ -48,4 +57,6 @@ export interface PairingState {
   } | null
   incoming: CoupleRequestSummary[]
   outgoing: CoupleRequestSummary[]
+  /** Present once an active partner exists. */
+  anniversary?: AnniversaryState | null
 }

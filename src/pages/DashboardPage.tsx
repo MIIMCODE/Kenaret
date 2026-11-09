@@ -7,6 +7,8 @@ import PairingCodeCard from '../components/PairingCodeCard'
 import ConnectForm from '../components/ConnectForm'
 import PartnerCard from '../components/PartnerCard'
 import RequestList from '../components/RequestList'
+import AnniversaryCard from '../components/AnniversaryCard'
+import AnniversarySetup from '../components/AnniversarySetup'
 import { FullPageLoader } from '../components/Spinner'
 import { useAuth } from '../hooks/useAuth'
 import {
@@ -26,6 +28,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [editingAnniversary, setEditingAnniversary] = useState(false)
 
   const load = useCallback(
     async (showSpinner = false) => {
@@ -163,6 +166,89 @@ export default function DashboardPage() {
         {hasPartner && partner && (
           <>
             <PartnerCard partner={partner} onUnlink={handleUnlink} />
+
+            {/* Relationship start date: the heart of the couple dashboard */}
+            {state.anniversary && state.anniversary.needs_answer && state.anniversary.is_your_turn && (
+              <section className="card animate-fade-up p-5">
+                <AnniversarySetup
+                  partnerName={partner.display_name}
+                  onDone={(result) => {
+                    setEditingAnniversary(false)
+                    void load()
+                    setNotice(
+                      result === 'saved'
+                        ? '💞 تاریخ آشنایی‌اتون ثبت شد. حالا کنارت روزهایتان را می‌شمارد.'
+                        : `سؤال برای ${partner.display_name ?? 'شریکت'} فرستاده شد؛ به‌محض پاسخ، تاریخ همین‌جا می‌آید.`,
+                    )
+                  }}
+                />
+              </section>
+            )}
+
+            {state.anniversary &&
+              state.anniversary.needs_answer &&
+              !state.anniversary.is_your_turn && (
+                <section className="card animate-fade-up p-5 text-center">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-100 text-blush-500">
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
+                      <path d="M12 7.6V12l3 1.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                  <h3 className="mt-2.5 text-[14px] font-extrabold text-ink-900">منتظر تاریخ آشنایی</h3>
+                  <p className="mx-auto mt-1 max-w-[19rem] text-[11.5px] leading-6 text-ink-500">
+                    این سؤال را برای {partner.display_name ?? 'شریکت'} فرستادیم. همین‌که تاریخ را ثبت کند،
+                    شمارنده‌ی «با هم بودن» و روزهای مهم برای هر دویتان فعال می‌شود.
+                  </p>
+                  <p className="mt-2 text-[10.5px] text-ink-500">
+                    یادت آمد؟ می‌توانی همین حالا خودت ثبتش کنی.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setEditingAnniversary(true)}
+                    className="btn-ghost mt-3 w-full"
+                  >
+                    خودم تاریخ را می‌دانم
+                  </button>
+                </section>
+              )}
+
+            {state.anniversary &&
+              !state.anniversary.needs_answer &&
+              state.anniversary.date &&
+              !editingAnniversary && (
+                <AnniversaryCard
+                  date={state.anniversary.date}
+                  onEdit={() => setEditingAnniversary(true)}
+                  setByName={partner.display_name}
+                  isMine={state.anniversary.set_by !== partner.id}
+                />
+              )}
+
+            {editingAnniversary && state.anniversary?.date && (
+              <section className="card animate-fade-up p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-[14px] font-extrabold text-ink-900">ویرایش تاریخ شروع</h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingAnniversary(false)}
+                    className="rounded-lg px-2 py-1 text-[11px] font-bold text-ink-500 hover:text-ink-700"
+                  >
+                    بستن
+                  </button>
+                </div>
+                <AnniversarySetup
+                  compact
+                  partnerName={partner.display_name}
+                  initialDate={state.anniversary.date}
+                  onDone={() => {
+                    setEditingAnniversary(false)
+                    void load()
+                    setNotice('تاریخ آشنایی به‌روزرسانی شد.')
+                  }}
+                />
+              </section>
+            )}
 
             <section className="card p-5">
               <h3 className="text-[14px] font-extrabold text-ink-900">شما دو نفر</h3>

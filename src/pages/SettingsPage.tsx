@@ -1,17 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
 import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import Spinner from '../components/Spinner'
 import JalaliDatePicker from '../components/JalaliDatePicker'
+import AnniversaryCard from '../components/AnniversaryCard'
+import AnniversarySetup from '../components/AnniversarySetup'
 import { useAuth } from '../hooks/useAuth'
-import { fetchPeriodSettings, savePeriodSettings, updateProfile } from '../lib/api'
+import { fetchPairingState, fetchPeriodSettings, savePeriodSettings, updateProfile } from '../lib/api'
 import { validateAvatarFile, uploadAvatar } from '../lib/avatars'
 import { toPersianError } from '../lib/errors'
 import { formatJalaliLong, todayIso } from '../lib/jalali'
 import { INTEREST_OPTIONS, MAX_INTERESTS } from '../lib/constants'
-import type { PeriodSettings } from '../types/database'
+import type { AnniversaryState, PeriodSettings } from '../types/database'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -38,12 +40,32 @@ export default function SettingsPage() {
   const [isRegular, setIsRegular] = useState(true)
   const [lastPeriodStart, setLastPeriodStart] = useState<string | null>(null)
 
+  const [anniversary, setAnniversary] = useState<AnniversaryState | null>(null)
+  const [partnerName, setPartnerName] = useState<string | null>(null)
+  const [editingAnniversary, setEditingAnniversary] = useState(false)
+  const [anniversaryNotice, setAnniversaryNotice] = useState<string | null>(null)
+
   useEffect(() => {
     if (!profile) return
     setName(profile.display_name ?? '')
     setBirthDate(profile.birth_date)
     setInterests(profile.interests ?? [])
   }, [profile])
+
+  const loadAnniversary = useCallback(async () => {
+    try {
+      const state = await fetchPairingState()
+      setAnniversary(state.anniversary ?? null)
+      setPartnerName(state.partner?.display_name ?? null)
+    } catch {
+      // Settings stays usable even if the couple state cannot be read.
+      setAnniversary(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadAnniversary()
+  }, [loadAnniversary])
 
   useEffect(() => {
     if (!profile || profile.gender !== 'girl' || !user) return
@@ -210,6 +232,53 @@ export default function SettingsPage() {
           </div>
           {avatarError && <Alert tone="error" className="mt-3">{avatarError}</Alert>}
         </section>
+
+        {/* ---------- Relationship start date ---------- */}
+        {anniversary && (
+          <section className="card space-y-4 p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[14px] font-extrabold text-ink-900">تاریخ آشنایی</h2>
+              {anniversary.date && !editingAnniversary && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingAnniversary(true)
+                    setAnniversaryNotice(null)
+                  }}
+                  className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-700 transition hover:bg-blush-100"
+                >
+                  تغییر تاریخ
+                </button>
+              )}
+            </div>
+
+            {anniversaryNotice && <Alert tone="success">{anniversaryNotice}</Alert>}
+
+            {editingAnniversary || !anniversary.date ? (
+              <AnniversarySetup
+                compact
+                partnerName={partnerName}
+                initialDate={anniversary.date}
+                onDone={(result) => {
+                  setEditingAnniversary(false)
+                  setAnniversaryNotice(
+                    result === 'saved'
+                      ? 'تاریخ آشنایی ذخیره شد.'
+                      : `سؤال برای ${partnerName ?? 'شریکت'} فرستاده شد.`,
+                  )
+                  void loadAnniversary()
+                }}
+                onSkip={anniversary.date ? () => setEditingAnniversary(false) : undefined}
+              />
+            ) : (
+              <AnniversaryCard
+                date={anniversary.date}
+                setByName={partnerName}
+                isMine={anniversary.set_by !== null && anniversary.set_by !== partnerName}
+              />
+            )}
+          </section>
+        )}
 
         {/* ---------- Editable profile ---------- */}
         <section className="card space-y-4 p-5">

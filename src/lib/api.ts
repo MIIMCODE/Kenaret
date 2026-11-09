@@ -107,3 +107,24 @@ export async function unlinkPartner(): Promise<void> {
   const { error } = await supabase.rpc('unlink_partner')
   if (error) throw error
 }
+
+// ------------------------------------------------------------------
+// Anniversary
+// ------------------------------------------------------------------
+
+export type AnniversaryResult =
+  | { status: 'saved'; anniversary_date: string }
+  | { status: 'reassigned'; asked_user_id: string }
+
+/** Saves the relationship start date, or hands the question to the partner. */
+export async function setAnniversary(
+  date: string | null,
+  handToPartner = false,
+): Promise<AnniversaryResult> {
+  const { data, error } = await supabase.rpc('set_anniversary', {
+    p_date: date,
+    p_hand_to_partner: handToPartner,
+  })
+  if (error) throw error
+  return data as AnniversaryResult
+}
