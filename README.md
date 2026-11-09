@@ -55,6 +55,17 @@ A progress bar tracks the steps. Each step is saved immediately, and
 - Once connected, both partners see each other's name, photo, interests and
   birth date.
 
+### Relationship start date
+- Right after a couple connects, the partner who sent the request is asked
+  «تاریخ آشنایی‌اتون کی بوده؟» in the dashboard, with a Jalali picker.
+- If they cannot remember, **«یادم نیست، از … بپرس»** hands the same question
+  to the other partner; the first person then sees "منتظر تاریخ" and can still
+  answer it themselves if they remember first.
+- Once a date exists the dashboard shows the age of the relationship, the next
+  monthly anniversary, the next yearly anniversary and the nearest milestones
+  (100/200/365/500/730/1000/1500/2000 days, plus 5-year jubilees).
+- The date can be corrected later from Settings → «تاریخ آشنایی».
+
 ---
 
 ## Database & security
@@ -67,6 +78,8 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
 | `0002_period_settings.sql` | private cycle data (girls only) |
 | `0003_couples.sql` | couples, pairing RPCs, helper functions |
 | `0004_storage.sql` | private `avatars` bucket and its policies |
+| `0005_anniversary.sql` | relationship start date, turn bookkeeping, RPCs |
+| `0006_ask_requester_first.sql` | ask the requester first; repair pending turns |
 
 **RLS is the only security layer, so the rules are strict:**
 
@@ -134,34 +147,34 @@ different Supabase project.
   `#/reset-password` entries, and the local dev equivalents
   (`http://localhost:5173/Kenaret/**`).
 
-### Email delivery — **currently disabled on purpose**
+### Email delivery — confirmation is **on**, the mailer is the bottleneck
 
-Supabase's built-in mailer has two hard limitations that make it unusable for
-real signups:
+**Email confirmation is enabled** (`mailer_autoconfirm: false`): a new account
+must click the link before it can sign in. The `/auth/callback` route, the PKCE
+exchange and the "check your inbox" screen all handle that flow.
 
-1. **2 emails per hour**, project-wide (`rate_limit_email_sent`). A third
-   signup in the same hour fails with *"email rate limit exceeded"* — and the
-   user row is never created.
-2. It **only delivers to the project owner's address**, so partners never
-   receive a confirmation link even when a send "succeeds".
+What still holds the experience back is Supabase's **built-in** mailer:
 
-Because of that, **email confirmation is currently turned off**
-(`mailer_autoconfirm: true`). Signup and login work immediately with no email
-involved: `signUp()` returns a session, and the app goes straight to
-onboarding. The `/auth/callback` route and the PKCE handling stay in place, so
-nothing needs to change in the code when you turn confirmation back on.
+1. **2 emails per hour**, project-wide (`rate_limit_email_sent`). A third send
+   in the same hour returns *"email rate limit exceeded"*.
+2. It **only delivers to the project owner's address**, so in practice most
+   visitors never receive the link.
 
-**To re-enable email confirmation properly:**
+The app is built to survive that. When the cap is hit, signup does *not* show a
+red error and throw the visitor away: it keeps the account, shows a calm
+«سایت این لحظه شلوغه» card with a live countdown, disables the resend button
+until the window passes, and reminds them their account already exists. The
+same panel handles the "email not verified" case on the login page.
 
-1. Supabase dashboard → **Project Settings → Authentication → SMTP Settings** →
-   add a provider (Resend, Brevo, SendGrid, Gmail SMTP, …) with its host, port,
-   user, password and a verified sender address.
-2. **Authentication → Providers → Email** → turn **Confirm email** back on.
-3. Raise **Authentication → Rate Limits → Emails per hour** to something
+**To make delivery work for everyone** (dashboard, once — nothing to redeploy):
+
+1. **Project Settings → Authentication → SMTP Settings** → add a provider
+   (Resend, Brevo, SendGrid, Gmail SMTP, …) with host, port, user, password and
+   a verified sender address. This also lifts the owner-only restriction.
+2. **Authentication → Rate Limits → Emails per hour** → raise it to something
    realistic (e.g. 30–100).
-
-The app already handles that mode — it shows a "check your inbox" screen and
-warns the user if delivery is misconfigured instead of leaving them stuck.
+3. Optional: **Authentication → Email Templates** → translate the confirmation
+   mail to Persian.
 
 ---
 
