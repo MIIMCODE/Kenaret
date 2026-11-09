@@ -77,8 +77,11 @@ export default function OnboardingPage() {
     return list
   }, [draft.gender])
 
-  const currentStep = steps[Math.min(stepIndex, steps.length - 1)]
-  const isLast = stepIndex >= steps.length - 1
+  // Guard the index on BOTH ends: a stale index (e.g. after hydration) must
+  // never index past the array and crash the page.
+  const safeIndex = Math.max(0, Math.min(stepIndex, steps.length - 1))
+  const currentStep = steps[safeIndex] ?? 'gender'
+  const isLast = safeIndex >= steps.length - 1
 
   // ---------------------------------------------------------------
   // Hydrate from the saved profile so the user can resume.
@@ -112,8 +115,12 @@ export default function OnboardingPage() {
       if (cancelled) return
       setDraft(nextDraft)
 
-      // Resume at the saved step (0-based, clamped to the visible steps).
-      const resumeIndex = Math.min(Math.max(profile.onboarding_step - 1, 0), steps.length - 1)
+      // Resume at the saved step. The saved index counts the universal steps
+      // only, so clamp it into the list that actually applies to this user.
+      const resumeSteps: StepKey[] = nextDraft.gender === 'girl'
+        ? ['gender', 'identity', 'period', 'interests', 'avatar']
+        : ['gender', 'identity', 'interests', 'avatar']
+      const resumeIndex = Math.min(Math.max(profile.onboarding_step - 1, 0), resumeSteps.length - 1)
       setStepIndex(resumeIndex)
       setHydrated(true)
     })()
@@ -203,7 +210,7 @@ export default function OnboardingPage() {
 
     setSaving(true)
     try {
-      const nextIndex = stepIndex + 1
+      const nextIndex = safeIndex + 1
       const nextStepNumber = Math.min(nextIndex + 1, 5)
 
       if (currentStep === 'gender') {
@@ -252,7 +259,7 @@ export default function OnboardingPage() {
   }
 
   function goBack() {
-    if (stepIndex === 0) return
+    if (safeIndex === 0) return
     setError(null)
     setFieldErrors({})
     setStepIndex((index) => Math.max(0, index - 1))
@@ -264,7 +271,7 @@ export default function OnboardingPage() {
     if (saving) return
     setSaving(true)
     try {
-      await persist({}, Math.min(stepIndex + 2, 5))
+      await persist({}, Math.min(safeIndex + 2, 5))
       await refreshProfile()
       setStepIndex((index) => index + 1)
     } catch (skipError) {
@@ -288,16 +295,18 @@ export default function OnboardingPage() {
 
       <main className="mx-auto w-full max-w-md px-5 pt-4">
         <ProgressBar
-          step={stepIndex + 1}
+          step={safeIndex + 1}
           total={steps.length}
           labels={['جنسیت', 'خودت را معرفی کن', 'پریود', 'علاقه‌مندی‌ها', 'عکس پروفایل']}
         />
 
         <div key={currentStep} className="mt-6 animate-fade-up">
-          <h1 className="text-[19px] font-extrabold leading-8 text-ink-900">{STEP_TITLES[currentStep].title}</h1>
-          {STEP_TITLES[currentStep].subtitle && (
+          <h1 className="text-[19px] font-extrabold leading-8 text-ink-900">
+            {(STEP_TITLES[currentStep] ?? STEP_TITLES.gender).title}
+          </h1>
+          {(STEP_TITLES[currentStep] ?? STEP_TITLES.gender).subtitle && (
             <p className="mt-1.5 mb-5 text-[13px] leading-6 text-ink-500">
-              {STEP_TITLES[currentStep].subtitle}
+              {(STEP_TITLES[currentStep] ?? STEP_TITLES.gender).subtitle}
             </p>
           )}
 
@@ -360,7 +369,7 @@ export default function OnboardingPage() {
 
         {/* Actions */}
         <div className="mt-7 flex items-center gap-3">
-          {stepIndex > 0 && (
+          {safeIndex > 0 && (
             <button type="button" onClick={goBack} disabled={saving} className="btn-ghost flex-1">
               قبلی
             </button>
