@@ -31,17 +31,25 @@ export default function ResetPasswordPage() {
       const tokenHash = params.get('token_hash')
       const type = params.get('type')
 
-      if (code) {
-        await supabase.auth.exchangeCodeForSession(code)
-        window.history.replaceState({}, '', `${import.meta.env.BASE_URL}#/reset-password`)
-      } else if (tokenHash && type) {
-        await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as 'recovery' })
+      // The SDK may have redeemed the link already (detectSessionInUrl).
+      let session = (await supabase.auth.getSession()).data.session
+
+      if (!session && code) {
+        await supabase.auth.exchangeCodeForSession(code).catch(() => undefined)
+        session = (await supabase.auth.getSession()).data.session
+      } else if (!session && tokenHash && type) {
+        await supabase.auth
+          .verifyOtp({ token_hash: tokenHash, type: type as 'recovery' })
+          .catch(() => undefined)
+        session = (await supabase.auth.getSession()).data.session
+      }
+
+      if (window.location.search.includes('code=') || window.location.search.includes('token_hash=')) {
         window.history.replaceState({}, '', `${import.meta.env.BASE_URL}#/reset-password`)
       }
 
       if (!active) return
-      const { data } = await supabase.auth.getSession()
-      setReady(Boolean(data.session))
+      setReady(Boolean(session))
     }
 
     void bootstrap()

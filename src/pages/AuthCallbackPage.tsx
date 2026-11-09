@@ -58,20 +58,26 @@ export default function AuthCallbackPage() {
       }
 
       try {
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          if (exchangeError) throw exchangeError
-        } else if (tokenHash && type) {
-          const { error: otpError } = await supabase.auth.verifyOtp({
+        // 1) The SDK may already have exchanged the code on init because
+        //    `detectSessionInUrl` is enabled — check for that first so we
+        //    never try to redeem a single-use code twice.
+        let session = (await supabase.auth.getSession()).data.session
+        let exchangeError: unknown = null
+
+        if (!session && code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          exchangeError = error
+          session = (await supabase.auth.getSession()).data.session
+        } else if (!session && tokenHash && type) {
+          const { error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: type as 'signup' | 'recovery' | 'email' | 'email_change' | 'invite' | 'magiclink',
           })
-          if (otpError) throw otpError
+          exchangeError = error
+          session = (await supabase.auth.getSession()).data.session
         }
 
-        // The implicit flow (or a pre-exchanged session) is already in storage.
-        const { data } = await supabase.auth.getSession()
-        const session = data.session
+        if (exchangeError && !session) throw exchangeError
 
         if (!session) {
           setPhase('error')

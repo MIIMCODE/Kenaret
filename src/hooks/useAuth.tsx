@@ -85,7 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile])
 
   const refreshProfile = useCallback(async () => {
-    const userId = currentUserId.current
+    // `currentUserId` is filled in by the auth listener, which can lag a few
+    // milliseconds behind the PKCE callback. Falling back to the stored
+    // session avoids a silent no-op in that window.
+    let userId = currentUserId.current
+    if (!userId) {
+      const { data } = await supabase.auth.getSession()
+      userId = data.session?.user.id ?? null
+      currentUserId.current = userId
+    }
     if (!userId) return null
     return loadProfile(userId)
   }, [loadProfile])

@@ -17,7 +17,14 @@ import SettingsPage from './pages/SettingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ConfigMissingPage from './pages/ConfigMissingPage'
 
-/** Sends signed-out visitors to /login and remembers where they were headed. */
+/**
+ * Sends signed-out visitors to /login and keeps signed-in users inside the
+ * onboarding flow until it is finished.
+ *
+ * Important: while the profile is still loading we show a spinner instead of
+ * guessing — guessing would bounce a returning user into onboarding for a
+ * frame, or worse, right after the PKCE callback.
+ */
 function RequireAuth({ children }: { children: ReactNode }) {
   const { status, profile, profileLoading } = useAuth()
   const location = useLocation()
@@ -28,21 +35,46 @@ function RequireAuth({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
-  // Keep the user inside onboarding until it is finished.
-  const needsOnboarding = profile ? !profile.onboarding_completed : true
   const onOnboarding = location.pathname.startsWith('/onboarding')
 
-  if (profileLoading && !profile) return <FullPageLoader />
+  // We have a session but not the profile yet — wait rather than redirect.
+  if (!profile) {
+    if (profileLoading) return <FullPageLoader label="داریم پروفایلت را می‌خوانیم..." />
+    return <ProfileLoadError />
+  }
 
-  if (needsOnboarding && !onOnboarding && !profileLoading) {
+  if (!profile.onboarding_completed && !onOnboarding) {
     return <Navigate to="/onboarding" replace />
   }
 
-  if (!needsOnboarding && onOnboarding) {
+  if (profile.onboarding_completed && onOnboarding) {
     return <Navigate to="/app" replace />
   }
 
   return <>{children}</>
+}
+
+/** The session is valid but the profile row could not be read. */
+function ProfileLoadError() {
+  const { refreshProfile, signOut } = useAuth()
+  return (
+    <div className="mx-auto flex min-h-[70dvh] w-full max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
+      <p className="text-[14px] font-bold text-ink-900">پروفایلت بارگذاری نشد</p>
+      <p className="text-[12.5px] leading-6 text-ink-500">
+        اتصال اینترنتت را بررسی کن و دوباره تلاش کن.
+      </p>
+      <button type="button" onClick={() => void refreshProfile()} className="btn-primary w-full">
+        تلاش دوباره
+      </button>
+      <button
+        type="button"
+        onClick={() => void signOut()}
+        className="text-[12px] font-semibold text-ink-500 underline"
+      >
+        خروج از حساب
+      </button>
+    </div>
+  )
 }
 
 /** Auth pages are only for signed-out users. */
