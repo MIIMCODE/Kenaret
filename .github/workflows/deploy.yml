@@ -1,0 +1,86 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Resolve Supabase configuration
+        # Priority: Actions Variables > Actions Secrets > the public fallback
+        # file in the repo. All three only ever hold the project URL and the
+        # *anon/publishable* key, which are client-safe by design.
+        # The service_role key is never used here and must never be committed.
+        run: |
+          URL="${{ vars.VITE_SUPABASE_URL }}"
+          KEY="${{ vars.VITE_SUPABASE_ANON_KEY }}"
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::notice::VITE_SUPABASE_* not set in Actions variables — using public/public-config.json"
+            URL=$(node -p "require('./public/public-config.json').VITE_SUPABASE_URL" 2>/dev/null || echo "")
+            KEY=$(node -p "require('./public/public-config.json').VITE_SUPABASE_ANON_KEY" 2>/dev/null || echo "")
+          fi
+
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::error::No Supabase configuration available. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY under Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+
+          case "$URL" in
+            *supabase.co*) ;;
+            *) echo "::error::VITE_SUPABASE_URL does not look like a Supabase project URL"; exit 1 ;;
+          esac
+
+          echo "VITE_SUPABASE_URL=$URL" >> "$GITHUB_ENV"
+          echo "VITE_SUPABASE_ANON_KEY=$KEY" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: npm run build
+
+      - name: Add .nojekyll (so /assets/_* files are served)
+        run: touch dist/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,5 @@
+{
+  "_comment": "Client-safe fallback used by CI when Actions variables are not set. Only the project URL and the ANON/publishable key belong here - both are public by design. NEVER put the service_role key in this file.",
+  "VITE_SUPABASE_URL": "https://gktdjvjhlomlsrumviys.supabase.co",
+  "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGRqdmpobG9tbHNydW12aXlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNTgxMDQsImV4cCI6MjEwOTgzNDEwNH0.9Yc1MalKRWqZZ90a_Thnid_DES-0LRONsnHHhNDMLo8"
+}
