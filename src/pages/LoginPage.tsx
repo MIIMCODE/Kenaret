@@ -61,7 +61,17 @@ export default function LoginPage() {
     })
     setLoading(false)
 
-    if (resendError) return setError(toPersianError(resendError))
+    if (resendError) {
+      // The built-in mailer caps at 2/hour project-wide and only delivers to the
+      // project owner, so a failed resend is common — explain it instead of
+      // dumping a raw rate-limit error.
+      if (resendError.code === 'over_email_send_rate_limit') {
+        return setError(
+          'سرویس ایمیل کنارت هنوز تنظیم نشده و فعلاً نمی‌توانیم ایمیل بفرستیم. لطفاً به مدیر سایت اطلاع بده.',
+        )
+      }
+      return setError(toPersianError(resendError))
+    }
     setError(null)
     setNeedsConfirmation(false)
     alert('ایمیل تأیید دوباره فرستاده شد. صندوق ورودی و پوشه‌ی اسپم را چک کن.')

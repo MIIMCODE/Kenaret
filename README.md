@@ -134,13 +134,34 @@ different Supabase project.
   `#/reset-password` entries, and the local dev equivalents
   (`http://localhost:5173/Kenaret/**`).
 
-### Email delivery
+### Email delivery — **currently disabled on purpose**
 
-Supabase's built-in SMTP is rate-limited and only delivers reliably to the
-project owner's address. To let anyone sign up, configure a custom SMTP
-provider in **Project Settings → Authentication → SMTP Settings**, then raise
-the email rate limit. Without it, set
-**Authentication → Providers → Email → Confirm email** to off for testing.
+Supabase's built-in mailer has two hard limitations that make it unusable for
+real signups:
+
+1. **2 emails per hour**, project-wide (`rate_limit_email_sent`). A third
+   signup in the same hour fails with *"email rate limit exceeded"* — and the
+   user row is never created.
+2. It **only delivers to the project owner's address**, so partners never
+   receive a confirmation link even when a send "succeeds".
+
+Because of that, **email confirmation is currently turned off**
+(`mailer_autoconfirm: true`). Signup and login work immediately with no email
+involved: `signUp()` returns a session, and the app goes straight to
+onboarding. The `/auth/callback` route and the PKCE handling stay in place, so
+nothing needs to change in the code when you turn confirmation back on.
+
+**To re-enable email confirmation properly:**
+
+1. Supabase dashboard → **Project Settings → Authentication → SMTP Settings** →
+   add a provider (Resend, Brevo, SendGrid, Gmail SMTP, …) with its host, port,
+   user, password and a verified sender address.
+2. **Authentication → Providers → Email** → turn **Confirm email** back on.
+3. Raise **Authentication → Rate Limits → Emails per hour** to something
+   realistic (e.g. 30–100).
+
+The app already handles that mode — it shows a "check your inbox" screen and
+warns the user if delivery is misconfigured instead of leaving them stuck.
 
 ---
 

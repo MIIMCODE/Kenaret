@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AuthShell from '../components/AuthShell'
 import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
@@ -9,6 +9,7 @@ import { toPersianError } from '../lib/errors'
 const MIN_PASSWORD = 6
 
 export default function SignupPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -42,11 +43,20 @@ export default function SignupPage() {
       return
     }
 
-    // If email confirmation is enabled (it is), no session is returned yet.
+    // With email confirmation on, Supabase returns no session until the link is
+    // clicked. With confirmation off, we get a session and go straight in.
     if (!data.session) {
+      // Supabase deliberately reports an existing address as "success, no
+      // session" to avoid leaking which emails are registered.
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        setError('این ایمیل قبلاً ثبت شده است. از صفحه‌ی ورود وارد شو یا رمزت را بازیابی کن.')
+        return
+      }
       setSentTo(cleanEmail)
       return
     }
+
+    navigate('/onboarding', { replace: true })
   }
 
   if (sentTo) {
@@ -64,6 +74,15 @@ export default function SignupPage() {
           <Alert tone="info">
             بعد از تأیید، مستقیم می‌رسی به مرحله‌ی معرفی خودت: جنسیت، اسم، تاریخ تولد و
             علاقه‌مندی‌هات.
+          </Alert>
+
+          <Alert tone="error">
+            اگر ایمیل را در چند دقیقه‌ی آینده نگرفتی، احتمالاً سرویس ایمیل کنارت هنوز تنظیم نشده
+            است. این‌جا گیر نکن — به{' '}
+            <Link to="/login" className="font-bold underline">
+              صفحه‌ی ورود
+            </Link>{' '}
+            برو و با همان ایمیل وارد شو.
           </Alert>
 
           <button
