@@ -114,7 +114,7 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
         {isGirl && (
           <Row
             title="پیش‌بینی پریود"
-            hint="فقط برای خودت — هیچ‌وقت برای شریکت فرستاده نمی‌شود"
+            hint="برای خودت؛ یادآوری شریکت فقط اگر خودت اشتراک‌گذاری را روشن کرده باشی"
             checked={prefs.want_period}
             disabled={disabled}
             busy={saving === 'want_period'}
@@ -124,8 +124,8 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
       </div>
 
       <p className="rounded-xl bg-lilac-100/60 px-3 py-2 text-[10px] leading-5 text-ink-700">
-        تقویم «روزهای مهم» همیشه کار می‌کند. اگر ایمیلی نیامد، یعنی سرویس ایمیل سایت هنوز تنظیم
-        نشده — در آن صورت روزهای مهم را از همان صفحه ببین.
+        این یادآوری‌ها همیشه در زنگوله‌ی بالای صفحه می‌آیند، حتی اگر ایمیلی نرسد. ایمیل یک کانال
+        اضافه است، نه جایگزین.
       </p>
 
       {log.length > 0 && (
