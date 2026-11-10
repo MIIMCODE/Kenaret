@@ -119,7 +119,7 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
         <div className="h-px flex-1 bg-blush-100" />
       </div>
 
-      <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
         {BUILTIN_AVATARS.map((avatar) => {
           const active = selectedBuiltin === avatar.file
           return (
@@ -134,10 +134,10 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
               aria-pressed={active}
               aria-label={avatar.label}
               title={avatar.label}
-              className={`aspect-square overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
+              className={`group relative aspect-square overflow-hidden rounded-2xl bg-blush-50 transition-all duration-200 ${
                 active
-                  ? 'border-blush-500 shadow-soft scale-[1.03]'
-                  : 'border-transparent hover:border-blush-200'
+                  ? 'ring-2 ring-blush-500 ring-offset-2 ring-offset-cream shadow-soft scale-[1.03]'
+                  : 'ring-1 ring-blush-100 hover:ring-blush-300'
               }`}
             >
               <img
@@ -145,7 +145,22 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
                 alt={avatar.label}
                 className="h-full w-full object-cover"
                 loading="lazy"
+                width={256}
+                height={256}
               />
+              {active && (
+                <span className="absolute bottom-1 left-1 flex h-4 w-4 items-center justify-center rounded-full bg-blush-500 text-white shadow-soft">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M5 12.5l4.5 4.5L19 7"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              )}
             </button>
           )
         })}

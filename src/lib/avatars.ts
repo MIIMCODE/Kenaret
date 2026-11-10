@@ -6,26 +6,28 @@ export interface BuiltinAvatar {
 }
 
 /**
- * 16 avatars shipped with the site under /public/avatars.
- * They are decorative illustrations (no external assets, nothing to fetch at runtime).
+ * 11 avatars shipped with the site under /public/avatars.
+ *
+ * These are illustrations generated for Kenaret (soft 3D, rounded clay look),
+ * committed as 256×256 WebP — a few kilobytes each, so the whole picker is
+ * lighter than a single photograph and nothing is fetched at runtime.
+ *
+ * The 1024×1024 PNG masters live in `design/avatars/` — kept out of `public/`
+ * so they are never published. `design/avatars/prepare-avatars.sh` rebuilds the
+ * WebP files above from them.
  */
 export const BUILTIN_AVATARS: BuiltinAvatar[] = [
-  { file: 'ava-01.svg', label: 'قلب صورتی' },
-  { file: 'ava-02.svg', label: 'ماه و ستاره' },
-  { file: 'ava-03.svg', label: 'گربه ملوس' },
-  { file: 'ava-04.svg', label: 'خرس کوچک' },
-  { file: 'ava-05.svg', label: 'گل رز' },
-  { file: 'ava-06.svg', label: 'پروانه' },
-  { file: 'ava-07.svg', label: 'ابر بارانی' },
-  { file: 'ava-08.svg', label: 'خورشید خانم' },
-  { file: 'ava-09.svg', label: 'کبوتر نامه‌بر' },
-  { file: 'ava-10.svg', label: 'فنجان قهوه' },
-  { file: 'ava-11.svg', label: 'ساحل و صدف' },
-  { file: 'ava-12.svg', label: 'شب پرستاره' },
-  { file: 'ava-13.svg', label: 'آدم‌برفی' },
-  { file: 'ava-14.svg', label: 'برگ پاییزی' },
-  { file: 'ava-15.svg', label: 'کیک تولد' },
-  { file: 'ava-16.svg', label: 'قایق کاغذی' },
+  { file: 'ava-01.webp', label: 'قلب صورتی' },
+  { file: 'ava-02.webp', label: 'ماه و ستاره' },
+  { file: 'ava-03.webp', label: 'گربه ملوس' },
+  { file: 'ava-04.webp', label: 'خرس کوچک' },
+  { file: 'ava-05.webp', label: 'گل رز' },
+  { file: 'ava-06.webp', label: 'پروانه' },
+  { file: 'ava-07.webp', label: 'ابر بارانی' },
+  { file: 'ava-08.webp', label: 'خورشید خانم' },
+  { file: 'ava-09.webp', label: 'کبوتر نامه‌بر' },
+  { file: 'ava-10.webp', label: 'فنجان قهوه' },
+  { file: 'ava-11.webp', label: 'ساحل و صدف' },
 ]
 
 export const AVATAR_PREFIX = {
