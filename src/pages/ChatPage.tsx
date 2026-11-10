@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
-import BottomNav from '../components/BottomNav'
 import Avatar from '../components/Avatar'
 import Spinner from '../components/Spinner'
 import {
@@ -566,7 +565,6 @@ export default function ChatPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-cream">
       <AppHeader />
-      <BottomNav />
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col">
         {/* ---- header ---- */}

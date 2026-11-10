@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
-import BottomNav from '../components/BottomNav'
 import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import PairingCodeCard from '../components/PairingCodeCard'
@@ -141,7 +140,6 @@ export default function DashboardPage() {
     return (
       <div className="min-h-dvh">
         <AppHeader />
-        <BottomNav />
         <main className="page space-y-4">
           <Alert tone="error">{error ?? 'اطلاعات بارگذاری نشد.'}</Alert>
           <button type="button" onClick={() => void load(true)} className="btn-primary w-full">
@@ -159,7 +157,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
-        <BottomNav />
 
       <main className="page space-y-4">
         {/* Greeting */}

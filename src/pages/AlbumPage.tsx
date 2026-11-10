@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
-import BottomNav from '../components/BottomNav'
 import Avatar from '../components/Avatar'
 import Spinner from '../components/Spinner'
 import {
@@ -211,7 +210,6 @@ export default function AlbumPage() {
     return (
       <div className="min-h-dvh">
         <AppHeader />
-        <BottomNav />
         <div className="page">
           <Spinner className="mx-auto mt-20 h-8 w-8 text-blush-500" />
         </div>
@@ -222,7 +220,6 @@ export default function AlbumPage() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
-        <BottomNav />
 
       <main className="page space-y-4 pb-32">
         <section>

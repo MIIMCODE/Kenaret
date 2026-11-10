@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
-import BottomNav from '../components/BottomNav'
 import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import Spinner from '../components/Spinner'
@@ -186,7 +185,6 @@ export default function SettingsPage() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
-        <BottomNav />
 
       <main className="page space-y-4">
         <div className="flex items-center gap-2">
@@ -345,10 +343,28 @@ export default function SettingsPage() {
           {profileError && <Alert tone="error">{profileError}</Alert>}
           {profileMessage && <Alert tone="success">{profileMessage}</Alert>}
 
-          <button type="button" onClick={saveProfile} disabled={savingProfile} className="btn-primary w-full">
-            {savingProfile ? <Spinner className="h-4 w-4" /> : null}
-            {savingProfile ? 'در حال ذخیره...' : 'ذخیره‌ی تغییرات'}
-          </button>
+          {/*
+            Pinned above the tab bar, not under it.
+
+            The bar is fixed at the bottom, so a button at the end of a long
+            form ends up behind it. `sticky` keeps this reachable while you
+            scroll the form and stops it colliding with the bar — and because
+            the bar is no longer part of this page, nothing here can rebuild it.
+          */}
+          <div
+            className="sticky z-10 -mx-1 px-1 pb-1"
+            style={{ bottom: 'calc(5.25rem + env(safe-area-inset-bottom))' }}
+          >
+            <button
+              type="button"
+              onClick={saveProfile}
+              disabled={savingProfile}
+              className="btn-primary w-full shadow-soft"
+            >
+              {savingProfile ? <Spinner className="h-4 w-4" /> : null}
+              {savingProfile ? 'در حال ذخیره...' : 'ذخیره‌ی تغییرات'}
+            </button>
+          </div>
         </section>
 
         {/* ---------- Period (girls only) ---------- */}
