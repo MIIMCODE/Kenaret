@@ -7,6 +7,8 @@ import type {
   PeriodSettings,
   ReminderLogRow,
   ReminderPrefs,
+  PushConfig,
+  PushDevice,
   ReunionState,
   WarmthKind,
   WarmthSignal,
@@ -308,4 +310,61 @@ export async function fetchUnseenWarmth(): Promise<number> {
   const { data, error } = await supabase.rpc('unseen_warmth_count')
   if (error) throw error
   return Number(data ?? 0)
+}
+
+// ------------------------------------------------------------------
+// Push notifications
+// ------------------------------------------------------------------
+
+/**
+ * The VAPID public key the browser must subscribe with.
+ *
+ * Read from the edge function's secret at request time, so rotating the key
+ * only means updating a secret — not shipping a new build.
+ */
+export async function fetchPushConfig(): Promise<PushConfig> {
+  const { data, error } = await supabase.rpc('push_config')
+  if (error) throw error
+  const row = (data ?? {}) as { enabled?: boolean; public_key?: string | null }
+  return { enabled: row.enabled === true, public_key: row.public_key ?? null }
+}
+
+export async function registerPushSubscription(input: {
+  endpoint: string
+  p256dh: string
+  auth: string
+  user_agent?: string | null
+}): Promise<void> {
+  const { error } = await supabase.rpc('push_subscribe', {
+    p_endpoint: input.endpoint,
+    p_p256dh: input.p256dh,
+    p_auth: input.auth,
+    p_user_agent: input.user_agent ?? null,
+  })
+  if (error) throw error
+}
+
+/** Pass the endpoint to forget one device, or null to forget them all. */
+export async function deletePushSubscription(endpoint: string | null): Promise<void> {
+  const { error } = await supabase.rpc('push_unsubscribe', { p_endpoint: endpoint })
+  if (error) throw error
+}
+
+/**
+ * Runs the push worker for the caller only.
+ *
+ * The edge function derives the user from the JWT — this passes no id — so the
+ * "send a test" button can only ever reach the caller's own devices.
+ */
+export async function invokePushSend(): Promise<{ sent: number; failed: number }> {
+  const { data, error } = await supabase.functions.invoke('push-send', { method: 'POST', body: {} })
+  if (error) throw error
+  const row = (data ?? {}) as { sent?: number; failed?: number }
+  return { sent: Number(row.sent ?? 0), failed: Number(row.failed ?? 0) }
+}
+
+export async function fetchPushDevices(): Promise<PushDevice[]> {
+  const { data, error } = await supabase.rpc('my_push_devices')
+  if (error) throw error
+  return (data ?? []) as PushDevice[]
 }

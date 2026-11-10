@@ -120,3 +120,38 @@ export type PartnerCycleStatus =
       /** Days left in the current window; 0 outside it. */
       days_left: number
     }
+
+// ------------------------------------------------------------------
+// Push notifications
+// ------------------------------------------------------------------
+
+/** Why a device cannot receive push, when it cannot. */
+export type PushUnsupportedReason =
+  | 'no-window'
+  | 'unsupported'
+  | 'ios-not-installed'
+  | 'insecure'
+
+export interface PushCapability {
+  supported: boolean
+  reason?: PushUnsupportedReason
+  permission?: NotificationPermission
+  /** Null until the caller has actually looked. */
+  subscribed?: boolean | null
+  standalone?: boolean
+  ios?: boolean
+}
+
+export interface PushConfig {
+  /** False when the server has no VAPID keys configured. */
+  enabled: boolean
+  /** The applicationServerKey, base64url. */
+  public_key: string | null
+}
+
+export interface PushDevice {
+  id: string
+  user_agent: string | null
+  created_at: string
+  last_ok_at: string | null
+}

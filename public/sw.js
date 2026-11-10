@@ -16,9 +16,18 @@
  *
  * Bump VERSION when this file's caching behaviour changes; it is not derived
  * from the build, because a new hash on every deploy would empty the cache.
+ *
+ * Since v2 it also receives Web Push. A push arrives as a JSON payload built
+ * by the `push-send` edge function:
+ *
+ *     { title, body, url, topic }
+ *
+ * and is shown with the app's own icon. `topic` is reused so a newer
+ * notification for the same subject *replaces* the older one instead of
+ * stacking — two «فردا می‌بینیش» cards would look like a bug.
  */
 
-const VERSION = 'v1'
+const VERSION = 'v2'
 const SHELL_CACHE = `kenaret-shell-${VERSION}`
 const ASSET_CACHE = `kenaret-assets-${VERSION}`
 
@@ -51,6 +60,83 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting()
+})
+
+// ------------------------------------------------------------------
+// Push notifications
+// ------------------------------------------------------------------
+
+/**
+ * Where a notification should land.
+ *
+ * The app is served from a sub-path (`/Kenaret/`), and the payload carries an
+ * in-app route (`/app`, `/dates`). Resolving against the service worker's own
+ * scope keeps that correct without hard-coding the deploy path here.
+ */
+function resolveUrl(path) {
+  try {
+    return new URL(path || './', self.registration.scope).href
+  } catch {
+    return self.registration.scope
+  }
+}
+
+self.addEventListener('push', (event) => {
+  let data = {}
+  try {
+    data = event.data ? event.data.json() : {}
+  } catch {
+    // A malformed payload must still produce *something* the user can tap.
+    data = { title: 'کنارت', body: event.data ? event.data.text() : '' }
+  }
+
+  const title = (data.title || 'کنارت').toString()
+  const body = (data.body || '').toString()
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: resolveUrl('icons/icon-192.png'),
+      badge: resolveUrl('icons/icon-192.png'),
+      dir: 'rtl',
+      lang: 'fa',
+      // Reusing a topic collapses duplicates of the same subject.
+      tag: data.topic ? `kenaret-${data.topic}` : undefined,
+      renotify: false,
+      data: { url: resolveUrl(data.url || './') },
+    }),
+  )
+})
+
+/**
+ * A tap focuses the app if it is already open, and opens it otherwise.
+ *
+ * Without this the notification would dismiss and do nothing, which reads as
+ * "the app is broken" rather than "there is nothing to see".
+ */
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = event.notification.data?.url || self.registration.scope
+
+  event.waitUntil(
+    (async () => {
+      const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      const sameApp = clientList.find((client) => client.url.startsWith(self.registration.scope))
+
+      if (sameApp) {
+        await sameApp.focus()
+        // Best effort: send the open window to the right route.
+        try {
+          sameApp.postMessage({ type: 'KENARET_NAVIGATE', url: target })
+        } catch {
+          // Ignore: focusing alone is still useful.
+        }
+        return
+      }
+
+      await self.clients.openWindow(target)
+    })(),
+  )
 })
 
 /** Never let a Supabase call or a signed URL end up in a cache. */

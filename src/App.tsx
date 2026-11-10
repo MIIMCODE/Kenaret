@@ -1,7 +1,10 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import { listenForNotificationNavigation } from './lib/sw-register'
+import { syncSubscription } from './lib/push'
 import { FullPageLoader } from './components/Spinner'
 import { isSupabaseConfigured } from './lib/supabase'
 
@@ -86,6 +89,42 @@ function RequireGuest({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Keeps this device's push subscription current, and lets a tapped
+ * notification steer the app.
+ *
+ * The re-sync is silent: permission was already granted, so no prompt appears
+ * — this only exists because browsers rotate push endpoints without telling
+ * anyone, which would otherwise leave a phone quietly unreachable.
+ */
+function PushBridge() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  useEffect(() => {
+    const off = listenForNotificationNavigation(navigate, import.meta.env.BASE_URL)
+    return off
+  }, [navigate])
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    void (async () => {
+      try {
+        if (!cancelled) await syncSubscription()
+      } catch {
+        // A failed re-sync only means the old endpoint may be stale; the app
+        // itself is unaffected.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [user])
+
+  return null
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
@@ -100,6 +139,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <PushBridge />
       <Routes>
         <Route path="/" element={<LandingPage />} />
 

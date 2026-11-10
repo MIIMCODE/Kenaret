@@ -9,6 +9,7 @@ import AnniversaryCard from '../components/AnniversaryCard'
 import AnniversarySetup from '../components/AnniversarySetup'
 import CycleShareSettings from '../components/CycleShareSettings'
 import ReminderSettings from '../components/ReminderSettings'
+import PushSettings from '../components/PushSettings'
 import { useAuth } from '../hooks/useAuth'
 import { fetchPairingState, fetchPeriodSettings, savePeriodSettings, updateProfile } from '../lib/api'
 import { validateAvatarFile, uploadAvatar } from '../lib/avatars'
@@ -453,6 +454,9 @@ export default function SettingsPage() {
         )}
 
 <ReminderSettings isGirl={profile.gender === 'girl'} />
+
+        {/* ---------- Notifications on the phone ---------- */}
+        <PushSettings />
 
         {/* ---------- Account ---------- */}
         <section className="card space-y-3 p-5">
