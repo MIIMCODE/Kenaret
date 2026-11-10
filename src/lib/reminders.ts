@@ -31,6 +31,7 @@ export type ReminderKind =
   | 'birthday'
   | 'period'
   | 'period_partner'
+  | 'reunion'
 
 /** Row shape returned by the `reminder_queue` RPC (dates arrive as ISO). */
 export interface ReminderQueueRow {
@@ -46,6 +47,7 @@ const META: Record<ReminderKind, { emoji: string; fallbackTitle: string }> = {
   birthday: { emoji: '🎂', fallbackTitle: 'تولد' },
   period: { emoji: '🌸', fallbackTitle: 'شروع پریود' },
   period_partner: { emoji: '💗', fallbackTitle: 'حال شریکت' },
+  reunion: { emoji: '🤍', fallbackTitle: 'دیدار بعدی' },
 }
 
 function isKind(value: string): value is ReminderKind {

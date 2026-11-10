@@ -10,6 +10,7 @@ import PartnerCard from '../components/PartnerCard'
 import RequestList from '../components/RequestList'
 import AnniversaryCard from '../components/AnniversaryCard'
 import AnniversarySetup from '../components/AnniversarySetup'
+import ReunionCard from '../components/ReunionCard'
 import { FullPageLoader } from '../components/Spinner'
 import { useAuth } from '../hooks/useAuth'
 import {
@@ -250,6 +251,16 @@ export default function DashboardPage() {
                 />
               </section>
             )}
+
+            {/* The next time they will actually be together */}
+            <ReunionCard
+              reunion={state.reunion ?? null}
+              partnerName={partner.display_name}
+              onChanged={(next, message) => {
+                setState((prev) => (prev ? { ...prev, reunion: next } : prev))
+                setNotice(message)
+              }}
+            />
 
             <section className="card p-5">
               <h3 className="text-[14px] font-extrabold text-ink-900">شما دو نفر</h3>

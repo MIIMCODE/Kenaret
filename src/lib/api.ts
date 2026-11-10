@@ -7,6 +7,9 @@ import type {
   PeriodSettings,
   ReminderLogRow,
   ReminderPrefs,
+  ReunionState,
+  WarmthKind,
+  WarmthSignal,
 } from '../types/database'
 
 export interface ProfileRow {
@@ -238,4 +241,71 @@ export async function fetchUpcomingReminders(days = 3): Promise<ReminderQueueRow
   const { data, error } = await supabase.rpc('my_upcoming_reminders', { p_days: days })
   if (error) throw error
   return (data ?? []) as ReminderQueueRow[]
+}
+
+// ------------------------------------------------------------------
+// The next reunion
+// ------------------------------------------------------------------
+
+/**
+ * Pins (or moves) the next time they will be together.
+ *
+ * The server owns every rule here — date not in the past, one row per couple,
+ * couple-scoped — so the UI only has to report what came back.
+ */
+export async function saveReunion(meetOn: string, note?: string | null): Promise<ReunionState> {
+  const { data, error } = await supabase.rpc('set_reunion', {
+    p_date: meetOn,
+    p_note: note?.trim() ? note.trim() : null,
+  })
+  if (error) throw error
+  return (data as { reunion: ReunionState }).reunion
+}
+
+export async function clearReunion(): Promise<void> {
+  const { error } = await supabase.rpc('clear_reunion')
+  if (error) throw error
+}
+
+// ------------------------------------------------------------------
+// Warmth (دلم برات تنگ شده)
+// ------------------------------------------------------------------
+
+export type WarmthResult = { sent: true } | { sent: false; reason: 'ALREADY_SENT' }
+
+/**
+ * One tap to the partner's bell.
+ *
+ * A repeat of the same kind within two minutes is not an error — it is a
+ * double-tap, and the server answers `ALREADY_SENT` so the button can settle
+ * instead of flashing a failure at someone being affectionate.
+ */
+export async function sendWarmth(kind: WarmthKind): Promise<WarmthResult> {
+  const { data, error } = await supabase.rpc('send_warmth', { p_kind: kind })
+  if (error) throw error
+  return data as WarmthResult
+}
+
+/**
+ * Unseen warmth from the partner — and the read receipt itself.
+ *
+ * Calling this marks the signals seen, so the bell cannot show the same hug
+ * twice. Only the last 24 hours; a signal from three days ago is not news.
+ */
+export async function fetchWarmth(): Promise<WarmthSignal[]> {
+  const { data, error } = await supabase.rpc('my_warmth')
+  if (error) throw error
+  return (data ?? []) as WarmthSignal[]
+}
+
+/**
+ * How many warmth signals are waiting — read-only.
+ *
+ * Separate from `fetchWarmth()` so that a badge refresh on page load cannot
+ * consume a signal nobody has looked at yet.
+ */
+export async function fetchUnseenWarmth(): Promise<number> {
+  const { data, error } = await supabase.rpc('unseen_warmth_count')
+  if (error) throw error
+  return Number(data ?? 0)
 }

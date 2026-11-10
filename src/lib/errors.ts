@@ -20,6 +20,11 @@ const RPC_MESSAGES: Record<string, string> = {
   NOT_CANCELLABLE: 'این درخواست قابل لغو نیست.',
   SOMEONE_HAS_PARTNER: 'یکی از شما در حال حاضر شریک فعال دارد.',
   'auth required': 'برای این کار باید وارد حساب شوی.',
+  NO_ACTIVE_COUPLE: 'برای این کار باید به یک نفر وصل باشی.',
+  DATE_REQUIRED: 'اول تاریخ دیدار را انتخاب کن.',
+  DATE_IN_PAST: 'این تاریخ گذشته؛ برای دیدار بعدی یک روز پیشِ رو انتخاب کن.',
+  UNKNOWN_KIND: 'این نوع پیام شناخته نشد. صفحه را تازه کن.',
+  TOO_MANY: 'چند لحظه صبر کن — بیشتر از این در یک ساعت نمی‌شود فرستاد.',
 }
 
 const AUTH_MESSAGES: Record<string, string> = {
