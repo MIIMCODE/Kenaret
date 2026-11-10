@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import BottomNav from '../components/BottomNav'
 import Avatar from '../components/Avatar'
 import Spinner from '../components/Spinner'
 import {
@@ -565,6 +566,7 @@ export default function ChatPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-cream">
       <AppHeader />
+      <BottomNav />
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col">
         {/* ---- header ---- */}
@@ -629,7 +631,13 @@ export default function ChatPage() {
         <div
           ref={listRef}
           className="flex-1 overflow-y-auto px-3 py-3"
-          style={{ maxHeight: 'calc(100dvh - 235px)', minHeight: '46vh' }}
+          style={{
+            maxHeight: 'calc(100dvh - 235px)',
+            minHeight: '46vh',
+            /* The composer now floats above the tab bar, so the last message
+               needs that extra strip of room or it ends up under the pill. */
+            paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
+          }}
         >
           {loading ? (
             <div className="flex justify-center py-12">
@@ -702,7 +710,16 @@ export default function ChatPage() {
         )}
 
         {/* ---- composer ---- */}
-        <div className="sticky bottom-0 border-t border-blush-100 bg-cream/95 px-2.5 pb-2.5 pt-2 backdrop-blur">
+        <div
+          className="sticky z-10 border-t border-blush-100 bg-cream/95 px-2.5 pt-2 backdrop-blur"
+          style={{
+            /* Sit on top of the tab bar, not under it. Measured height of the
+               pill is 62px plus its own 12px bottom gap; the safe-area inset is
+               already inside that number because the bar includes it. */
+            bottom: 'calc(4.75rem + env(safe-area-inset-bottom))',
+            paddingBottom: '0.625rem',
+          }}
+        >
           {/* reply preview */}
           {replyTo && !recording && (
             <div className="mb-2 flex items-center gap-2 rounded-2xl bg-blush-50 px-3 py-1.5">

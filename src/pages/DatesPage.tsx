@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import BottomNav from '../components/BottomNav'
 import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
 import { useAuth } from '../hooks/useAuth'
@@ -142,6 +143,7 @@ export default function DatesPage() {
     return (
       <div className="min-h-dvh">
         <AppHeader />
+        <BottomNav />
         <div className="page">
           <Spinner className="mx-auto mt-20 h-8 w-8 text-blush-500" />
         </div>
@@ -152,6 +154,7 @@ export default function DatesPage() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
+        <BottomNav />
 
       <main className="page space-y-4">
         <section>

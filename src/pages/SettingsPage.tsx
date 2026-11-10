@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import BottomNav from '../components/BottomNav'
 import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import Spinner from '../components/Spinner'
@@ -185,6 +186,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-dvh">
       <AppHeader />
+        <BottomNav />
 
       <main className="page space-y-4">
         <div className="flex items-center gap-2">
@@ -485,7 +487,7 @@ export default function SettingsPage() {
           </button>
         </section>
 
-        <p className="pb-4 text-center text-[10.5px] leading-5 text-ink-500">
+        <p className="pb-10 text-center text-[10.5px] leading-5 text-ink-500">
           کنارت • نسخه ۱.۰
         </p>
       </main>
