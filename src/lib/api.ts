@@ -1,6 +1,8 @@
 import { supabase } from './supabase'
 import type { ReminderQueueRow } from './reminders'
 import type {
+  AlbumPhoto,
+  AlbumStats,
   ChatMessage,
   Gender,
   PairingState,
@@ -549,4 +551,91 @@ export async function partnerIsTyping(): Promise<boolean> {
   const { data, error } = await supabase.rpc('partner_is_typing')
   if (error) return false
   return Boolean(data)
+}
+
+
+// ------------------------------------------------------------------
+// آلبوم ما (album)
+// ------------------------------------------------------------------
+
+/**
+ * Photos between two Gregorian days, inclusive.
+ *
+ * Gregorian bounds rather than a Jalali month: the client already owns Jalali
+ * conversion, and doing that maths again in SQL would be two things to keep in
+ * sync for nothing.
+ */
+export async function fetchAlbum(from: string, to: string): Promise<AlbumPhoto[]> {
+  const { data, error } = await supabase.rpc('album_range', { p_from: from, p_to: to })
+  if (error) throw error
+  return (data ?? []) as AlbumPhoto[]
+}
+
+/** The database's idea of "today", in the couple's timezone. */
+export async function fetchAlbumToday(): Promise<string> {
+  const { data, error } = await supabase.rpc('album_today')
+  if (error) throw error
+  return String(data)
+}
+
+/**
+ * Adds today's photo. Throws `ALREADY_TODAY` when today's slot is taken.
+ *
+ * The day is decided server-side (`album_today()`), never sent from here — the
+ * day-lock is the whole feature and a client-supplied date would defeat it.
+ */
+export async function addAlbumPhoto(
+  path: string,
+  width?: number | null,
+  height?: number | null,
+): Promise<{ id: string; day: string }> {
+  const { data, error } = await supabase.rpc('album_add', {
+    p_path: path,
+    p_width: width ?? null,
+    p_height: height ?? null,
+  })
+  if (error) throw error
+  return data as { id: string; day: string }
+}
+
+/** Swaps today's photo. Clears the heart, because it was for another image. */
+export async function replaceAlbumPhoto(
+  path: string,
+  width?: number | null,
+  height?: number | null,
+): Promise<{ id: string; day: string }> {
+  const { data, error } = await supabase.rpc('album_replace', {
+    p_path: path,
+    p_width: width ?? null,
+    p_height: height ?? null,
+  })
+  if (error) throw error
+  return data as { id: string; day: string }
+}
+
+export async function fetchAlbumStats(): Promise<AlbumStats> {
+  const { data, error } = await supabase.rpc('album_stats')
+  if (error) throw error
+  const row = (data ?? {}) as Partial<AlbumStats>
+  return {
+    photos: Number(row.photos ?? 0),
+    days: Number(row.days ?? 0),
+    both: Number(row.both ?? 0),
+    mine_today: row.mine_today === true,
+    theirs_today: row.theirs_today === true,
+  }
+}
+
+/** Photos that share today's day-of-month in an earlier month. */
+export async function fetchOnThisDay(): Promise<AlbumPhoto[]> {
+  const { data, error } = await supabase.rpc('album_on_this_day')
+  if (error) throw error
+  return (data ?? []) as AlbumPhoto[]
+}
+
+/** One heart, from the other person. Toggles, so a mis-tap is undoable. */
+export async function reactToAlbumPhoto(id: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('album_react', { p_id: id })
+  if (error) throw error
+  return Boolean((data as { reacted?: boolean })?.reacted)
 }

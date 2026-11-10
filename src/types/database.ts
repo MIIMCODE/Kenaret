@@ -186,3 +186,35 @@ export interface ChatMessage {
   /** True only on your own messages, once your partner has read them. */
   seen: boolean
 }
+
+// ------------------------------------------------------------------
+// آلبوم ما (album)
+// ------------------------------------------------------------------
+
+/** One photo, as `album_range` / `album_on_this_day` return it. */
+export interface AlbumPhoto {
+  id: string
+  /** Gregorian ISO of the couple-local day it belongs to. */
+  day: string
+  user_id: string
+  /** Object path in the private `album` bucket. */
+  storage_path: string
+  width: number | null
+  height: number | null
+  /** Set when the *other* person put a heart on it. */
+  reacted_at: string | null
+  created_at: string
+  /** Only from `album_on_this_day()`. */
+  years_ago?: number
+  months_ago?: number
+}
+
+export interface AlbumStats {
+  photos: number
+  /** Days with at least one photo. Only ever grows — not a streak. */
+  days: number
+  /** Days where both of you added one. */
+  both: number
+  mine_today: boolean
+  theirs_today: boolean
+}
