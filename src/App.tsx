@@ -18,6 +18,7 @@ import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import AlbumPage from './pages/AlbumPage'
+import VaultPage from './pages/VaultPage'
 import ChatPage from './pages/ChatPage'
 import DatesPage from './pages/DatesPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -189,6 +190,16 @@ export default function App() {
             </RequireAuth>
           }
         />
+        {/* Its own room, not a tab inside the app: see VaultPage. */}
+        <Route
+          path="/vault"
+          element={
+            <RequireAuth>
+              <VaultPage />
+            </RequireAuth>
+          }
+        />
+
         <Route
           path="/chat"
           element={

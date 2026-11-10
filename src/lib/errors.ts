@@ -33,6 +33,10 @@ const RPC_MESSAGES: Record<string, string> = {
   ALREADY_TODAY: 'برای امروز عکس گذاشته‌ای. اگر پشیمانی، همان را عوض کن.',
   NOTHING_TODAY: 'برای امروز عکسی نداری که عوض شود.',
   OWN_PHOTO: 'قلب مال عکس شریکت است، نه عکس خودت.',
+  ALREADY_SETUP: 'این اتاق قبلاً ساخته شده. با همان رمز بازش کن.',
+  BAD_KEY_MATERIAL: 'ساخت قفل ناقص شد. یک بار دیگر امتحان کن.',
+  VAULT_LOCKED: 'این اتاق هنوز قفل ندارد. اول برایش رمز بگذار.',
+  EMPTY_NOTE: 'نوشته خالی است. یک چیزی بنویس.',
 }
 
 const AUTH_MESSAGES: Record<string, string> = {

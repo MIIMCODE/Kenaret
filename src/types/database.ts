@@ -218,3 +218,34 @@ export interface AlbumStats {
   mine_today: boolean
   theirs_today: boolean
 }
+
+// ------------------------------------------------------------------
+// فضای خصوصی (vault)
+// ------------------------------------------------------------------
+
+/** The wrapping material. Useless without the PIN — see `src/lib/vault.ts`. */
+export interface VaultState {
+  configured: boolean
+  kdf_salt: string | null
+  kdf_iters: number | null
+  wrap_iv: string | null
+  wrapped_key: string | null
+  created_by: string | null
+  created_at: string | null
+  /** How many things are inside. A count is all the server can know. */
+  items: number
+}
+
+/** One row of `vault_list()`. Everything readable is still encrypted here. */
+export interface VaultItem {
+  id: string
+  user_id: string
+  kind: 'photo' | 'note'
+  storage_path: string | null
+  media_iv: string | null
+  body_cipher: string | null
+  body_iv: string | null
+  width: number | null
+  height: number | null
+  created_at: string
+}

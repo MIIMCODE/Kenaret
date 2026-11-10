@@ -237,6 +237,45 @@ message box, and warmth survives alongside it as the one-tap path.
   to you; a hug is your partner. Silencing dates must not block the person, and
   `ReminderSettings` says so in the switch's hint.
 
+### فضای خصوصی — a locked room the server cannot read
+
+A dark room behind a PIN, deliberately unlike every other screen: the cream,
+the blush, the header with its bells all stop at the door. That is not styling
+for its own sake — it is the signal that you have stepped out of the shared,
+glanceable part of the app.
+
+The lock is real, and it is worth being precise about what that means:
+
+- **The PIN never leaves the device.** There is no password hash in the
+  database to check it against, because *the PIN is the key*, not a credential:
+  `PBKDF2-SHA256(PIN, per-couple salt, 310 000 rounds)` produces a wrapping key,
+  which unwraps the room's 32-byte data key. A wrong PIN fails the GCM
+  authentication tag; the server never learns the PIN or whether it was right.
+- **Every photo and note is encrypted in the browser** (AES-256-GCM) before it
+  is uploaded. The `vault` bucket holds noise. `kind` and `created_at` are the
+  only things in the clear.
+- **Consequence, stated in the UI before anyone commits:** a lost PIN is a lost
+  room. We cannot reset it, because resetting it would require being able to
+  read it. Setup asks for the PIN twice and requires an explicit acknowledgement.
+- **No push notification.** A banner saying "something new in your private
+  space" is exactly what must not appear while someone else holds your phone.
+- `vault_setup` refuses a second call (`ALREADY_SETUP`). Replacing the wrapped
+  key would orphan every photograph inside — including for the person who wrote
+  it.
+- Rows are reachable only through the `vault_*` RPCs: `authenticated` has no
+  table privileges at all, so even your own account cannot `select *` the table.
+  Verified: `permission denied for table vault_items` as the real couple.
+- A photo's `storage_path` must start with the couple id (`BAD_PATH` otherwise),
+  and every write is rate-limited to 60/hour.
+- Deleting a row returns the storage path so the caller drops the ciphertext
+  blob too; the crash case leaves unreachable noise, never a readable file.
+
+Verified: crypto 9/9 (wrong PIN → null, tampering rejected, cross-room key
+cannot decrypt, image bytes round-trip), UI 11/11 (setup warnings, mismatch,
+dark backdrop does not leak to the shared body, wrong PIN refused, right PIN
+opens, plaintext never reaches the API), DB 9/9 (`VAULT_LOCKED`, `ALREADY_SETUP`,
+`BAD_PATH`, `NO_ACTIVE_COUPLE`, direct table access denied).
+
 ### آلبوم ما — one photo a day, from both of you
 
 Not a gallery. A gallery is somewhere you go when you remember to. This is a

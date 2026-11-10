@@ -13,6 +13,8 @@ import type {
   PushConfig,
   PushDevice,
   ReunionState,
+  VaultItem,
+  VaultState,
   WarmthKind,
   WarmthSignal,
 } from '../types/database'
@@ -638,4 +640,89 @@ export async function reactToAlbumPhoto(id: string): Promise<boolean> {
   const { data, error } = await supabase.rpc('album_react', { p_id: id })
   if (error) throw error
   return Boolean((data as { reacted?: boolean })?.reacted)
+}
+
+// ------------------------------------------------------------------
+// فضای خصوصی — the server only ever stores ciphertext here.
+// ------------------------------------------------------------------
+
+export async function fetchVaultState(): Promise<VaultState> {
+  const { data, error } = await supabase.rpc('vault_state')
+  if (error) throw error
+  const row = (data ?? {}) as Partial<VaultState>
+  return {
+    configured: row.configured === true,
+    kdf_salt: row.kdf_salt ?? null,
+    kdf_iters: row.kdf_iters ?? null,
+    wrap_iv: row.wrap_iv ?? null,
+    wrapped_key: row.wrapped_key ?? null,
+    created_by: row.created_by ?? null,
+    created_at: row.created_at ?? null,
+    items: Number(row.items ?? 0),
+  }
+}
+
+export async function setupVault(material: {
+  salt: string
+  iv: string
+  wrapped: string
+  iters: number
+}): Promise<void> {
+  const { error } = await supabase.rpc('vault_setup', {
+    p_salt: material.salt,
+    p_iv: material.iv,
+    p_wrapped: material.wrapped,
+    p_iters: material.iters,
+  })
+  if (error) throw error
+}
+
+export async function fetchVaultItems(before?: string | null): Promise<VaultItem[]> {
+  const { data, error } = await supabase.rpc('vault_list', {
+    p_before: before ?? null,
+    p_limit: 40,
+  })
+  if (error) throw error
+  return (data ?? []) as VaultItem[]
+}
+
+export async function addVaultPhoto(photo: {
+  path: string
+  mediaIv: string
+  body?: string | null
+  bodyIv?: string | null
+  width?: number | null
+  height?: number | null
+}): Promise<{ id: string }> {
+  const { data, error } = await supabase.rpc('vault_add', {
+    p_kind: 'photo',
+    p_path: photo.path,
+    p_media_iv: photo.mediaIv,
+    p_body: photo.body ?? null,
+    p_body_iv: photo.bodyIv ?? null,
+    p_width: photo.width ?? null,
+    p_height: photo.height ?? null,
+  })
+  if (error) throw error
+  return data as { id: string }
+}
+
+export async function addVaultNote(note: {
+  body: string
+  bodyIv: string
+}): Promise<{ id: string }> {
+  const { data, error } = await supabase.rpc('vault_add', {
+    p_kind: 'note',
+    p_body: note.body,
+    p_body_iv: note.bodyIv,
+  })
+  if (error) throw error
+  return data as { id: string }
+}
+
+/** Deletes the row and returns the storage path so the caller can drop the file too. */
+export async function deleteVaultItem(id: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('vault_delete', { p_id: id })
+  if (error) throw error
+  return ((data as { path?: string | null })?.path ?? null) as string | null
 }
