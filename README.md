@@ -55,6 +55,53 @@ A progress bar tracks the steps. Each step is saved immediately, and
 - Once connected, both partners see each other's name, photo, interests and
   birth date.
 
+### روزهای مهم (the shared calendar)
+- One page (`/dates`) with the yearly anniversary, the next monthiversary, day
+  milestones, both birthdays and — for the account owner only — the next
+  period window, grouped by Jalali month.
+- Birthdays and anniversaries are computed on the **Jalali** calendar, which is
+  the one people celebrate; 30 Esfand clamps to 29 in a non-leap year instead
+  of vanishing.
+- Reminders arrive **one day before** by email, switchable per kind in settings.
+  The job runs inside Supabase (pg_cron + pg_net), so the site stays static.
+
+#### Turning email reminders on
+
+The code is done; delivery needs one secret and one scheduled job. Until then
+`send_reminders()` records each attempt as `skipped` and the calendar keeps
+working — nothing is lost.
+
+1. Get an API key from [Resend](https://resend.com) (free tier is fine) and
+   verify a sending domain, or use their test sender.
+2. Store it in Vault (never in the repo):
+
+   ```sql
+   select vault.create_secret('re_xxxxxxxx', 'resend_api_key');
+   ```
+
+3. Enable the extensions and schedule the daily run — 08:00 Tehran time:
+
+   ```sql
+   create extension if not exists pg_cron;
+   create extension if not exists pg_net;
+
+   select cron.schedule(
+     'kenaret-reminders',
+     '30 4 * * *',                -- 04:30 UTC = 08:00 Asia/Tehran
+     $$ select public.send_reminders(); $$
+   );
+   ```
+
+4. Check it worked:
+
+   ```sql
+   select * from public.reminder_log order by created_at desc limit 20;
+   select public.reminder_queue(current_date + 1);  -- who would be mailed
+   ```
+
+Run `send_reminders()` by hand any time — the unique index on `reminder_log`
+makes a second run a no-op rather than a duplicate email.
+
 ### Relationship start date
 - Right after a couple connects, the partner who sent the request is asked
   «تاریخ آشنایی‌اتون کی بوده؟» in the dashboard, with a Jalali picker.
@@ -80,6 +127,7 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
 | `0004_storage.sql` | private `avatars` bucket and its policies |
 | `0005_anniversary.sql` | relationship start date, turn bookkeeping, RPCs |
 | `0006_ask_requester_first.sql` | ask the requester first; repair pending turns |
+| `0007_reminders.sql` | Jalali↔Gregorian tables, reminder queue + mailer |
 
 **RLS is the only security layer, so the rules are strict:**
 
