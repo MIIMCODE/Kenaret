@@ -65,11 +65,31 @@ A progress bar tracks the steps. Each step is saved immediately, and
 - Reminders arrive **one day before** by email, switchable per kind in settings.
   The job runs inside Supabase (pg_cron + pg_net), so the site stays static.
 
+### Cycle sharing (opt-in, one tap, revocable)
+The girl's period data stays her own by default. She can choose — from
+Settings → «اطلاعات پریود» → **«به اشتراک بگذار»** — to let her partner see a
+*status*, and nothing more:
+
+| She sees | He sees |
+| --- | --- |
+| her real dates and window | «این روزها پریود است» / «نزدیک پریود است» / «روزهای آرامش» |
+| a loud banner while sharing is on | a countdown in days, never a date |
+| «خاموشش کن» at any time | the card disappears the moment she does |
+
+How it is enforced, not just promised:
+
+- `period_settings` RLS is untouched — the partner has **no** SELECT grant, and
+  `cycle_shares` has no partner read policy either. The only partner path is
+  `partner_cycle_status()`, a `security definer` function that returns words.
+- Consent is bound to the **couple** row, so `unlink_partner()` deletes it:
+  re-pairing with somebody new never inherits an old yes.
+- `reminder_queue()` only produces the «فردا برای … روز سختی است» row while the
+  share for *that* couple is on, so turning it off also stops the emails.
+
 #### Turning email reminders on
 
-The code is done; delivery needs one secret and one scheduled job. Until then
-`send_reminders()` records each attempt as `skipped` and the calendar keeps
-working — nothing is lost.
+Two scheduled jobs and one Vault secret. Until the secret exists every attempt
+is recorded as `skipped` and the calendar keeps working — nothing is lost.
 
 1. Get an API key from [Resend](https://resend.com) (free tier is fine) and
    verify a sending domain, or use their test sender.
@@ -79,7 +99,7 @@ working — nothing is lost.
    select vault.create_secret('re_xxxxxxxx', 'resend_api_key');
    ```
 
-3. Enable the extensions and schedule the daily run — 08:00 Tehran time:
+3. Enable the extensions and schedule both passes — 08:00 Tehran time:
 
    ```sql
    create extension if not exists pg_cron;
@@ -89,6 +109,12 @@ working — nothing is lost.
      'kenaret-reminders',
      '30 4 * * *',                -- 04:30 UTC = 08:00 Asia/Tehran
      $$ select public.send_reminders(); $$
+   );
+
+   select cron.schedule(
+     'kenaret-reminder-reconcile',
+     '40 4 * * *',                -- ten minutes later
+     $$ select public.reconcile_reminder_delivery(); $$
    );
    ```
 
@@ -101,6 +127,20 @@ working — nothing is lost.
 
 Run `send_reminders()` by hand any time — the unique index on `reminder_log`
 makes a second run a no-op rather than a duplicate email.
+
+**Delivery is confirmed in two passes on purpose.** pg_net only *queues* the
+request, so `send_reminders()` stores the request id and leaves the row
+`queued`; `reconcile_reminder_delivery()` then reads the real HTTP reply and
+marks the row `sent` or `failed` with the provider's message. Skipping the
+second pass would let a rejected mail look delivered.
+
+> **Known limitation until a domain is verified at
+> [resend.com/domains](https://resend.com/domains):** Resend's test mode only
+> accepts the account owner's own address as a recipient, and every other
+> address is refused with `403 ... you can only send testing emails to your own
+> email address`. Those rows now show up as `failed` with that reason in
+> Settings → «تاریخچه‌ی یادآوری‌ها», instead of silently vanishing. Verifying a
+> domain and changing the `from` address in `send_reminders()` lifts the limit.
 
 ### Relationship start date
 - Right after a couple connects, the partner who sent the request is asked

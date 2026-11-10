@@ -135,21 +135,30 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
           </summary>
           <ul className="mt-2 space-y-1.5">
             {log.map((item) => (
-              <li key={item.id} className="flex items-center justify-between gap-2 text-[10.5px]">
-                <span className="text-ink-700">
-                  {kindLabel(item.kind)} — {anniversaryLabel(item.event_iso)}
-                </span>
-                <span
-                  className={
-                    item.status === 'sent'
-                      ? 'font-bold text-emerald-600'
-                      : item.status === 'skipped'
-                        ? 'font-bold text-ink-500'
-                        : 'font-bold text-blush-600'
-                  }
-                >
-                  {statusLabel(item.status)}
-                </span>
+              <li key={item.id} className="space-y-0.5 text-[10.5px]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-ink-700">
+                    {kindLabel(item.kind)} — {anniversaryLabel(item.event_iso)}
+                  </span>
+                  <span
+                    className={
+                      item.status === 'sent'
+                        ? 'font-bold text-emerald-600'
+                        : item.status === 'failed'
+                          ? 'font-bold text-red-600'
+                          : item.status === 'skipped'
+                            ? 'font-bold text-ink-500'
+                            : 'font-bold text-blush-600'
+                    }
+                  >
+                    {statusLabel(item.status)}
+                  </span>
+                </div>
+                {item.status === 'failed' && (
+                  <p className="leading-4 text-[9.5px] text-red-500">
+                    {failureHint(item.detail)}
+                  </p>
+                )}
               </li>
             ))}
           </ul>
@@ -219,6 +228,8 @@ function kindLabel(kind: string): string {
       return 'روز شمردنی'
     case 'period':
       return 'پریود'
+    case 'period_partner':
+      return 'حال شریک'
     default:
       return kind
   }
@@ -235,4 +246,19 @@ function statusLabel(status: ReminderLogRow['status']): string {
     default:
       return 'در صف'
   }
+}
+
+/**
+ * A failed send is only useful if it says why. The commonest reason by far is
+ * that the mail provider has not verified a sending domain yet, which shows up
+ * as a 403 that mentions the account owner's own address.
+ */
+function failureHint(detail: string | null): string {
+  if (!detail) return 'فرستاده نشد.'
+  if (detail.includes('testing emails') || detail.includes('verify a domain')) {
+    return 'سرویس ایمیل هنوز دامنه‌ی فرستنده را تأیید نکرده؛ تا آن موقع فقط به ایمیل صاحب حساب می‌فرستد.'
+  }
+  if (detail.startsWith('403')) return 'سرویس ایمیل اجازه‌ی این ارسال را نداد.'
+  if (detail.startsWith('429')) return 'تعداد ارسال‌ها زیاد شد؛ بعداً دوباره تلاش می‌شود.'
+  return 'فرستاده نشد.'
 }
