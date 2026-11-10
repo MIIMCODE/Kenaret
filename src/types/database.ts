@@ -45,6 +45,24 @@ export interface AnniversaryState {
   set_by: string | null
 }
 
+/** The next time the two of them will actually be in the same place. */
+export interface ReunionState {
+  /** `YYYY-MM-DD`, Gregorian — the UI converts to Jalali. */
+  meet_on: string
+  note: string | null
+  created_by?: string | null
+}
+
+/** The three things one tap can mean. Deliberately not a message. */
+export type WarmthKind = 'miss' | 'hug' | 'cheer'
+
+export interface WarmthSignal {
+  id: string
+  kind: WarmthKind
+  from_name: string
+  created_at: string
+}
+
 export interface PairingState {
   pairing_code: string | null
   partner: {
@@ -59,6 +77,8 @@ export interface PairingState {
   outgoing: CoupleRequestSummary[]
   /** Present once an active partner exists. */
   anniversary?: AnniversaryState | null
+  /** Null until either partner pins a date; cleared by either of them too. */
+  reunion?: ReunionState | null
 }
 
 export interface ReminderPrefs {

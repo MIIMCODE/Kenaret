@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { usePortalHost, useScrollLock } from '../lib/portal'
-import { fetchReminderPrefs, fetchUpcomingReminders } from '../lib/api'
+import { fetchReminderPrefs, fetchUnseenWarmth, fetchUpcomingReminders, fetchWarmth } from '../lib/api'
 import { BELL_WINDOW_DAYS, bellSummary, toReminders, type InAppReminder } from '../lib/reminders'
+import { toWarmthLine, type WarmthLine } from '../lib/reunion'
 import { toPersianDigits } from '../lib/jalali'
 
 /**
@@ -21,7 +22,19 @@ import { toPersianDigits } from '../lib/jalali'
  */
 export default function ReminderBell() {
   const [items, setItems] = useState<InAppReminder[]>([])
+  /**
+   * Unread warmth. Two different calls on purpose:
+   *
+   *  - `fetchUnseenWarmth()` only *counts*, so the badge can be right on every
+   *    page load without marking anything seen;
+   *  - `fetchWarmth()` is the acknowledgement, and only runs when the sheet
+   *    actually opens. Reading a hug is what marks it read.
+   */
+  const [warmth, setWarmth] = useState<WarmthLine[]>([])
+  const [warmthCount, setWarmthCount] = useState(0)
   const [loaded, setLoaded] = useState(false)
+  /** Guards against re-consuming on every re-render while the sheet is open. */
+  const consumed = useRef(false)
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const portalTarget = usePortalHost()
@@ -29,15 +42,19 @@ export default function ReminderBell() {
   useScrollLock(open)
 
   const { user } = useAuth()
+  /** Keyed on the id, not the object: a new auth object per render is common. */
+  const userId = user?.id ?? null
 
   const load = useCallback(async () => {
     try {
       if (!user) return
       // The bell honours the same switches as the mail job: a kind the user
       // turned off must not come back through a different door.
-      const [rows, prefs] = await Promise.all([
+      const [rows, prefs, waiting] = await Promise.all([
         fetchUpcomingReminders(BELL_WINDOW_DAYS),
         fetchReminderPrefs(user.id).catch(() => null),
+        // A missing partner is not an error: the RPC simply returns nothing.
+        fetchUnseenWarmth().catch(() => 0),
       ])
       const allowed = rows.filter((row) => {
         if (!prefs) return true
@@ -49,9 +66,12 @@ export default function ReminderBell() {
         return true
       })
       setItems(toReminders(allowed))
+      setWarmthCount(waiting)
+      if (!consumed.current) setWarmth([])
     } catch {
       // A failed bell must never surface an error banner; it just stays quiet.
       setItems([])
+      setWarmthCount(0)
     } finally {
       setLoaded(true)
     }
@@ -75,8 +95,38 @@ export default function ReminderBell() {
     window.setTimeout(() => {
       setOpen(false)
       setClosing(false)
+      // Allow the next open to consume whatever arrived in the meantime.
+      consumed.current = false
     }, 140)
   }, [])
+
+  /**
+   * Opening the sheet is the acknowledgement.
+   *
+   * Runs once per open (the ref guard), so flicking between the sheet and the
+   * page behind it cannot re-consume or double-count.
+   */
+  useEffect(() => {
+    if (!open || consumed.current || !userId) return
+    consumed.current = true
+    let cancelled = false
+    void (async () => {
+      try {
+        const signals = await fetchWarmth()
+        if (cancelled) return
+        const lines = signals
+          .map(toWarmthLine)
+          .filter((line): line is WarmthLine => line !== null)
+        setWarmth(lines)
+        setWarmthCount(0)
+      } catch {
+        // Nothing to show; the dated reminders are still there.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open, userId])
 
   useEffect(() => {
     if (!open) return
@@ -87,7 +137,8 @@ export default function ReminderBell() {
     return () => document.removeEventListener('keydown', onKey)
   }, [open, close])
 
-  const count = items.length
+  const count = items.length + Math.max(warmthCount, warmth.length)
+  const total = items.length + warmth.length
   const label =
     count === 0
       ? 'یادآوری‌ها؛ چیزی پیشِ رو نیست'
@@ -126,16 +177,40 @@ export default function ReminderBell() {
               بستن
             </button>
           </div>
-          <p className="mb-3 text-[11px] leading-5 text-ink-500">{bellSummary(items)}</p>
+          <p className="mb-3 text-[11px] leading-5 text-ink-500">
+            {warmth.length > 0 || warmthCount > 0
+              ? 'یک اشاره از طرف شریکت رسیده 🤍'
+              : bellSummary(items)}
+          </p>
 
-          {count === 0 ? (
+          {warmth.length > 0 && (
+            <ul className="mb-2 space-y-2" aria-label="پیام‌های گرم">
+              {warmth.map((line) => (
+                <li
+                  key={line.key}
+                  className="flex items-center gap-3 rounded-2xl border border-blush-200 bg-gradient-to-l from-blush-50 to-white px-3 py-2.5"
+                >
+                  <span className="text-[17px]" aria-hidden="true">
+                    {line.emoji}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[12px] font-bold text-ink-900">{line.label}</p>
+                    <p className="mt-0.5 text-[10px] text-ink-500">{line.sentence}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {total === 0 ? (
             <div className="rounded-2xl bg-blush-50 px-4 py-6 text-center">
               <p className="text-[22px]" aria-hidden="true">
                 🌱
               </p>
               <p className="mt-1.5 text-[12px] font-bold text-ink-900">فعلاً خبری نیست</p>
               <p className="mt-1 text-[11px] leading-5 text-ink-500">
-                سالگرد، ماهگرد، تولد و روزهای شمردنی یک روز قبل همین‌جا خبر می‌دهند.
+                سالگرد، ماهگرد، تولد و روزهای شمردنی یک روز قبل همین‌جا خبر می‌دهند؛
+                دیدار بعدی هم یک روز قبل، و اشاره‌های شریکت همین‌که برسی.
               </p>
             </div>
           ) : (
@@ -173,7 +248,8 @@ export default function ReminderBell() {
           </Link>
 
           <p className="mt-2 text-center text-[10px] leading-5 text-ink-500">
-            همین‌ها یک روز قبل با ایمیل هم می‌آیند — اگر در تنظیمات روشن باشد.
+            همین‌ها یک روز قبل با ایمیل هم می‌آیند — اگر در تنظیمات روشن باشد. اشاره‌های
+            شریکت فقط همین‌جا می‌مانند و جایی آرشیو نمی‌شوند.
           </p>
         </div>
       </div>

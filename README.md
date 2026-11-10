@@ -165,6 +165,52 @@ verified sending domain, so a mail may 403 while the bell always fires.
 - A failed load is silent — no error banner, no badge. An empty bell says so
   plainly and links to «روزهای مهم».
 
+### دیدار بعدی (the next reunion)
+A couple who are apart usually *know* the next date they will be together — they
+just have no shared place to keep it. The dashboard card turns that date into a
+countdown, so «۱۹ روز مانده» shrinks every morning instead of distance being a
+vague weight.
+
+- One row per couple (`reunions`, unique on `couple_id`), an optional 140-char
+  note for the practical detail («فرودگاه، پرواز ۸ صبح»), and a Jalali date
+  picker for the day itself.
+- **Either partner may set, move or clear it.** There is no
+  request/confirm dance: either one may be the first to find out.
+- The copy changes with the number rather than swapping a digit into one
+  sentence: «تا دیدار بعدی / ۱۹ روز», «فقط یک خواب / فردا میبینیش»,
+  «بالاخره رسید / امروز میبینیش». A date in the past is labelled as past —
+  never counted upwards.
+- `reminder_queue()` gained a `reunion` branch, so the nightly job mails
+  «فردا میبینیش» the day before and the bell shows the same line. Both partners
+  get it; the reminders master switch does silence it, like every other date.
+- Writes are RPC-only (`set_reunion`, `clear_reunion`) with `select` as the only
+  grant on the table, so a client cannot pin a reunion onto another couple.
+  Dates in the past are rejected with `DATE_IN_PAST`.
+
+### warmth — «دلم برات تنگ شده» without starting a conversation
+Three taps on the partner card — **🤍 دلم تنگ شده**, **🫂 بغل**, **☀️ قوت قلب** —
+and the signal appears in the partner's bell on their next visit.
+
+It is deliberately **not a chat**: no text, no threads, no history page, nothing
+to keep up with. That constraint is the feature — the moment it grows a message
+box it becomes another inbox to feel guilty about.
+
+- `warmth` is couple-scoped like `cycle_shares`; writes are RPC-only.
+- `send_warmth(kind)` rate-limits **in the database**, not the UI: five per hour
+  per sender (`TOO_MANY`), and repeating the *same* kind within two minutes
+  returns `ALREADY_SENT` — that is what a double-tap on a phone means, so the
+  button still settles into its happy state instead of flashing an error.
+- Reading is the acknowledgement. `my_warmth()` returns the partner's unseen
+  signals from the last 24 h **and marks them seen**, so a hug shows exactly
+  once and no «mark as read» button exists.
+- The badge needs a number without consuming anything, so a second read-only
+  function `unseen_warmth_count()` exists. Counting through `my_warmth()` was
+  the first design and it marked hugs seen while the sheet was still closed —
+  the user got a badge, opened the bell, and found nothing.
+- Warmth **ignores the reminders master switch**. A reminder is the app talking
+  to you; a hug is your partner. Silencing dates must not block the person, and
+  `ReminderSettings` says so in the switch's hint.
+
 ### Installing on the phone (PWA)
 Kenaret installs to the home screen and then behaves like an app: its own
 icon, no address bar, and a cold start straight into the dashboard.
@@ -218,6 +264,9 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
 | `0005_anniversary.sql` | relationship start date, turn bookkeeping, RPCs |
 | `0006_ask_requester_first.sql` | ask the requester first; repair pending turns |
 | `0007_reminders.sql` | Jalali↔Gregorian tables, reminder queue + mailer |
+| `0008_share_cycle.sql` | consent-based cycle sharing, partner-aware queue |
+| `0009_in_app_reminders.sql` | the bell's `my_upcoming_reminders()` |
+| `0010_reunion_and_warmth.sql` | reunion countdown, warmth signals, reunion reminder |
 
 **RLS is the only security layer, so the rules are strict:**
 
@@ -230,6 +279,10 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
   **no** `INSERT`/`UPDATE`/`DELETE` grants at all: every state change goes
   through the RPCs `request_partner`, `respond_to_request`, `cancel_request`
   and `unlink_partner`, which check `auth.uid()` themselves.
+- `reunions` / `warmth` — `SELECT` for the active couple only, writes revoked
+  entirely. Everything goes through `set_reunion`, `clear_reunion`,
+  `send_warmth` and `my_warmth`, each of which resolves the couple from
+  `auth.uid()` itself, so a client cannot address another couple's row.
 - `storage.objects` — writes are limited to `<your-uid>/…`; reads are limited to
   you, your active partner, and the other side of a pending request. The
   `avatars` bucket is private (3 MB, image MIME types only), and URLs are

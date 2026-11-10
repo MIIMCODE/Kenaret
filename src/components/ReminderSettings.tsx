@@ -88,7 +88,7 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
 
       <Row
         title="یادآوری‌ها فعال باشند"
-        hint="اگر خاموش شود، هیچ ایمیلی نمی‌آید."
+        hint="اگر خاموش شود، هیچ ایمیل و هیچ یادآوری‌ای در زنگوله نمی‌آید. «دلم تنگ شده»ی شریکت اما همیشه می‌رسد."
         checked={prefs.enabled}
         busy={saving === 'enabled'}
         onChange={(value) => void toggle('enabled', value)}

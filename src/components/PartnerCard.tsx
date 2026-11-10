@@ -1,4 +1,5 @@
 import Avatar from './Avatar'
+import WarmthButtons from './WarmthButtons'
 import type { PairingState } from '../types/database'
 import { daysBetweenIso, formatJalaliLong, todayIso } from '../lib/jalali'
 
@@ -57,6 +58,8 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
           </div>
         </div>
       )}
+
+      <WarmthButtons partnerName={partner.display_name} />
 
       <div className="border-t border-blush-100 px-5 py-3">
         <button
