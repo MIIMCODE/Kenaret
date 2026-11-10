@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner'
 import JalaliDatePicker from '../components/JalaliDatePicker'
 import AnniversaryCard from '../components/AnniversaryCard'
 import AnniversarySetup from '../components/AnniversarySetup'
+import CycleShareSettings from '../components/CycleShareSettings'
 import ReminderSettings from '../components/ReminderSettings'
 import { useAuth } from '../hooks/useAuth'
 import { fetchPairingState, fetchPeriodSettings, savePeriodSettings, updateProfile } from '../lib/api'
@@ -444,6 +445,8 @@ export default function SettingsPage() {
                 <p className="text-[11px] leading-5 text-ink-500">
                   روزهای بعدی از همین اعداد تخمین زده می‌شوند؛ در صفحه‌ی «روزهای مهم» می‌بینی‌شان.
                 </p>
+
+                <CycleShareSettings hasCycle={Boolean(period)} />
               </>
             )}
           </section>

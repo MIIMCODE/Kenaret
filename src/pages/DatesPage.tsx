@@ -4,7 +4,12 @@ import AppHeader from '../components/AppHeader'
 import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
 import { useAuth } from '../hooks/useAuth'
-import { fetchPairingState, fetchPeriodSettings } from '../lib/api'
+import {
+  fetchCycleShared,
+  fetchPairingState,
+  fetchPartnerCycleStatus,
+  fetchPeriodSettings,
+} from '../lib/api'
 import { toPersianError } from '../lib/errors'
 import {
   groupByJalaliMonth,
@@ -14,7 +19,7 @@ import {
   type PeriodTimings,
 } from '../lib/calendar'
 import { anniversaryLabel, daysUntilLabel } from '../lib/anniversary'
-import type { PairingState } from '../types/database'
+import type { PairingState, PartnerCycleStatus } from '../types/database'
 
 type Filter = 'all' | 'private'
 
@@ -26,6 +31,10 @@ export default function DatesPage() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
   const [horizon, setHorizon] = useState(120)
+  /** Girls: is my cycle currently visible to my partner? */
+  const [sharingCycle, setSharingCycle] = useState(false)
+  /** Boys: the coarse status her share allows — or `{ shared: false }`. */
+  const [partnerCycle, setPartnerCycle] = useState<PartnerCycleStatus>({ shared: false })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -49,6 +58,15 @@ export default function DatesPage() {
         )
       } else {
         setPeriod(null)
+      }
+
+      if (profile?.gender === 'girl') {
+        setSharingCycle(await fetchCycleShared().catch(() => false))
+        setPartnerCycle({ shared: false })
+      } else if (profile?.gender === 'boy' && next.partner) {
+        setPartnerCycle(await fetchPartnerCycleStatus().catch(() => ({ shared: false }) as const))
+      } else {
+        setPartnerCycle({ shared: false })
       }
       setError(null)
     } catch (loadError) {
@@ -169,10 +187,22 @@ export default function DatesPage() {
               {anniversaryLabel(cycle.startIso)} تا {anniversaryLabel(cycle.endIso)}
               {!period?.isRegular && ' • تخمینی، چون چرخه‌ات نامنظم است'}
             </p>
-            <p className="mt-2 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] font-semibold text-blush-700">
-              این بخش فقط برای خودت دیده می‌شود، حتی شریکت هم دسترسی ندارد.
-            </p>
+            {sharingCycle ? (
+              <p className="mt-2 rounded-xl bg-lilac-100 px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-ink-700">
+                اشتراک‌گذاری روشن است: شریکت فقط همین خلاصه را می‌بیند — نه تاریخ‌ها و نه طول
+                چرخه. از تنظیمات می‌توانی خاموشش کنی.
+              </p>
+            ) : (
+              <p className="mt-2 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] font-semibold text-blush-700">
+                این بخش فقط برای خودت دیده می‌شود، حتی شریکت هم دسترسی ندارد.
+              </p>
+            )}
           </section>
+        )}
+
+        {/* what she chose to share with him — a phase, never a date */}
+        {profile?.gender === 'boy' && partnerCycle.shared && (
+          <PartnerCycleCard status={partnerCycle} name={state?.partner?.display_name ?? null} />
         )}
 
         {/* filters */}
@@ -302,4 +332,75 @@ function FilterChip({
       {children}
     </button>
   )
+}
+
+/**
+ * What he sees while she shares her cycle.
+ *
+ * Three words, no dates: «پریود», «نزدیک پریود», «روزهای آرام». The countdown is
+ * to a *window*, not a stored date, and there is no link that opens her data —
+ * turning the share off makes this card disappear entirely.
+ */
+function PartnerCycleCard({
+  status,
+  name,
+}: {
+  status: Exclude<PartnerCycleStatus, { shared: false }>
+  name: string | null
+}) {
+  const who = name ?? 'شریکت'
+
+  const copy =
+    status.phase === 'period'
+      ? {
+          emoji: '🩸',
+          label: 'این روزها پریود است',
+          hint:
+            status.days_left > 0
+              ? `حدود ${toPersianDigits(status.days_left)} روز دیگر ادامه دارد.`
+              : 'کمی همدلی بیشتر این روزها معجزه می‌کند.',
+        }
+      : status.phase === 'pms'
+        ? {
+            emoji: '🌧',
+            label: `نزدیک پریود است (حدود ${toPersianDigits(status.days_until)} روز دیگر)`,
+            hint: 'این یکی‌دو روز ممکن است حوصله‌اش کم باشد؛ آرام‌تر رفتار کن.',
+          }
+        : {
+            emoji: '🌤',
+            label: 'روزهای آرامش',
+            hint:
+              status.days_until > 0
+                ? `پریود بعدی حدود ${toPersianDigits(status.days_until)} روز دیگر شروع می‌شود.`
+                : 'الان در دوره‌ی پریود نیست.',
+          }
+
+  return (
+    <section className="card p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold text-ink-500">حال {who}</p>
+        <span className="rounded-lg bg-lilac-100 px-2 py-0.5 text-[9.5px] font-bold text-ink-600">
+          با اجازه‌ی خودش
+        </span>
+      </div>
+
+      <div className="mt-1.5 flex items-center gap-2.5">
+        <span className="text-[22px]" aria-hidden="true">
+          {copy.emoji}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[13.5px] font-extrabold text-ink-900">{copy.label}</p>
+          <p className="mt-0.5 text-[10.5px] leading-5 text-ink-500">{copy.hint}</p>
+        </div>
+      </div>
+
+      <p className="mt-2.5 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-blush-700">
+        این خلاصه را خودش با تو به اشتراک گذاشته و هر لحظه می‌تواند خاموشش کند.
+      </p>
+    </section>
+  )
+}
+
+function toPersianDigits(value: number): string {
+  return String(value).replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)])
 }

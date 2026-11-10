@@ -1,5 +1,12 @@
 import { supabase } from './supabase'
-import type { Gender, PairingState, PeriodSettings, ReminderLogRow, ReminderPrefs } from '../types/database'
+import type {
+  Gender,
+  PairingState,
+  PartnerCycleStatus,
+  PeriodSettings,
+  ReminderLogRow,
+  ReminderPrefs,
+} from '../types/database'
 
 export interface ProfileRow {
   id: string
@@ -172,6 +179,7 @@ export async function fetchReminderLog(userId: string, limit = 8): Promise<Remin
   const { data, error } = await supabase
     .from('reminder_log')
     .select('id, kind, event_iso, channel, status, detail, created_at')
+
     .eq('user_id', userId)
     .eq('channel', 'email')
     .order('created_at', { ascending: false })
@@ -179,4 +187,37 @@ export async function fetchReminderLog(userId: string, limit = 8): Promise<Remin
 
   if (error) throw error
   return (data ?? []) as ReminderLogRow[]
+}
+
+// ------------------------------------------------------------------
+// Cycle sharing (opt-in, revocable, and never a data grant)
+// ------------------------------------------------------------------
+
+/** Has the signed-in girl turned sharing on for her current partner? */
+export async function fetchCycleShared(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('cycle_is_shared')
+  if (error) throw error
+  return data === true
+}
+
+/** The single deliberate action that turns sharing on. */
+export async function shareCycleWithPartner(): Promise<void> {
+  const { error } = await supabase.rpc('share_cycle_with_partner')
+  if (error) throw error
+}
+
+/** Turns it off again and stamps the revocation time. */
+export async function stopSharingCycle(): Promise<void> {
+  const { error } = await supabase.rpc('stop_sharing_cycle')
+  if (error) throw error
+}
+
+/**
+ * What the partner sees. Returns `{ shared: false }` when she has not shared —
+ * there is no partial answer, and no raw period data is ever returned.
+ */
+export async function fetchPartnerCycleStatus(): Promise<PartnerCycleStatus> {
+  const { data, error } = await supabase.rpc('partner_cycle_status')
+  if (error) throw error
+  return (data as PartnerCycleStatus | null) ?? { shared: false }
 }

@@ -77,3 +77,26 @@ export interface ReminderLogRow {
   detail: string | null
   created_at: string
 }
+
+// ------------------------------------------------------------------
+// Cycle sharing
+// ------------------------------------------------------------------
+
+export type CyclePhase = 'period' | 'pms' | 'calm'
+
+/**
+ * What a partner is allowed to know about her cycle.
+ *
+ * `shared: false` means she has not (or no longer) shared it — and then there
+ * is genuinely nothing here: no dates, no lengths, not even a "she has data".
+ */
+export type PartnerCycleStatus =
+  | { shared: false }
+  | {
+      shared: true
+      phase: CyclePhase
+      /** Days until the next window starts; 0 when it has already started. */
+      days_until: number
+      /** Days left in the current window; 0 outside it. */
+      days_left: number
+    }
