@@ -16,6 +16,12 @@
 }
 
 @layer base {
+  :root {
+    /* Real visible height. JS keeps this in sync with visualViewport so a
+       bottom sheet is never half hidden behind the iPhone keyboard. */
+    --knr-vvh: 100dvh;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
   }
@@ -110,7 +116,17 @@
   }
 
   .page {
-    @apply mx-auto w-full max-w-lg px-4 pb-28 pt-6 sm:px-6;
+    @apply mx-auto w-full max-w-lg pb-28 pt-6;
+    /* Plain padding, not @apply: keeps the rule valid and easy to audit. */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .page {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
   }
 }
 

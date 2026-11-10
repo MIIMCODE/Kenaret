@@ -3,7 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './hooks/useAuth'
+import { syncViewportHeight } from './lib/portal'
 import './index.css'
+
+// Keeps --knr-vvh honest on iPhones (keyboard / collapsing browser chrome).
+syncViewportHeight()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

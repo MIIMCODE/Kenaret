@@ -60,12 +60,22 @@ export default {
           '0%': { backgroundPosition: '200% 0' },
           '100%': { backgroundPosition: '-200% 0' },
         },
+        'sheet-in': {
+          '0%': { opacity: '0', transform: 'translateY(18px) scale(.985)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'sheet-out': {
+          '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+          '100%': { opacity: '0', transform: 'translateY(14px) scale(.99)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up .45s cubic-bezier(.21,.9,.3,1) both',
         float: 'float 5s ease-in-out infinite',
         'pulse-heart': 'pulse-heart 1.6s ease-in-out infinite',
         shimmer: 'shimmer 2.4s linear infinite',
+        'sheet-in': 'sheet-in .18s cubic-bezier(.21,.9,.3,1) both',
+        'sheet-out': 'sheet-out .14s ease-in both',
       },
     },
   },
