@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { fetchUnreadMessages } from '../lib/api'
+import { fetchCurrentCouple, fetchUnreadMessages } from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
 
 /**
@@ -25,12 +25,14 @@ export default function ChatBell() {
   const { user } = useAuth()
   const location = useLocation()
   const [unread, setUnread] = useState(0)
+  const [hasPartner, setHasPartner] = useState<boolean | null>(null)
   const timer = useRef<number | null>(null)
 
   const refresh = useCallback(async () => {
     if (!user) return
     try {
       setUnread(await fetchUnreadMessages())
+      setHasPartner((await fetchCurrentCouple()) !== null)
     } catch {
       // A badge that fails to refresh is not worth an error banner.
     }
@@ -81,6 +83,10 @@ export default function ChatBell() {
       document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [refresh, user, location.pathname])
+
+  // Nobody to talk to yet: showing the button would only bounce the user back
+  // to the dashboard. `null` means "still checking", which must not flash.
+  if (hasPartner === false) return null
 
   return (
     <Link
