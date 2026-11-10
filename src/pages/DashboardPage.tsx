@@ -167,6 +167,33 @@ export default function DashboardPage() {
         {/* ==== Connected ==== */}
         {hasPartner && partner && (
           <>
+            {/* Today's photo. It is the smallest daily action in the app and
+                the only one that leaves something behind. */}
+            <Link
+              to="/album"
+              className="card flex items-center gap-3 p-4 transition hover:shadow-soft"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-blush-400 to-lilac-500 text-white shadow-soft">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="3.5" stroke="currentColor" strokeWidth="1.7" />
+                  <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
+                  <path
+                    d="M4 16.5l4.5-4a2 2 0 0 1 2.7 0L20 20"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] font-extrabold text-ink-900">آلبوم ما</p>
+                <p className="truncate text-[11px] text-ink-500">یک عکس، هر روز — از هر دویتان</p>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-ink-500/50">
+                <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+
             {/* The conversation. Above everything else, because it is the
                 only thing here that both people touch every day. */}
             <Link

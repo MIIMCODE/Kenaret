@@ -237,6 +237,46 @@ message box, and warmth survives alongside it as the one-tap path.
   to you; a hug is your partner. Silencing dates must not block the person, and
   `ReminderSettings` says so in the switch's hint.
 
+### آلبوم ما — one photo a day, from both of you
+
+Not a gallery. A gallery is somewhere you go when you remember to. This is a
+**daily** thing: each of you adds one photo per day, and the **day** is the unit
+— a spread with his half and her half, not a post with likes under it.
+
+The constraints are the feature:
+
+- **One photo per person per day**, enforced by a unique index — not by the UI.
+  Two concurrent requests cannot both win; proved with five racing inserts, all
+  rejected with `unique_violation`.
+- **The day is decided server-side.** `album_today()` returns
+  `(now() at time zone 'Asia/Tehran')::date`. A client-supplied date would let
+  someone fill yesterday's slot twice, which defeats the lock.
+- **Replacing is allowed, but only today**, and only your own. A terrible photo
+  at 8am and a good one at night is normal. Replacing *clears the heart*,
+  because the heart was for a photograph that no longer exists.
+- **No captions, no comments.** If you want to say something the chat is one tap
+  away; a caption box turns a photograph into content.
+- **One heart, from the other person, once.** Your own photo cannot be hearted —
+  the point of a reaction is that somebody else saw it. Enforced in the RPC with
+  `OWN_PHOTO`, not just hidden in the UI.
+- **در چنین روزی**: the same day-of-month in any earlier month, labelled by
+  distance («۱ سال قبل», «۱ ماه قبل»). This is what makes an album worth
+  keeping — it hands you the memory instead of waiting to be scrolled to.
+
+**There is deliberately no streak.** A streak that breaks teaches people to add
+a photo out of obligation, and an app that makes a couple feel behind is the
+opposite of the point. `album_stats().days` counts days with at least one photo
+and only ever goes up.
+
+Photos are downscaled to 1600px on the client before upload: a 6 MB camera photo
+on a metered Iranian mobile connection is a long wait for something nobody will
+zoom into. If canvas processing fails the original is uploaded instead — a
+slightly large photo beats a lost one.
+
+Everything lives in a private `album` bucket at
+`<couple>/<day>/<user>-<uuid>.<ext>`, so the storage policy's prefix check works
+and a future cleanup job can find a month without joining the table.
+
 ### گفت‌وگو (chat)
 
 A real two-way conversation, added on request after warmth went unused.

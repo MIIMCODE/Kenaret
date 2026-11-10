@@ -30,6 +30,9 @@ const RPC_MESSAGES: Record<string, string> = {
   DELETED: 'این پیام حذف شده و دیگر ویرایش نمی‌شود.',
   NOT_EDITABLE: 'فقط پیام‌های متنی ویرایش می‌شوند.',
   BAD_PATH: 'عکس درست آپلود نشد. یک بار دیگر امتحان کن.',
+  ALREADY_TODAY: 'برای امروز عکس گذاشته‌ای. اگر پشیمانی، همان را عوض کن.',
+  NOTHING_TODAY: 'برای امروز عکسی نداری که عوض شود.',
+  OWN_PHOTO: 'قلب مال عکس شریکت است، نه عکس خودت.',
 }
 
 const AUTH_MESSAGES: Record<string, string> = {
