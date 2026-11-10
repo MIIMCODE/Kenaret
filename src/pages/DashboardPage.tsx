@@ -363,7 +363,7 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          <div className="card flex items-center gap-2.5 p-4">
+          <Link to="/dates" className="card flex items-center gap-2.5 p-4 transition hover:shadow-soft">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lilac-100 text-lilac-500">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="3.5" y="5" width="17" height="15" rx="4" stroke="currentColor" strokeWidth="1.7" />
@@ -372,9 +372,9 @@ export default function DashboardPage() {
             </span>
             <div>
               <p className="text-[12.5px] font-bold text-ink-900">روزهای مهم</p>
-              <p className="text-[10.5px] text-ink-500">به‌زودی</p>
+              <p className="text-[10.5px] text-ink-500">سالگرد، ماهگرد، تولد</p>
             </div>
-          </div>
+          </Link>
         </section>
 
         <p className="pt-2 text-center text-[10.5px] leading-5 text-ink-500">

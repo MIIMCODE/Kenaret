@@ -14,6 +14,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage'
 import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import DatesPage from './pages/DatesPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ConfigMissingPage from './pages/ConfigMissingPage'
 
@@ -135,6 +136,14 @@ export default function App() {
           element={
             <RequireAuth>
               <DashboardPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/dates"
+          element={
+            <RequireAuth>
+              <DatesPage />
             </RequireAuth>
           }
         />

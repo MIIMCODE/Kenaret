@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner'
 import JalaliDatePicker from '../components/JalaliDatePicker'
 import AnniversaryCard from '../components/AnniversaryCard'
 import AnniversarySetup from '../components/AnniversarySetup'
+import ReminderSettings from '../components/ReminderSettings'
 import { useAuth } from '../hooks/useAuth'
 import { fetchPairingState, fetchPeriodSettings, savePeriodSettings, updateProfile } from '../lib/api'
 import { validateAvatarFile, uploadAvatar } from '../lib/avatars'
@@ -441,12 +442,14 @@ export default function SettingsPage() {
                 </button>
 
                 <p className="text-[11px] leading-5 text-ink-500">
-                  پیش‌بینی روزهای بعدی در نسخه‌ی بعدی کنارت فعال می‌شود.
+                  روزهای بعدی از همین اعداد تخمین زده می‌شوند؛ در صفحه‌ی «روزهای مهم» می‌بینی‌شان.
                 </p>
               </>
             )}
           </section>
         )}
+
+<ReminderSettings isGirl={profile.gender === 'girl'} />
 
         {/* ---------- Account ---------- */}
         <section className="card space-y-3 p-5">
