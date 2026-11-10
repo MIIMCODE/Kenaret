@@ -142,6 +142,33 @@ second pass would let a rejected mail look delivered.
 > Settings → «تاریخچه‌ی یادآوری‌ها», instead of silently vanishing. Verifying a
 > domain and changing the `from` address in `send_reminders()` lifts the limit.
 
+### Installing on the phone (PWA)
+Kenaret installs to the home screen and then behaves like an app: its own
+icon, no address bar, and a cold start straight into the dashboard.
+
+- **Icons** are generated from the brand heart (`favicon.svg`) into
+  `public/icons/`: 192/512 for the manifest, a **maskable** pair whose heart
+  sits inside Android's 80 % safe circle, and a real **180×180 PNG** for iOS
+  (Safari ignores SVG for `apple-touch-icon` — the card simply did not appear
+  before this). `favicon-32/16` cover the browser tab.
+- **`public/manifest.webmanifest`** is RTL/Persian, `display: standalone`,
+  `start_url: ./index.html#/app`, and its `scope` stays inside `/Kenaret/`.
+- **Install hint** (`InstallHint`, bottom of the dashboard): Android/desktop get
+  a button that opens the real install dialog via the captured
+  `beforeinstallprompt`; iPhone gets the two taps in Safari's share sheet,
+  because Apple ships no install API. It never renders inside the installed
+  app, and dismissing it hides it for two weeks. Chrome/Firefox on iOS are
+  skipped on purpose — they cannot add to the home screen at all.
+- **Service worker** (`public/sw.js`) gives the installed app an offline shell:
+  network-first navigations (so a deploy is picked up on the next launch),
+  cache-first for content-hashed `/assets/*`, and **nothing** from
+  `supabase.co` ever cached — API, auth and signed avatar URLs bypass the
+  worker entirely, so private data is never served off a disk cache.
+  Bump `VERSION` in that file when the caching rules change.
+
+> On iOS the icon only appears after **Share → Add to Home Screen**; there is no
+> automatic prompt, by design of Safari.
+
 ### Relationship start date
 - Right after a couple connects, the partner who sent the request is asked
   «تاریخ آشنایی‌اتون کی بوده؟» in the dashboard, with a Jalali picker.

@@ -5,6 +5,7 @@ import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import PairingCodeCard from '../components/PairingCodeCard'
 import ConnectForm from '../components/ConnectForm'
+import InstallHint from '../components/InstallHint'
 import PartnerCard from '../components/PartnerCard'
 import RequestList from '../components/RequestList'
 import AnniversaryCard from '../components/AnniversaryCard'
@@ -348,6 +349,8 @@ export default function DashboardPage() {
           </>
         )}
 
+        <InstallHint />
+
         {/* Quick links */}
         <section className="grid grid-cols-2 gap-3 pt-1">
           <Link to="/settings" className="card flex items-center gap-2.5 p-4 transition hover:shadow-soft">
@@ -378,7 +381,8 @@ export default function DashboardPage() {
         </section>
 
         <p className="pt-2 text-center text-[10.5px] leading-5 text-ink-500">
-          داده‌های پریود فقط برای خود صاحب حساب قابل مشاهده است.
+          داده‌های پریود پیش‌فرض فقط برای خود صاحب حساب است؛ اشتراک‌گذاری فقط با اجازه‌ی
+          خودش روشن می‌شود.
         </p>
       </main>
     </div>
