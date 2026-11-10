@@ -111,8 +111,15 @@ export default function DashboardPage() {
 
   async function handleUnlink() {
     if (
+      // This used to say "اطلاعات خصوصی هر کدام باقی می‌ماند", which was not
+      // true: `unlink_partner` deletes the couple row, and messages, album
+      // photos, warmth and reunions all cascade from it. With an album full of
+      // photos, that sentence would have cost someone everything they had
+      // built together. Say what actually happens.
       !confirm(
-        'مطمئنی می‌خواهی ارتباط را قطع کنی؟ اطلاعات خصوصی هر کدام باقی می‌ماند، اما دیگر پروفایل هم را نمی‌بینید.',
+        'مطمئنی می‌خواهی ارتباط را قطع کنی؟\n\n' +
+          'با این کار گفت‌وگوها، عکس‌های آلبوم و همهٔ چیزهایی که با هم ساخته‌اید برای همیشه پاک می‌شود. ' +
+          'این کار برگشت‌پذیر نیست.',
       )
     ) {
       return
