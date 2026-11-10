@@ -37,3 +37,39 @@ export function registerServiceWorker(): void {
     }
   })()
 }
+
+/**
+ * Lets a tapped notification steer the *already-open* app.
+ *
+ * The service worker focuses the existing window and posts the route it was
+ * asked to open; without this listener that message lands nowhere and the tap
+ * just looks like it did nothing. `navigate` is passed in rather than imported
+ * so this module stays usable outside React.
+ */
+export function listenForNotificationNavigation(
+  navigate: (path: string) => void,
+  baseUrl: string,
+): () => void {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return () => {}
+
+  function onMessage(event: MessageEvent) {
+    const data = event.data as { type?: string; url?: string } | undefined
+    if (data?.type !== 'KENARET_NAVIGATE' || !data.url) return
+
+    try {
+      const target = new URL(data.url)
+      const base = new URL(baseUrl, window.location.origin)
+      // Only in-app paths are followed; an absolute foreign URL is ignored.
+      if (target.origin !== window.location.origin) return
+      const route = target.pathname.startsWith(base.pathname)
+        ? target.pathname.slice(base.pathname.length - 1)
+        : target.pathname
+      navigate(`${route}${target.search}${target.hash}`)
+    } catch {
+      // Malformed message: ignore rather than navigate somewhere arbitrary.
+    }
+  }
+
+  navigator.serviceWorker.addEventListener('message', onMessage)
+  return () => navigator.serviceWorker.removeEventListener('message', onMessage)
+}

@@ -211,6 +211,67 @@ box it becomes another inbox to feel guilty about.
   to you; a hug is your partner. Silencing dates must not block the person, and
   `ReminderSettings` says so in the switch's hint.
 
+### نوتیفیکیشن روی گوشی (Web Push)
+The bell only speaks to someone who has already opened the app. Web Push is the
+third channel — after the in-app bell and email — and the only one that reaches a
+**closed** app.
+
+The pipeline, bottom to top:
+
+```
+pg_cron (*/5)  →  push_cron_tick()  →  pg_net  →  edge fn `push-send`
+                                                      │  RFC 8291 encrypt + VAPID
+                                                      ▼
+                                              the push service → the phone
+```
+
+- **`push_subscriptions`** — one row per device that granted permission.
+  `SELECT` is limited to your own rows; writes are RPC-only.
+- **`push_queue`** — an outbox with `unique (user_id, topic)`, where `topic` is
+  `reunion:2026-11-29` or `warmth:<uuid>`. That constraint, not application
+  logic, is what makes a duplicate notification impossible.
+- **`push_dispatch()`** claims rows with `for update skip locked`. The cron job
+  and a manual "test" can run at the same time; each gets a different batch, and
+  a row leaves `pending` exactly once. Rows whose worker died are re-claimed
+  after ten minutes, and the unique constraint stops the retry becoming a
+  second notification.
+- **`push-send`** is the only place holding the VAPID private key and the only
+  place doing RFC 8291 encryption. `npm:web-push` is used rather than hand-rolled
+  crypto because the aes128gcm header, HKDF info strings and VAPID JWT are easy
+  to get *subtly* wrong — and a subtly-wrong push fails silently on the device.
+- **Reminders feed the queue from `reminder_queue()`**, the same function the
+  bell and the mail job read, so no channel can promise something the others
+  would not say. **`send_warmth()`** enqueues directly, so a hug is on the
+  phone before the page has finished updating; a push failure never fails the
+  gesture.
+- A **410/404** from the push service marks the device revoked (it will never
+  work again); **429/5xx** returns the row to `pending` for a retry. Both are
+  recorded in `push_queue.last_error`.
+
+#### The three states people actually land in
+Push fails in ways that look identical to a user ("the switch does nothing"), so
+each one gets its own screen:
+
+| Situation | What the card says |
+| --- | --- |
+| Android/desktop, not yet on | A switch, plus what will actually be sent |
+| Blocked at the browser/OS level | Instructions — no API can undo a "Block" |
+| iPhone in a Safari **tab** | "Install it first": iOS exposes no `PushManager` outside an installed app |
+
+Permission is requested **only on an explicit tap**. A prompt shown on page load
+is the fastest way to get permanently blocked, which is worse than never asking.
+
+Other behaviours worth knowing:
+
+- The VAPID **public** key is handed to browsers by `push_config()`, so it lives
+  in vault and rotating the pair is a secret update rather than a rebuild.
+- The subscription is silently re-upserted on every app start, because browsers
+  rotate push endpoints without telling anyone.
+- Tapping a notification focuses an open window and posts the intended route to
+  it (`/app`, `/dates`); a foreign URL in that message is ignored.
+- The service worker sets `tag` from `topic`, so a newer notification for the
+  same subject replaces the older one instead of stacking.
+
 ### Installing on the phone (PWA)
 Kenaret installs to the home screen and then behaves like an app: its own
 icon, no address bar, and a cold start straight into the dashboard.
@@ -267,6 +328,7 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
 | `0008_share_cycle.sql` | consent-based cycle sharing, partner-aware queue |
 | `0009_in_app_reminders.sql` | the bell's `my_upcoming_reminders()` |
 | `0010_reunion_and_warmth.sql` | reunion countdown, warmth signals, reunion reminder |
+| `0011_push_subscriptions.sql` | Web Push: subscriptions, outbox, worker RPCs, cron |
 
 **RLS is the only security layer, so the rules are strict:**
 
@@ -279,6 +341,9 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
   **no** `INSERT`/`UPDATE`/`DELETE` grants at all: every state change goes
   through the RPCs `request_partner`, `respond_to_request`, `cancel_request`
   and `unlink_partner`, which check `auth.uid()` themselves.
+- `push_subscriptions` / `push_queue` — you can read **your own** devices and
+  nothing else; the outbox has no policies at all and is reachable only through
+  the worker functions, which are not executable by clients.
 - `reunions` / `warmth` — `SELECT` for the active couple only, writes revoked
   entirely. Everything goes through `set_reunion`, `clear_reunion`,
   `send_warmth` and `my_warmth`, each of which resolves the couple from
