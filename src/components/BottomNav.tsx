@@ -49,6 +49,22 @@ function ChatIcon({ active }: { active: boolean }) {
   )
 }
 
+function HomeIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 10.4 12 3.6l8 6.8V19a1.9 1.9 0 0 1-1.9 1.9h-3.4v-5.2a2.7 2.7 0 0 0-5.4 0v5.2H5.9A1.9 1.9 0 0 1 4 19z"
+        stroke="currentColor"
+        strokeWidth={stroke(active)}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={active ? 'currentColor' : 'none'}
+        fillOpacity={active ? 0.14 : 0}
+      />
+    </svg>
+  )
+}
+
 function DaysIcon({ active }: { active: boolean }) {
   return (
     <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -100,6 +116,13 @@ export default function BottomNav() {
   const [hasPartner, setHasPartner] = useState<boolean | null>(null)
   const [unread, setUnread] = useState(0)
   const timer = useRef<number | null>(null)
+  /**
+   * A spring has to be *replayed*, and React will not restart a CSS animation
+   * just because the className is the same. Bumping a per-tab nonce rebuilds
+   * the node, which restarts the animation from 0% — that is what makes the
+   * bounce land on the tab you just touched instead of only the first one.
+   */
+  const [popKey, setPopKey] = useState(0)
 
   /**
    * One poll for both badges.
@@ -141,6 +164,18 @@ export default function BottomNav() {
 
   const tabs: Tab[] = [
     {
+      /**
+       * خانه is first because in RTL it is the rightmost tab, and rightmost is
+       * where a Persian reader looks first. The logo in the header still goes
+       * home too — but once there is a tab for it, a second unlabelled door is
+       * just something else to decode.
+       */
+      to: '/app',
+      label: 'خانه',
+      match: (p) => p === '/app' || p === '/app/',
+      icon: (a) => <HomeIcon active={a} />,
+    },
+    {
       to: '/chat',
       label: 'گفت‌وگوها',
       match: (p) => p.startsWith('/chat'),
@@ -175,7 +210,7 @@ export default function BottomNav() {
       aria-label="بخش‌های کنارت"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
     >
-      <div className="pointer-events-auto flex items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl">
+      <div className="pointer-events-auto flex w-full max-w-[21.5rem] animate-nav-rise items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl">
         {visible.map((tab) => {
           const active = tab.match(pathname)
           const badge = tab.to === '/chat' ? unreadLabel : null
@@ -185,11 +220,28 @@ export default function BottomNav() {
               to={tab.to}
               aria-current={active ? 'page' : undefined}
               aria-label={tab.label}
-              className={`relative flex min-w-[68px] flex-col items-center gap-1 rounded-full px-3 py-2 transition ${
-                active ? 'bg-blush-500/12 text-blush-600' : 'text-ink-500 hover:text-ink-700'
+              onClick={() => {
+                if (!active) setPopKey((n) => n + 1)
+              }}
+              className={`relative flex flex-1 basis-0 flex-col items-center gap-1 rounded-full px-2 py-2 transition-colors duration-200 ${
+                active ? 'text-blush-600' : 'text-ink-500 hover:text-ink-700'
               }`}
             >
-              <span className="relative">
+              {/* The pink pill is its own layer so it can spring in without the
+                  label and icon moving with it — a whole tab scaling up would
+                  push its neighbours around on every tap. */}
+              <span
+                aria-hidden="true"
+                className={`absolute inset-0 rounded-full bg-blush-500/12 transition-opacity duration-200 ${
+                  active ? 'animate-spring-in opacity-100' : 'opacity-0'
+                }`}
+                key={active ? `pill-${popKey}` : 'pill'}
+              />
+
+              <span
+                key={active ? `icon-${popKey}` : 'icon'}
+                className={`relative ${active ? 'animate-spring-pop' : ''}`}
+              >
                 {tab.icon(active)}
                 {badge && (
                   <span className="absolute -top-1.5 -left-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-blush-500 px-1 text-[9px] font-extrabold leading-none text-white">
@@ -197,7 +249,11 @@ export default function BottomNav() {
                   </span>
                 )}
               </span>
-              <span className={`text-[10.5px] leading-none ${active ? 'font-extrabold' : 'font-medium'}`}>
+              <span
+                className={`relative text-[10.5px] leading-none ${
+                  active ? 'font-extrabold' : 'font-medium'
+                }`}
+              >
                 {tab.label}
               </span>
             </Link>

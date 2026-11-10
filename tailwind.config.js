@@ -51,6 +51,26 @@ export default {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-8px)' },
         },
+        /* A real spring: overshoots past the target and settles back.
+           Two bounces, because one looks like a glitch and three looks drunk. */
+        'spring-pop': {
+          '0%': { transform: 'scale(0.86) translateY(2px)' },
+          '38%': { transform: 'scale(1.13) translateY(-3px)' },
+          '62%': { transform: 'scale(0.965) translateY(1px)' },
+          '82%': { transform: 'scale(1.025) translateY(-0.5px)' },
+          '100%': { transform: 'scale(1) translateY(0)' },
+        },
+        'spring-in': {
+          '0%': { opacity: '0', transform: 'scale(0.72) translateY(6px)' },
+          '55%': { opacity: '1', transform: 'scale(1.06) translateY(-2px)' },
+          '78%': { transform: 'scale(0.98) translateY(1px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        'nav-rise': {
+          '0%': { opacity: '0', transform: 'translateY(18px) scale(0.96)' },
+          '70%': { opacity: '1', transform: 'translateY(-2px) scale(1.01)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
         'pulse-heart': {
           '0%, 100%': { transform: 'scale(1)' },
           '40%': { transform: 'scale(1.14)' },
@@ -76,6 +96,11 @@ export default {
         shimmer: 'shimmer 2.4s linear infinite',
         'sheet-in': 'sheet-in .18s cubic-bezier(.21,.9,.3,1) both',
         'sheet-out': 'sheet-out .14s ease-in both',
+        /* The spring is in the keyframes, not the easing — a cubic-bezier
+           cannot overshoot and come back twice. */
+        'spring-pop': 'spring-pop .48s cubic-bezier(.34,1.56,.64,1) both',
+        'spring-in': 'spring-in .34s cubic-bezier(.34,1.56,.64,1) both',
+        'nav-rise': 'nav-rise .5s cubic-bezier(.34,1.56,.64,1) both',
       },
     },
   },
