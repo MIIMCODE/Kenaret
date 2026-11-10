@@ -1,6 +1,10 @@
 -- ============================================================
 -- 0012 — گفت‌وگو: a real two-way chat
 --
+-- NOTE: 0013 supersedes `send_message`, `chat_messages` (new columns) and the
+-- `messages_*` constraints. This file is kept as the record of the first
+-- version; do not edit it to match later ones — migrations are history.
+--
 -- Rounds 1–11 deliberately kept this app free of a text inbox: warmth
 -- was three taps and nothing else, and the README said in as many words
 -- that "the moment it grows a message box it becomes another inbox to

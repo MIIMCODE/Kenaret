@@ -14,11 +14,14 @@ import { toPersianError } from '../lib/errors'
 import {
   groupByJalaliMonth,
   nextPeriod,
+  todayJalaliParts,
   upcomingEvents,
   type CalendarEvent,
   type PeriodTimings,
 } from '../lib/calendar'
+import MonthCalendar from '../components/MonthCalendar'
 import { anniversaryLabel, daysUntilLabel } from '../lib/anniversary'
+import { addDaysIso, todayIso } from '../lib/jalali'
 import type { PairingState, PartnerCycleStatus } from '../types/database'
 
 type Filter = 'all' | 'private'
@@ -30,7 +33,18 @@ export default function DatesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
-  const [horizon, setHorizon] = useState(120)
+  /**
+   * A year, not four months.
+   *
+   * At 120 days a couple three weeks in saw two rows — nothing from before
+   * today, and nothing beyond January. That reads as "the calendar is broken"
+   * even though the maths was right. A calendar should hold a year.
+   */
+  const [horizon, setHorizon] = useState(370)
+  /** Which Jalali month the grid is showing. */
+  const [month, setMonth] = useState(() => todayJalaliParts())
+  /** The day whose events are listed under the grid. */
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   /** Girls: is my cycle currently visible to my partner? */
   const [sharingCycle, setSharingCycle] = useState(false)
   /** Boys: the coarse status her share allows — or `{ shared: false }`. */
@@ -92,6 +106,32 @@ export default function DatesPage() {
     })
     return filter === 'private' ? all.filter((event) => event.private) : all
   }, [state, profile?.birth_date, period, horizon, filter])
+
+  /**
+   * The grid needs every event in the visible month, including days that have
+   * already passed — a calendar that hides last Tuesday is not a calendar.
+   * So it gets its own full-year set, generated from the first cell of the
+   * month rather than from today.
+   */
+  const gridEvents = useMemo(() => {
+    if (!state) return []
+    return upcomingEvents({
+      anniversary: state.anniversary?.date ?? null,
+      myBirth: profile?.birth_date ?? null,
+      partnerBirth: state.partner?.birth_date ?? null,
+      partnerName: state.partner?.display_name ?? null,
+      period,
+      // Start 45 days before today so the leading padding of the current month
+      // and the whole previous month still carry their dots.
+      from: addDaysIso(todayIso(), -45),
+      horizon: 460,
+    })
+  }, [state, profile?.birth_date, period])
+
+  const selectedEvents = useMemo(
+    () => (selectedDay ? gridEvents.filter((event) => event.iso === selectedDay) : []),
+    [gridEvents, selectedDay],
+  )
 
   const groups = useMemo(() => groupByJalaliMonth(events), [events])
   const today = useMemo(() => events.filter((event) => event.daysUntil === 0), [events])
@@ -205,6 +245,61 @@ export default function DatesPage() {
           <PartnerCycleCard status={partnerCycle} name={state?.partner?.display_name ?? null} />
         )}
 
+        {/* ---- the month grid: the real calendar ---- */}
+        <MonthCalendar
+          jy={month.jy}
+          jm={month.jm}
+          events={gridEvents}
+          today={todayIso()}
+          selected={selectedDay}
+          onSelect={(iso) => setSelectedDay((prev) => (prev === iso ? null : iso))}
+          onChangeMonth={(jy, jm) => {
+            setMonth({ jy, jm })
+            setSelectedDay(null)
+          }}
+          onGoToday={() => {
+            setMonth(todayJalaliParts())
+            setSelectedDay(todayIso())
+          }}
+        />
+
+        {/* what is on the selected day */}
+        {selectedDay && (
+          <section className="card p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[12px] font-extrabold text-ink-900">
+                {anniversaryLabel(selectedDay)}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedDay(null)}
+                className="text-[10.5px] font-bold text-ink-500 hover:text-blush-600"
+              >
+                بستن
+              </button>
+            </div>
+
+            {selectedEvents.length === 0 ? (
+              <p className="mt-2 text-[11.5px] leading-6 text-ink-500">
+                این روز چیزی در تقویم نیست. می‌توانی همان روز یک دیدار بگذاری یا فقط برای خودت
+                علامتش بزنی.
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-1.5">
+                {selectedEvents.map((event) => (
+                  <li key={event.key} className="flex items-center gap-2">
+                    <span aria-hidden="true">{event.emoji}</span>
+                    <span className="text-[12.5px] font-bold text-ink-900">{event.title}</span>
+                    {event.detail && (
+                      <span className="text-[10.5px] text-ink-500">— {event.detail}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
         {/* filters */}
         <div className="flex gap-2">
           <FilterChip active={filter === 'all'} onClick={() => setFilter('all')}>
@@ -227,7 +322,7 @@ export default function DatesPage() {
             <p className="mx-auto mt-1 max-w-[18rem] text-[11.5px] leading-6 text-ink-500">
               {filter === 'private'
                 ? 'برای دیدن روزهای دوره‌ات، اول تاریخ آخرین پریودت را در تنظیمات کامل کن.'
-                : 'تاریخ تولد یا تاریخ آشنایی را کامل کن تا روزهای مهم اینجا ظاهر شوند.'}
+                : 'در این بازه رویدادی نیست — ولی تقویم ماه بالاتر همهٔ روزها را نشان می‌دهد.'}
             </p>
             <Link to="/settings" className="btn-ghost mt-3 inline-flex !py-2.5 text-[12.5px]">
               رفتن به تنظیمات
@@ -249,13 +344,13 @@ export default function DatesPage() {
           ))
         )}
 
-        {events.length > 0 && horizon < 366 && (
+        {events.length > 0 && (
           <button
             type="button"
-            onClick={() => setHorizon((value) => (value === 120 ? 366 : 120))}
+            onClick={() => setHorizon((value) => (value >= 370 ? 60 : 370))}
             className="btn-ghost w-full !py-2.5 text-[12.5px]"
           >
-            {horizon === 120 ? 'دیدن یک سال کامل' : 'فقط سه ماه آینده'}
+            {horizon >= 370 ? 'فقط دو ماه آینده' : 'دیدن یک سال کامل'}
           </button>
         )}
 

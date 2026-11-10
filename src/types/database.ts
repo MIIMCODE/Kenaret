@@ -164,12 +164,20 @@ export interface PushDevice {
 export interface ChatMessage {
   id: string
   sender_id: string
-  /** Empty for an image, and for anything that was deleted. */
+  /** Empty for an image/voice, and for anything that was deleted. */
   body: string
-  kind: 'text' | 'image'
+  kind: 'text' | 'image' | 'voice'
   media_path: string | null
   media_w: number | null
   media_h: number | null
+  /** `HH:MM:SS` from Postgres; only set for voice notes. */
+  duration: string | null
+  reply_to: string | null
+  /** The quoted line, resolved server-side so no second request is needed. */
+  reply_body: string | null
+  reply_kind: string | null
+  forward: boolean
+  pinned: boolean
   /** Non-null once the sender changed the text. The UI marks it. */
   edited_at: string | null
   /** Soft delete: the other person keeps the shape of the thread. */

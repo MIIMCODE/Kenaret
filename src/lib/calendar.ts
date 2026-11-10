@@ -3,7 +3,10 @@ import {
   daysBetweenIso,
   isoToJalali,
   jalaliDateClamped,
+  jalaliMonthLength,
   jalaliMonthsBetween,
+  jalaliToIso,
+  persianWeekday,
   JALALI_MONTHS,
   toPersianDigits,
   todayIso,
@@ -317,4 +320,149 @@ export function groupByJalaliMonth(
 
 function fa(value: number): string {
   return toPersianDigits(value)
+}
+
+// ------------------------------------------------------------------
+// Month grid — a real calendar, not a list of far-off dates
+//
+// The page used to render only "the next N days", which for a couple three
+// weeks in meant one or two rows and a lot of empty space. A calendar should
+// answer "what does this month look like", so the grid below is the primary
+// view and the upcoming list is the secondary one.
+// ------------------------------------------------------------------
+
+export interface MonthCell {
+  /** Gregorian ISO of the day. */
+  iso: string
+  /** Jalali day number, 1-31. */
+  day: number
+  /** False for the leading/trailing padding that completes the week. */
+  inMonth: boolean
+  isToday: boolean
+  /** Everything that lands on this day, in render order. */
+  events: CalendarEvent[]
+}
+
+export interface MonthGrid {
+  jy: number
+  jm: number
+  label: string
+  /** 6 rows of 7, always — so the grid never jumps height between months. */
+  weeks: MonthCell[][]
+}
+
+/** Persian week starts on Saturday. */
+function persianWeekdayOf(iso: string): number {
+  return persianWeekday(iso) // 0 = Saturday, defined in jalali.ts
+}
+
+/**
+ * Builds one Jalali month, padded to whole weeks.
+ *
+ * Events are bucketed by date first, so a day with four things on it shows four
+ * dots rather than being found four times by a linear scan per cell.
+ */
+export function monthGrid(
+  jy: number,
+  jm: number,
+  events: CalendarEvent[],
+  today: string = todayIso(),
+): MonthGrid {
+  const byIso = new Map<string, CalendarEvent[]>()
+  for (const event of events) {
+    const list = byIso.get(event.iso)
+    if (list) list.push(event)
+    else byIso.set(event.iso, [event])
+  }
+
+  const length = jalaliMonthLength(jy, jm)
+  const firstIso = jalaliDateClamped(jy, jm, 1)
+  const cells: MonthCell[][] = []
+  const pad = firstIso ? persianWeekdayOf(firstIso) : 0
+
+  let row: MonthCell[] = []
+
+  // Leading padding from the previous month.
+  for (let i = pad; i > 0; i -= 1) {
+    const iso = addDaysIso(firstIso!, -i)
+    const parts = isoToJalali(iso)
+    row.push({
+      iso,
+      day: parts?.jd ?? 0,
+      inMonth: false,
+      isToday: iso === today,
+      events: byIso.get(iso) ?? [],
+    })
+  }
+
+  for (let d = 1; d <= length; d += 1) {
+    const iso = jalaliToIso(jy, jm, d)
+    if (!iso) continue
+    row.push({
+      iso,
+      day: d,
+      inMonth: true,
+      isToday: iso === today,
+      events: byIso.get(iso) ?? [],
+    })
+    if (row.length === 7) {
+      cells.push(row)
+      row = []
+    }
+  }
+
+  // Trailing padding to finish the last week.
+  if (row.length > 0) {
+    let step = 1
+    while (row.length < 7) {
+      const iso = addDaysIso(jalaliToIso(jy, jm, length)!, step)
+      const parts = isoToJalali(iso)
+      row.push({
+        iso,
+        day: parts?.jd ?? 0,
+        inMonth: false,
+        isToday: iso === today,
+        events: byIso.get(iso) ?? [],
+      })
+      step += 1
+    }
+    cells.push(row)
+  }
+
+  // Always six rows: a calendar that grows and shrinks as you page wobbles.
+  while (cells.length < 6) {
+    const last = cells[cells.length - 1][6].iso
+    const next: MonthCell[] = []
+    for (let i = 1; i <= 7; i += 1) {
+      const iso = addDaysIso(last, i)
+      const parts = isoToJalali(iso)
+      next.push({
+        iso,
+        day: parts?.jd ?? 0,
+        inMonth: false,
+        isToday: iso === today,
+        events: byIso.get(iso) ?? [],
+      })
+    }
+    cells.push(next)
+  }
+
+  return {
+    jy,
+    jm,
+    label: `${JALALI_MONTHS[jm - 1]} ${toPersianDigits(jy)}`,
+    weeks: cells.slice(0, 6),
+  }
+}
+
+/** The Jalali month `delta` months away from the given one (delta may be negative). */
+export function shiftMonth(jy: number, jm: number, delta: number): { jy: number; jm: number } {
+  const total = jm - 1 + delta
+  return { jy: jy + Math.floor(total / 12), jm: (((total % 12) + 12) % 12) + 1 }
+}
+
+/** Today as `{ jy, jm }`, for initialising the month grid. */
+export function todayJalaliParts(iso: string = todayIso()): { jy: number; jm: number } {
+  const parts = isoToJalali(iso)
+  return { jy: parts?.jy ?? 1405, jm: parts?.jm ?? 1 }
 }

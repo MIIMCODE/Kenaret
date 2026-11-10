@@ -419,8 +419,14 @@ export async function fetchMessages(before: string | null = null, limit = 30): P
 }
 
 /** Sends a text message. The push to the partner is queued inside the RPC. */
-export async function sendMessage(body: string): Promise<{ id: string; created_at: string }> {
-  const { data, error } = await supabase.rpc('send_message', { p_body: body })
+export async function sendMessage(
+  body: string,
+  replyTo: string | null = null,
+): Promise<{ id: string; created_at: string }> {
+  const { data, error } = await supabase.rpc('send_message', {
+    p_body: body,
+    p_reply_to: replyTo,
+  })
   if (error) throw error
   return data as { id: string; created_at: string }
 }
@@ -467,4 +473,80 @@ export async function editMessage(id: string, body: string): Promise<void> {
 export async function deleteMessage(id: string): Promise<void> {
   const { error } = await supabase.rpc('delete_message', { p_id: id })
   if (error) throw error
+}
+
+
+/** A voice note: an already-uploaded object plus its length in seconds. */
+export async function sendVoice(
+  path: string,
+  seconds: number,
+  replyTo: string | null = null,
+): Promise<{ id: string; created_at: string }> {
+  const { data, error } = await supabase.rpc('send_voice', {
+    p_path: path,
+    p_seconds: Math.max(1, Math.round(seconds)),
+    p_reply_to: replyTo,
+  })
+  if (error) throw error
+  return data as { id: string; created_at: string }
+}
+
+/**
+ * Re-sends an existing message as a new one, marked `forwarded`.
+ *
+ * Deliberately couple-scoped server-side: there is no "forward to a contact"
+ * because the only contact in this app is the other half of the couple, and a
+ * general forward would be a way to move a private photo out of it.
+ */
+export async function forwardMessage(id: string): Promise<{ id: string; created_at: string }> {
+  const { data, error } = await supabase.rpc('forward_message', { p_id: id })
+  if (error) throw error
+  return data as { id: string; created_at: string }
+}
+
+/** Pins or unpins; returns the state after the toggle. Either partner may do it. */
+export async function togglePin(id: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('toggle_pin', { p_id: id })
+  if (error) throw error
+  return Boolean((data as { pinned?: boolean })?.pinned)
+}
+
+export async function fetchPinned(): Promise<ChatMessage[]> {
+  const { data, error } = await supabase.rpc('pinned_messages')
+  if (error) throw error
+  return (data ?? []) as ChatMessage[]
+}
+
+/**
+ * Full-text-ish search over the couple's messages.
+ *
+ * Returns nothing under two characters, on purpose: a single letter matches
+ * almost everything and would look like a broken result list.
+ */
+export async function searchMessages(query: string, limit = 30): Promise<ChatMessage[]> {
+  const { data, error } = await supabase.rpc('search_messages', {
+    p_query: query,
+    p_limit: limit,
+  })
+  if (error) throw error
+  return (data ?? []) as ChatMessage[]
+}
+
+/**
+ * Says "I am typing" for the partner to see.
+ *
+ * Fire-and-forget: a dropped typing signal must never surface to the user, and
+ * the server treats anything older than ten seconds as absent anyway.
+ */
+export async function setTyping(): Promise<void> {
+  await supabase.rpc('set_typing').then(
+    () => undefined,
+    () => undefined,
+  )
+}
+
+export async function partnerIsTyping(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('partner_is_typing')
+  if (error) return false
+  return Boolean(data)
 }
