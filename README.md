@@ -263,6 +263,19 @@ is the fastest way to get permanently blocked, which is worse than never asking.
 
 Other behaviours worth knowing:
 
+- The edge function **must answer CORS**. `functions.invoke()` sends
+  `Authorization` and `Content-Type: application/json`, which forces a
+  preflight; a function that answers `OPTIONS` with `405` and omits
+  `Access-Control-Allow-*` makes the browser discard the response, and the
+  caller sees what looks like a network failure. Every response — including
+  `401`/`500` — carries the headers, because an error without them is equally
+  unreadable.
+- The test button **seeds its own row** (`push_seed_test`) before asking the
+  worker to send. The five-minute cron normally drains the queue, so without
+  this the button would report `sent: 0` and look broken.
+- `push_finish()` acts on the `subscription_id` the worker pushed to. Revoking
+  by `user_id` would let one dead phone silence a working one on the same
+  account.
 - The VAPID **public** key is handed to browsers by `push_config()`, so it lives
   in vault and rotating the pair is a secret update rather than a rebuild.
 - The subscription is silently re-upserted on every app start, because browsers
