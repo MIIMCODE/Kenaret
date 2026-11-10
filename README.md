@@ -65,6 +65,27 @@ A progress bar tracks the steps. Each step is saved immediately, and
 - Reminders arrive **one day before** by email, switchable per kind in settings.
   The job runs inside Supabase (pg_cron + pg_net), so the site stays static.
 
+#### The month grid, and the bug that made the page look empty
+
+The page used to list only *the next 120 days*, forward from today. For a couple
+three weeks in, that was **one or two rows**: the birthdays were 122 and 191 days
+out, the anniversary 338, and nothing before today was ever drawn. The maths was
+right and the page looked broken — which, from the outside, is the same thing.
+
+Two real faults were found and fixed:
+
+1. **`get_pairing_state()` silently dropped the anniversary.** Migration `0005`
+   added an `anniversary` block to it; migration `0010` re-created the same
+   function to add `reunion` and did not carry that block forward. The page
+   therefore always received `anniversary: null`, so it could never draw the
+   yearly anniversary or the monthiversary from the relationship date. Both
+   blocks now live in one function, and `get_pairing_state()` is written out in
+   full so the next migration has to *notice* it.
+2. **The default window was a quarter of the year.** Now a year, and the primary
+   view is a real Jalali month grid — six rows of seven, Saturday first, dots on
+   days with events, and a list for whichever day you tap. Paging months never
+   changes the page height.
+
 ### Cycle sharing (opt-in, one tap, revocable)
 The girl's period data stays her own by default. She can choose — from
 Settings → «اطلاعات پریود» → **«به اشتراک بگذار»** — to let her partner see a
@@ -249,6 +270,21 @@ constraints that keep it from becoming the inbox warmth was avoiding:
 - **Polling, not websockets.** A couple sends a handful of messages a day; a
   6-second poll that stops when the tab is hidden costs almost nothing and
   cannot half-open on a phone that slept. Push covers the closed-app case.
+
+**The rest of a messenger** (migration `0013`):
+
+| Part | How it behaves |
+| --- | --- |
+| Voice notes | Recorded with `MediaRecorder`, capped at 5 minutes. Duration is **measured by the recorder**, not read from the file — Android writes `Infinity` for WebM duration. Under a second is treated as a mis-tap. |
+| Replies | `messages.reply_to`. The quoted line is resolved **server-side** in `chat_messages`, so no second request per bubble, and a reply to a deleted message renders «پیام حذف شد» instead of a blank quote. |
+| Forward | Only *within* the couple. A general forward would be a way to move a private photo out of it. The copy is marked «هدایت‌شده». |
+| Pins | `message_pins`, couple-scoped. Either partner may pin or unpin anything — the alternative is a negotiation over who owns the button. |
+| Search | `ilike` over `body`, couple-scoped, minimum two characters. Two people cannot write enough for a full-text index to be worth maintaining for Persian. |
+| Typing | `typing_state`, one row per (couple, user), treated as gone after 10 seconds. No "last seen", no online dot outside the chat screen. |
+
+Every one of those is skipped gracefully when the browser cannot do it: without
+`MediaRecorder` the mic is simply absent and the send button takes its place,
+rather than a button that throws when tapped.
 
 Unread shows up in three places: the badge on the header button, the tab
 title (`(۳) کنارت`), and the push notification itself. The badge is read-only —

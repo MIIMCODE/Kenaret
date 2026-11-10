@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { formatJalaliLong, toPersianDigits, todayIso, weekdayName } from './jalali'
+import type { ChatMessage } from '../types/database'
 
 /**
  * Client-side helpers for گفت‌وگو.
@@ -138,4 +139,95 @@ export function readImageSize(file: File): Promise<{ width: number; height: numb
     }
     img.src = url
   })
+}
+
+
+// ------------------------------------------------------------------
+// Voice notes
+// ------------------------------------------------------------------
+
+export const CHAT_AUDIO_TYPES = [
+  'audio/webm',
+  'audio/mp4',
+  'audio/ogg',
+  'audio/mpeg',
+  'audio/m4a',
+] as const
+
+/** Uploads a recording into the same couple-prefixed bucket as photos. */
+export async function uploadChatVoice(
+  coupleId: string,
+  blob: Blob,
+  extension: string,
+): Promise<string> {
+  const path = `${coupleId}/voice-${crypto.randomUUID()}.${extension}`
+
+  const { error } = await supabase.storage.from('chat-media').upload(path, blob, {
+    cacheControl: '31536000',
+    contentType: blob.type || 'audio/webm',
+    upsert: false,
+  })
+  if (error) throw error
+
+  return path
+}
+
+/** A short-lived URL for a private voice note. */
+export async function resolveChatAudio(path: string): Promise<string | null> {
+  return resolveChatImage(path) // identical mechanism, same private bucket
+}
+
+/**
+ * Trims a long message for the quoted line inside a reply.
+ *
+ * Quoting the whole thing defeats the point: the reply already sits under the
+ * original, so the quote is a reminder of *which* message, not a copy of it.
+ */
+export function quoteLine(message: { body: string; kind: string; reply_kind?: string | null }): string {
+  if (message.kind === 'image') return '📷 عکس'
+  if (message.kind === 'voice') return '🎙 پیام صوتی'
+  const body = message.body.trim().replace(/\s+/g, ' ')
+  return body.length > 60 ? `${body.slice(0, 60)}…` : body
+}
+
+
+/**
+ * An optimistic message, in exactly the shape the server returns.
+ *
+ * Built here rather than inline so that adding a column to `ChatMessage` is a
+ * single compile error instead of a silently-undefined field on every bubble.
+ */
+export function draftMessage(input: {
+  id: string
+  senderId: string
+  body?: string
+  kind?: ChatMessage['kind']
+  mediaPath?: string | null
+  mediaW?: number | null
+  mediaH?: number | null
+  duration?: string | null
+  replyTo?: string | null
+  replyBody?: string | null
+  replyKind?: string | null
+  createdAt?: string
+}): ChatMessage {
+  return {
+    id: input.id,
+    sender_id: input.senderId,
+    body: input.body ?? '',
+    kind: input.kind ?? 'text',
+    media_path: input.mediaPath ?? null,
+    media_w: input.mediaW ?? null,
+    media_h: input.mediaH ?? null,
+    duration: input.duration ?? null,
+    reply_to: input.replyTo ?? null,
+    reply_body: input.replyBody ?? null,
+    reply_kind: input.replyKind ?? null,
+    forward: false,
+    pinned: false,
+    edited_at: null,
+    deleted_at: null,
+    created_at: input.createdAt ?? new Date().toISOString(),
+    seen: false,
+  }
 }
