@@ -352,7 +352,13 @@ export default function SettingsPage() {
             the bar is no longer part of this page, nothing here can rebuild it.
           */}
           <div
-            className="sticky z-10 -mx-1 px-1 pb-1"
+            /*
+              `-mx-1` used to pull this 4px wider than its section on each
+              side, which is what made a pink strip appear to bulge out past
+              the card's rounded corner while scrolling. The negative margin is
+              gone: the button now sits exactly inside the section's padding.
+            */
+            className="sticky z-10"
             style={{ bottom: 'calc(5.25rem + env(safe-area-inset-bottom))' }}
           >
             <button

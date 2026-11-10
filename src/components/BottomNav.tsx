@@ -117,23 +117,6 @@ export default function BottomNav() {
   const [unread, setUnread] = useState(0)
   const timer = useRef<number | null>(null)
   /**
-   * The sliding indicator.
-   *
-   * One bubble for the whole bar, not one per tab. It is placed from *measured
-   * geometry* (`getBoundingClientRect`) rather than from an index or a
-   * percentage, because that is the only thing that stays correct when the
-   * number of tabs changes (the chat tab disappears when there is no partner),
-   * when the user's font is larger, and under RTL — where `offsetLeft` is not
-   * consistently reported from the same edge by every engine.
-   *
-   * `x` is a physical offset from the bar's left edge and `translateX` is
-   * always physical too, so direction never enters the arithmetic.
-   */
-  const [indicator, setIndicator] = useState({ x: 0, width: 0, ready: false })
-  const barRef = useRef<HTMLDivElement | null>(null)
-  const tabRefs = useRef(new Map<string, HTMLAnchorElement>())
-
-  /**
    * One poll for both badges.
    *
    * `ChatBell` already owns the chat count and the tab title, so the number
@@ -171,48 +154,131 @@ export default function BottomNav() {
     }
   }, [pathname])
 
-  /** Re-measures the active tab and moves the bubble to it. */
-  const placeIndicator = useCallback(() => {
+  /* ------------------------------------------------------------------
+     The sliding indicator.
+
+     Two separate operations, and confusing them is what made the previous
+     attempt look like "no animation at all":
+
+       · placeNow()  — JUMP. No animation. Runs on load, on every route
+                       change that did not come from a tap, and on resize.
+       · slideTo(el) — SLIDE. Runs on a tap, and measures **the element that
+                       was tapped** rather than whoever currently carries
+                       `aria-current`.
+
+     That last point matters. React commits the new `aria-current` on its own
+     schedule relative to the click handler, so reading "the active tab" from
+     inside the handler can measure the tab you are leaving. Measuring the
+     tapped element is deterministic and is also literally what was asked for.
+
+     Geometry comes from offsetLeft/offsetWidth. Both are physical pixels from
+     the left padding edge of the offsetParent (the bar, which is
+     `position: relative`). Under RTL a tab's offsetLeft is already its real
+     left edge, and translateX is physical too, so nothing needs flipping.
+     ------------------------------------------------------------------ */
+  const barRef = useRef<HTMLDivElement | null>(null)
+  const indicatorRef = useRef<HTMLSpanElement | null>(null)
+  const tabRefs = useRef(new Map<string, HTMLAnchorElement>())
+  /** The label the bubble is currently sitting on, to detect navigations that
+   *  did not come from a tap (back button, notification). */
+  const shownFor = useRef<string | null>(null)
+
+  /** Physical offset of a tab inside the bar, in px from the bar's left edge. */
+  const measure = useCallback((el: HTMLElement) => {
     const bar = barRef.current
-    if (!bar) return
-    const activeEl = Array.from(tabRefs.current.values()).find(
-      (el) => el.getAttribute('aria-current') === 'page',
-    )
-    if (!activeEl) return
-
-    const barBox = bar.getBoundingClientRect()
-    const tabBox = activeEl.getBoundingClientRect()
-
-    setIndicator((prev) => {
-      const next = {
-        x: tabBox.left - barBox.left,
-        width: tabBox.width,
-        ready: true,
-      }
-      // Skip a render when nothing moved; `resize` fires a lot.
-      if (prev.ready && prev.x === next.x && prev.width === next.width) return prev
-      return next
-    })
+    const relativeToBar = !bar || el.offsetParent === bar ? 0 : bar.offsetLeft
+    return { x: el.offsetLeft - relativeToBar, w: el.offsetWidth }
   }, [])
 
-  /** Layout effect, not effect: measure before the first paint or the bubble
-   *  visibly jumps from the left edge on load. */
-  useLayoutEffect(() => {
-    placeIndicator()
-  }, [placeIndicator, pathname, hasPartner])
+  const activeTabEl = useCallback(
+    () =>
+      Array.from(tabRefs.current.values()).find(
+        (el) => el.getAttribute('aria-current') === 'page',
+      ) ?? null,
+    [],
+  )
 
+  /** Jump — never animated. */
+  const placeNow = useCallback(() => {
+    const bubble = indicatorRef.current
+    if (!bubble) return
+    const el = activeTabEl()
+    if (!el) {
+      bubble.style.opacity = '0'
+      return
+    }
+    const { x, w } = measure(el)
+
+    /*
+      Already exactly where it belongs? Then there is nothing to place.
+
+      This guard is load-bearing. The layout effect below runs on every
+      `pathname` change — including the one a tap just caused — and without it
+      it would strip `is-sliding` from a slide that had only just started, so
+      every tap would snap. Skipping when the geometry already matches leaves
+      a slide in progress untouched, while a genuine resize (where the numbers
+      DO differ) still repositions.
+    */
+    const same =
+      Math.abs((parseFloat(bubble.style.width) || 0) - w) < 0.5 &&
+      Math.abs((parseFloat(/translateX\(([-\d.]+)px\)/.exec(bubble.style.transform)?.[1] ?? 'NaN') || 0) - x) < 0.5
+
+    if (same && bubble.style.opacity === '1') return
+
+    bubble.classList.remove('is-sliding')
+    bubble.style.transition = 'none'
+    bubble.style.width = `${w}px`
+    bubble.style.transform = `translateX(${x}px)`
+    bubble.style.opacity = '1'
+    shownFor.current = el.getAttribute('aria-label')
+
+    // Commit the un-animated position before transitions come back; without
+    // this a jump can inherit the previous slide's interpolation.
+    void bubble.offsetWidth
+    bubble.style.transition = ''
+  }, [activeTabEl, measure])
+
+  /** Slide — animated, to a tab that was just tapped. */
+  const slideTo = useCallback(
+    (el: HTMLElement) => {
+      const bubble = indicatorRef.current
+      if (!bubble) return
+      const { x, w } = measure(el)
+
+      bubble.style.transition = ''
+      bubble.classList.add('is-sliding')
+      bubble.style.width = `${w}px`
+      bubble.style.transform = `translateX(${x}px)`
+      bubble.style.opacity = '1'
+      shownFor.current = el.getAttribute('aria-label')
+    },
+    [measure],
+  )
+
+  /** Before first paint: jump onto the active tab, no animation. */
+  useLayoutEffect(() => {
+    placeNow()
+  }, [placeNow, pathname, hasPartner])
+
+  /** A route change that did not come from a tap (back button, a notification)
+   *  still has to land the bubble correctly — by jumping, not sliding. */
   useEffect(() => {
-    const onResize = () => placeIndicator()
+    const el = activeTabEl()
+    if (!el) return
+    if (shownFor.current !== el.getAttribute('aria-label')) placeNow()
+  }, [pathname, activeTabEl, placeNow])
+
+  /** Resize and late-arriving web fonts both move the tabs under the bubble. */
+  useEffect(() => {
+    const onResize = () => placeNow()
     window.addEventListener('resize', onResize)
     window.addEventListener('orientationchange', onResize)
-    // Web fonts change the label widths after first paint, which moves every
-    // tab and would leave the bubble a few pixels off.
     if (document.fonts?.ready) void document.fonts.ready.then(onResize)
     return () => {
       window.removeEventListener('resize', onResize)
       window.removeEventListener('orientationchange', onResize)
     }
-  }, [placeIndicator])
+  }, [placeNow])
 
   const tabs: Tab[] = [
     {
@@ -258,17 +324,16 @@ export default function BottomNav() {
   const unreadLabel = unread > 9 ? '۹+' : unread > 0 ? unread.toLocaleString('fa-IR') : null
 
   return (
-    <nav
-      aria-label="بخش‌های کنارت"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
-    >
-      <div
-        ref={barRef}
-        /* No entrance animation and no key: this element must never be rebuilt.
-               A fade-in here reads as "the whole bar is re-created on every tab
-               change", which is exactly the flicker it caused. */
-        className="pointer-events-auto relative flex w-full max-w-[21.5rem] items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl"
-      >
+    <nav aria-label="بخش‌های کنارت" className="nav-root">
+      <div ref={barRef} className="nav-bar">
+        {/*
+          The bubble is the FIRST child on purpose: in paint order it comes
+          before the tabs, so it sits underneath the icons and labels without
+          needing a negative z-index (which would put it behind the bar's own
+          translucent background).
+        */}
+        <span ref={indicatorRef} aria-hidden="true" className="nav-indicator" />
+
         {visible.map((tab) => {
           const active = tab.match(pathname)
           const badge = tab.to === '/chat' ? unreadLabel : null
@@ -282,59 +347,33 @@ export default function BottomNav() {
               to={tab.to}
               aria-current={active ? 'page' : undefined}
               aria-label={tab.label}
-              className={`relative flex flex-1 basis-0 flex-col items-center gap-1 rounded-full px-2 py-2 transition-colors duration-200 ${
-                active ? 'text-blush-600' : 'text-ink-500 hover:text-ink-700'
-              }`}
+              className="nav-item"
+              onClick={(event) => {
+                const el = event.currentTarget
+                /*
+                  The animation is started here, by hand, rather than by an
+                  effect reacting to the route.
+
+                  An effect runs *after* React has already moved
+                  `aria-current`, so by the time it measured, the browser had
+                  the new layout and the old transform — and whether it
+                  interpolated came down to frame timing. Doing it in the click
+                  handler means: add the class, then move. One frame, always a
+                  slide.
+                */
+                if (active) return
+                // Measure and move in the same handler, using THIS element.
+                slideTo(el)
+              }}
             >
-              <span className="relative">
+              <span className="nav-icon">
                 {tab.icon(active)}
-                {badge && (
-                  <span className="absolute -top-1.5 -left-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-blush-500 px-1 text-[9px] font-extrabold leading-none text-white">
-                    {badge}
-                  </span>
-                )}
+                {badge && <span className="nav-badge">{badge}</span>}
               </span>
-              <span
-                className={`relative text-[10.5px] leading-none ${
-                  active ? 'font-extrabold' : 'font-medium'
-                }`}
-              >
-                {tab.label}
-              </span>
+              <span className="nav-label">{tab.label}</span>
             </Link>
           )
         })}
-
-        {/*
-          ONE bubble for the whole bar. It is the last child so it paints
-          underneath the icons and labels, and `pointer-events-none` keeps it
-          from swallowing taps aimed at a tab.
-
-          It slides rather than fades: previously each tab carried its own pill
-          and the pill cross-faded on change. A single element that travels
-          shows *where the selection went*, which is the whole point of an
-          indicator.
-        */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-1.5 left-0 rounded-full bg-[#f9628b]/14"
-          style={{
-            width: indicator.width,
-            transform: `translateX(${indicator.x}px)`,
-            /*
-              350ms with a springy curve: 1.3 on the second control point
-              overshoots just enough to read as physical without wobbling.
-
-              The transition is switched OFF for the very first placement, so
-              the bubble starts under the active tab instead of flying there
-              from x=0 as the page appears. After that it only ever slides.
-            */
-            transition: indicator.ready
-              ? 'transform 350ms cubic-bezier(0.34, 1.3, 0.64, 1), width 350ms cubic-bezier(0.34, 1.3, 0.64, 1)'
-              : 'none',
-            opacity: indicator.ready ? 1 : 0,
-          }}
-        />
       </div>
     </nav>
   )
