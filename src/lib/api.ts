@@ -13,6 +13,10 @@ import type {
   PushConfig,
   PushDevice,
   ReunionState,
+  GameState,
+  GameCardsPage,
+  GameKind,
+  GameSource,
   VaultItem,
   VaultState,
   WarmthKind,
@@ -725,4 +729,116 @@ export async function deleteVaultItem(id: string): Promise<string | null> {
   const { data, error } = await supabase.rpc('vault_delete', { p_id: id })
   if (error) throw error
   return ((data as { path?: string | null })?.path ?? null) as string | null
+}
+
+// ------------------------------------------------------------------
+// رودررو — the game
+//
+// Every write is an RPC. The deck, the turn rules and the rate limits all
+// live in the database (migration 0016); this file only carries the calls.
+// `game_deal`, `game_answer`, `game_skip` and `game_set_level` all return the
+// whole new state, so the page never has to re-fetch after acting.
+// ------------------------------------------------------------------
+
+/** Gives a new couple their starter deck. Idempotent. */
+export async function seedGameDeck(): Promise<{ seeded: boolean; builtin: number }> {
+  const { data, error } = await supabase.rpc('game_seed')
+  if (error) throw error
+  const row = (data ?? {}) as { seeded?: boolean; builtin?: number }
+  return { seeded: Boolean(row.seeded), builtin: Number(row.builtin ?? 0) }
+}
+
+export async function fetchGameState(): Promise<GameState> {
+  const { data, error } = await supabase.rpc('game_state')
+  if (error) throw error
+  const row = (data ?? {}) as Partial<GameState>
+  return {
+    settings: {
+      max_level: (row.settings?.max_level ?? 2) as GameState['settings']['max_level'],
+      avoid_repeats: row.settings?.avoid_repeats ?? true,
+    },
+    counts: {
+      total: Number(row.counts?.total ?? 0),
+      builtin: Number(row.counts?.builtin ?? 0),
+      ours: Number(row.counts?.ours ?? 0),
+      played: Number(row.counts?.played ?? 0),
+    },
+    // The RPC returns JSON `null` here when the table is free; normalise it so
+    // callers can just test truthiness.
+    open_turn: row.open_turn ?? null,
+    recent: row.recent ?? [],
+  }
+}
+
+/** Deals a card. `kind` narrows the draw; omit it for any kind. */
+export async function dealGameCard(kind?: GameKind | null): Promise<GameState> {
+  const { data, error } = await supabase.rpc('game_deal', { p_kind: kind ?? null })
+  if (error) throw error
+  return (data ?? {}) as GameState
+}
+
+export async function answerGameTurn(turnId: string, body: string): Promise<GameState> {
+  const { data, error } = await supabase.rpc('game_answer', { p_turn: turnId, p_body: body })
+  if (error) throw error
+  return (data ?? {}) as GameState
+}
+
+export async function skipGameTurn(turnId: string): Promise<GameState> {
+  const { data, error } = await supabase.rpc('game_skip', { p_turn: turnId })
+  if (error) throw error
+  return (data ?? {}) as GameState
+}
+
+export async function addGameCard(
+  kind: GameKind,
+  level: 1 | 2 | 3,
+  body: string,
+): Promise<{ id: string }> {
+  const { data, error } = await supabase.rpc('game_add_card', {
+    p_kind: kind,
+    p_level: level,
+    p_body: body,
+  })
+  if (error) throw error
+  return (data ?? {}) as { id: string }
+}
+
+export async function fetchGameCards(
+  opts: {
+    kind?: GameKind | null
+    level?: 1 | 2 | 3 | null
+    source?: GameSource | null
+    limit?: number
+    offset?: number
+  } = {},
+): Promise<GameCardsPage> {
+  const { data, error } = await supabase.rpc('game_cards_page', {
+    p_kind: opts.kind ?? null,
+    p_level: opts.level ?? null,
+    p_source: opts.source ?? null,
+    p_limit: opts.limit ?? 50,
+    p_offset: opts.offset ?? 0,
+  })
+  if (error) throw error
+  const row = (data ?? {}) as Partial<GameCardsPage>
+  return { total: Number(row.total ?? 0), cards: row.cards ?? [] }
+}
+
+/** Removes one of *your* cards. Starter cards are locked in the database. */
+export async function retireGameCard(cardId: string): Promise<{ retired: string }> {
+  const { data, error } = await supabase.rpc('game_retire_card', { p_card: cardId })
+  if (error) throw error
+  return (data ?? {}) as { retired: string }
+}
+
+export async function setGameLevel(
+  maxLevel: 1 | 2 | 3,
+  avoidRepeats?: boolean,
+): Promise<GameState> {
+  const { data, error } = await supabase.rpc('game_set_level', {
+    p_max_level: maxLevel,
+    p_avoid_repeats: avoidRepeats ?? null,
+  })
+  if (error) throw error
+  return (data ?? {}) as GameState
 }

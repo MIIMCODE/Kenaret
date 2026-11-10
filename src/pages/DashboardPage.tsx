@@ -514,6 +514,65 @@ export default function DashboardPage() {
 
         <InstallHint />
 
+        {/* رودررو. Its own row, not a grid cell: the game is a place you go
+            together, and it should not read as a settings shortcut. */}
+        <Link
+          to="/game"
+          className="flex items-center gap-3 rounded-[1.75rem] bg-clay-100 p-4 shadow-neo transition-shadow duration-200 hover:shadow-neo-lg active:shadow-neo-in"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-lilac-700 to-lilac-900 text-white shadow-[6px_6px_14px_rgba(103,67,159,0.22),-6px_-6px_14px_rgba(255,255,255,0.85)]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect
+                x="3.5"
+                y="5"
+                width="13"
+                height="15"
+                rx="2.5"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                transform="rotate(-8 10 12)"
+              />
+              <rect
+                x="8"
+                y="4.5"
+                width="12.5"
+                height="15"
+                rx="2.5"
+                fill="currentColor"
+                fillOpacity="0.18"
+                stroke="currentColor"
+                strokeWidth="1.7"
+              />
+              <path
+                d="M11.5 10.5h5.5M11.5 13.5h3.5"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13.5px] font-extrabold text-ink-900">رودررو</p>
+            <p className="truncate text-[11px] text-ink-700">یک بازی برای دو نفر — سؤال‌ها از خودتون</p>
+          </div>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+            className="shrink-0 text-ink-700/55"
+          >
+            <path
+              d="M15 6l-6 6 6 6"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </Link>
+
         {/* Quick links */}
         <section className="grid grid-cols-2 gap-3 pt-1">
           <Link
