@@ -18,19 +18,37 @@ export function registerServiceWorker(): void {
       const base = import.meta.env.BASE_URL
       const registration = await navigator.serviceWorker.register(`${base}sw.js`, {
         scope: base,
+        // `sw.js` keeps a stable URL, so a cached copy would hide a deploy.
+        updateViaCache: 'none',
       })
 
-      // A new deploy is ready: refresh once the page is idle so the next launch
-      // is guaranteed to be the new build, without yanking the page mid-tap.
+      // A new deploy is ready: activate it immediately so the *next* push uses
+      // the new code. Without this a waiting worker can sit by until every tab
+      // closes, which on a phone that is never closed means "forever" — and the
+      // old worker keeps showing the old notification icon.
+      //
+      // `updateViaCache: 'none'` matters just as much: `sw.js` is not
+      // content-hashed, so without it the browser can keep serving a stale copy
+      // from the HTTP cache and never notice a new version exists.
+      const activate = (worker: ServiceWorker | null) => {
+        if (worker) worker.postMessage({ type: 'SKIP_WAITING' })
+      }
+
+      if (registration.waiting && navigator.serviceWorker.controller) activate(registration.waiting)
+
       registration.addEventListener('updatefound', () => {
         const installing = registration.installing
         if (!installing) return
         installing.addEventListener('statechange', () => {
           if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-            registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
+            activate(installing)
           }
         })
       })
+
+      // The first install has no controller; claiming then gives one without a
+      // reload, so the very first notification already uses this worker.
+      void navigator.serviceWorker.ready
     } catch {
       // A failed registration must never break the app — it only means the
       // installed launch will need the network, which is the old behaviour.
