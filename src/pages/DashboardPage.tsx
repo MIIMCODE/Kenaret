@@ -201,6 +201,28 @@ export default function DashboardPage() {
               </svg>
             </Link>
 
+            {/* The private room. Deliberately the darkest thing on a pastel
+                page: it should not look like just another tab. */}
+            <Link
+              to="/vault"
+              className="flex items-center gap-3 rounded-2xl border border-[#2b1a24] bg-gradient-to-l from-[#1d1017] via-[#2a1721] to-[#331b27] p-4 text-[#f4e7e2] shadow-card transition hover:brightness-110"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-[#f4c3d1]">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="4.5" y="10" width="15" height="10" rx="3" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <circle cx="12" cy="15" r="1.2" fill="currentColor" />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] font-extrabold">فضای خصوصی</p>
+                <p className="truncate text-[11px] text-[#f4e7e2]/45">فقط با رمز شما دو نفر باز می‌شود</p>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-[#f4e7e2]/30">
+                <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+
             {/* The conversation. Above everything else, because it is the
                 only thing here that both people touch every day. */}
             <Link
