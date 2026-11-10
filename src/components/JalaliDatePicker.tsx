@@ -9,7 +9,7 @@ import {
   todayIso,
   toPersianDigits,
 } from '../lib/jalali'
-import { portalHost, useKeyboardOpen, useMounted, useScrollLock } from '../lib/portal'
+import { useKeyboardOpen, usePortalHost, useScrollLock } from '../lib/portal'
 
 interface Props {
   /** Gregorian ISO date (`YYYY-MM-DD`) or null. */
@@ -68,7 +68,7 @@ export default function JalaliDatePicker({
   const [yearMode, setYearMode] = useState(false)
   const [closing, setClosing] = useState(false)
 
-  const mounted = useMounted()
+  const portalTarget = usePortalHost()
   const keyboardOpen = useKeyboardOpen()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -420,7 +420,7 @@ export default function JalaliDatePicker({
 
       {error && <p className="mt-1.5 text-[12px] font-medium text-red-500">{error}</p>}
 
-      {mounted && sheet && portalHost() ? createPortal(sheet, portalHost()!) : null}
+      {sheet && portalTarget ? createPortal(sheet, portalTarget) : null}
 
       <input type="hidden" value={value ? `${value}` : ''} readOnly />
     </div>

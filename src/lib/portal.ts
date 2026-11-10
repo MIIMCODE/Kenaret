@@ -49,32 +49,58 @@ export function portalHost(id = 'knr-portal'): HTMLElement | null {
 /**
  * Locks page scrolling while a floating layer is open.
  *
- * iOS Safari is deliberately blunt here: `overflow: hidden` on <body> alone is
- * not enough, and because the page width changes when the scrollbar is hidden
- * on desktop we compensate with a matching right padding so nothing jumps.
+ * `overflow: hidden` alone is not trustworthy on iOS — momentum scrolling can
+ * still drag the page behind the sheet, which reads as "the calendar moved by
+ * itself". On touch devices we therefore pin <body> with `position: fixed`
+ * (the technique every scroll-lock library ends up using), remembering the
+ * offset and restoring it when the sheet closes. Desktops keep the simpler
+ * overflow lock, plus padding compensation so the layout does not shift when
+ * the scrollbar disappears.
  */
 export function useScrollLock(active: boolean) {
   useEffect(() => {
     if (!active) return
+
     const body = document.body
     const html = document.documentElement
+    const scrollY = window.scrollY || 0
     const previous = {
       bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
       bodyPaddingRight: body.style.paddingRight,
       htmlOverflow: html.style.overflow,
       htmlOverscroll: html.style.overscrollBehavior,
     }
-    const scrollbar = window.innerWidth - html.clientWidth
+
+    const isTouch = window.matchMedia?.('(pointer: coarse)').matches ?? false
+
+    if (isTouch) {
+      // Pin the body; fixed descendants still resolve against the viewport.
+      body.style.position = 'fixed'
+      body.style.top = `-${scrollY}px`
+      body.style.width = '100%'
+    } else {
+      const scrollbar = window.innerWidth - html.clientWidth
+      if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`
+    }
+
     body.style.overflow = 'hidden'
     html.style.overflow = 'hidden'
     html.style.overscrollBehavior = 'contain'
-    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`
 
     return () => {
       body.style.overflow = previous.bodyOverflow
+      body.style.position = previous.bodyPosition
+      body.style.top = previous.bodyTop
+      body.style.width = previous.bodyWidth
       body.style.paddingRight = previous.bodyPaddingRight
       html.style.overflow = previous.htmlOverflow
       html.style.overscrollBehavior = previous.htmlOverscroll
+      // Un-pinning the body drops the page back to the top; put it back where
+      // the visitor left it so closing the calendar is invisible.
+      if (isTouch && scrollY > 0) window.scrollTo(0, scrollY)
     }
   }, [active])
 }
@@ -108,6 +134,21 @@ export function useMounted(): boolean {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   return mounted
+}
+
+/**
+ * Creates (once) and returns the portal host after mount.
+ *
+ * Doing this in an effect rather than during render keeps rendering pure:
+ * React StrictMode renders twice, and creating DOM nodes as a side effect of
+ * rendering is exactly the kind of thing that breaks under it.
+ */
+export function usePortalHost(): HTMLElement | null {
+  const [host, setHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    setHost(portalHost())
+  }, [])
+  return host
 }
 
 /** Keeps a ref pointing at the freshly rendered node. */
