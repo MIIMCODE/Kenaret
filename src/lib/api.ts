@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Gender, PairingState, PeriodSettings } from '../types/database'
+import type { Gender, PairingState, PeriodSettings, ReminderLogRow, ReminderPrefs } from '../types/database'
 
 export interface ProfileRow {
   id: string
@@ -127,4 +127,56 @@ export async function setAnniversary(
   })
   if (error) throw error
   return data as AnniversaryResult
+}
+
+// ------------------------------------------------------------------
+// Reminders
+// ------------------------------------------------------------------
+
+const REMINDER_COLUMNS = 'enabled, want_anniversary, want_birthday, want_period'
+
+/**
+ * The visitor's reminder settings.
+ *
+ * A missing row means "everything on", so a brand-new account needs no insert
+ * and no backfill — the defaults live in the database.
+ */
+export async function fetchReminderPrefs(userId: string): Promise<ReminderPrefs> {
+  const { data, error } = await supabase
+    .from('reminder_prefs')
+    .select(REMINDER_COLUMNS)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+  return (
+    (data as ReminderPrefs | null) ?? {
+      enabled: true,
+      want_anniversary: true,
+      want_birthday: true,
+      want_period: true,
+    }
+  )
+}
+
+export async function saveReminderPrefs(userId: string, prefs: Partial<ReminderPrefs>): Promise<void> {
+  const { error } = await supabase
+    .from('reminder_prefs')
+    .upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' })
+
+  if (error) throw error
+}
+
+/** What has already been mailed about this account (owner can read only their own). */
+export async function fetchReminderLog(userId: string, limit = 8): Promise<ReminderLogRow[]> {
+  const { data, error } = await supabase
+    .from('reminder_log')
+    .select('id, kind, event_iso, channel, status, detail, created_at')
+    .eq('user_id', userId)
+    .eq('channel', 'email')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+  return (data ?? []) as ReminderLogRow[]
 }

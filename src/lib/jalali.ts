@@ -63,6 +63,26 @@ export function jalaliToIso(jy: number, jm: number, jd: number): string | null {
   return `${String(gy).padStart(4, '0')}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`
 }
 
+/**
+ * Gregorian ISO for a Jalali day, clamping the day to the month's real length.
+ *
+ * `jalaliToIso(1403, 12, 31)` would be null in a non-leap year, but a yearly
+ * anniversary must still land somewhere sensible — so we clamp to 29 instead of
+ * dropping the event. This is the one place that rule should live.
+ */
+export function jalaliDateClamped(jy: number, jm: number, jd: number): string | null {
+  const length = jalaliMonthLength(jy, jm)
+  return jalaliToIso(jy, jm, Math.min(jd, length))
+}
+
+/** Number of months between two Gregorian ISO dates, on the Jalali calendar. */
+export function jalaliMonthsBetween(fromIso: string, toIso: string): number {
+  const a = isoToJalali(fromIso)
+  const b = isoToJalali(toIso)
+  if (!a || !b) return 0
+  return (b.jy - a.jy) * 12 + (b.jm - a.jm)
+}
+
 /** Local (not UTC) `YYYY-MM-DD` for "today". */
 export function todayIso(): string {
   const now = new Date()

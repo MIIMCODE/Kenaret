@@ -60,3 +60,20 @@ export interface PairingState {
   /** Present once an active partner exists. */
   anniversary?: AnniversaryState | null
 }
+
+export interface ReminderPrefs {
+  enabled: boolean
+  want_anniversary: boolean
+  want_birthday: boolean
+  want_period: boolean
+}
+
+export interface ReminderLogRow {
+  id: number
+  kind: string
+  event_iso: string
+  channel: 'email' | 'in_app'
+  status: 'queued' | 'sent' | 'failed' | 'skipped'
+  detail: string | null
+  created_at: string
+}
