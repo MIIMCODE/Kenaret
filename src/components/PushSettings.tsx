@@ -80,15 +80,27 @@ export default function PushSettings() {
     setNotice(null)
     try {
       const result = await testPush()
+
+      if (!result.ok) {
+        setError(
+          'این گوشی هنوز ثبت نشده. اول کلید بالا را روشن کن، بعد اجازه‌ی نوتیفیکیشن را بده.',
+        )
+        return
+      }
+
       if (result.sent > 0) {
         setNotice('فرستادیم! تا چند ثانیه دیگر باید روی گوشی بیاید.')
-      } else {
-        setError(
-          'چیزی برای فرستادن نبود. یک یادآوری پیشِ رو لازم است — یا یک «دلم تنگ شده» از شریکت.',
-        )
+        return
       }
+
+      // Nothing was delivered, and the server said why in the device row.
+      setError(
+        'فرستادیم اما سرویس پوش قبولش نکرد. اگر روی آیفون هستی، کنارت باید از صفحه‌ی خانه باز شده باشد؛ وگرنه یک بار خاموش و روشن کن.',
+      )
     } catch (err) {
-      setError(toPersianError(err))
+      // The most common failure here is the browser blocking a cross-origin
+      // call; saying "try again" would hide that.
+      setError(`${toPersianError(err)} اگر تکرار شد، صفحه را تازه کن و دوباره امتحان کن.`)
     } finally {
       setTesting(false)
     }
