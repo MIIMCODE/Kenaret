@@ -42,6 +42,7 @@ export default function SettingsPage() {
 
   const [anniversary, setAnniversary] = useState<AnniversaryState | null>(null)
   const [partnerName, setPartnerName] = useState<string | null>(null)
+  const [partnerId, setPartnerId] = useState<string | null>(null)
   const [editingAnniversary, setEditingAnniversary] = useState(false)
   const [anniversaryNotice, setAnniversaryNotice] = useState<string | null>(null)
 
@@ -57,6 +58,7 @@ export default function SettingsPage() {
       const state = await fetchPairingState()
       setAnniversary(state.anniversary ?? null)
       setPartnerName(state.partner?.display_name ?? null)
+      setPartnerId(state.partner?.id ?? null)
     } catch {
       // Settings stays usable even if the couple state cannot be read.
       setAnniversary(null)
@@ -274,7 +276,7 @@ export default function SettingsPage() {
               <AnniversaryCard
                 date={anniversary.date}
                 setByName={partnerName}
-                isMine={anniversary.set_by !== null && anniversary.set_by !== partnerName}
+                isMine={anniversary.set_by !== null && anniversary.set_by !== partnerId}
               />
             )}
           </section>
