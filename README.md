@@ -142,6 +142,29 @@ second pass would let a rejected mail look delivered.
 > Settings → «تاریخچه‌ی یادآوری‌ها», instead of silently vanishing. Verifying a
 > domain and changing the `from` address in `send_reminders()` lifts the limit.
 
+### In-app reminders (the bell)
+A bell in the header shows everything coming up in the next **three days** —
+tomorrow's anniversary, a birthday, a milestone, or her own period — with a
+Persian-digit badge and a bottom sheet listing each one.
+
+It matters because it is the channel that *works today*: email still needs a
+verified sending domain, so a mail may 403 while the bell always fires.
+
+- Backed by **`my_upcoming_reminders(days)`**, which wraps the same
+  `reminder_queue()` the nightly mail job reads, so the bell and the email can
+  never disagree. `reminder_queue()` itself stays un-executable by clients: it
+  is a definer function that can describe a partner's cycle *when she
+  consented*, so exposing it directly would leak the whole queue. The wrapper
+  returns only `user_id = auth.uid()` rows and caps the window at 14 days.
+- `reminder_queue(p_day)` is **day-exact**, not a range — it answers "what
+  happens on this date". The wrapper therefore asks it once per day in the
+  window. (Reading it for `current_date` and expecting the next three days was
+  the first version of this feature, and it silently showed nothing.)
+- The bell honours the same switches as the mail job (`reminder_prefs`): a kind
+  the user turned off never comes back through a different door.
+- A failed load is silent — no error banner, no badge. An empty bell says so
+  plainly and links to «روزهای مهم».
+
 ### Installing on the phone (PWA)
 Kenaret installs to the home screen and then behaves like an app: its own
 icon, no address bar, and a cold start straight into the dashboard.

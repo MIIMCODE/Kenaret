@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import type { ReminderQueueRow } from './reminders'
 import type {
   Gender,
   PairingState,
@@ -220,4 +221,21 @@ export async function fetchPartnerCycleStatus(): Promise<PartnerCycleStatus> {
   const { data, error } = await supabase.rpc('partner_cycle_status')
   if (error) throw error
   return (data as PartnerCycleStatus | null) ?? { shared: false }
+}
+
+// ------------------------------------------------------------------
+// In-app reminders (the bell)
+// ------------------------------------------------------------------
+
+/**
+ * The caller's own reminders for the next few days.
+ *
+ * Backed by `my_upcoming_reminders()`, which wraps the day-exact
+ * `reminder_queue()` — clients are not allowed to execute that one directly,
+ * so a partner's cycle can only ever arrive through its consent check.
+ */
+export async function fetchUpcomingReminders(days = 3): Promise<ReminderQueueRow[]> {
+  const { data, error } = await supabase.rpc('my_upcoming_reminders', { p_days: days })
+  if (error) throw error
+  return (data ?? []) as ReminderQueueRow[]
 }
