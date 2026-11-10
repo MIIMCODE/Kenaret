@@ -38,7 +38,7 @@ export default function AnniversaryCard({ date, onEdit, setByName, isMine = fals
   const isToday = monthly.daysUntil === 0 || yearly.daysUntil === 0
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white bg-gradient-to-bl from-blush-50 via-white to-lilac-100/70 p-5 shadow-card">
+    <section className="relative overflow-hidden rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
       {/* soft decorative blobs */}
       <span className="pointer-events-none absolute -left-6 -top-8 h-24 w-24 rounded-full bg-blush-200/40 blur-2xl" />
       <span className="pointer-events-none absolute -bottom-10 -right-6 h-28 w-28 rounded-full bg-lilac-300/30 blur-2xl" />
@@ -46,11 +46,11 @@ export default function AnniversaryCard({ date, onEdit, setByName, isMine = fals
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold text-ink-500">با هم بودن</p>
+            <p className="text-[11px] font-semibold text-ink-700">با هم بودن</p>
             <p className="mt-1 text-[26px] font-extrabold leading-9 text-ink-900">{duration.shortLabel}</p>
-            <p className="mt-0.5 text-[11.5px] text-ink-500">
+            <p className="mt-0.5 text-[11.5px] text-ink-700">
               از {anniversaryLabel(date)}
-              <span className="mx-1.5 text-blush-300">•</span>
+              <span className="mx-1.5 text-blush-600">•</span>
               {duration.totalDays.toLocaleString('fa-IR')} روز
             </p>
           </div>
@@ -59,7 +59,7 @@ export default function AnniversaryCard({ date, onEdit, setByName, isMine = fals
             <button
               type="button"
               onClick={onEdit}
-              className="shrink-0 rounded-xl border border-blush-200 bg-white/80 px-2.5 py-1.5 text-[10.5px] font-bold text-blush-600 transition hover:bg-white"
+              className="shrink-0 rounded-xl bg-clay-100 px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 shadow-neo-sm transition-shadow hover:shadow-neo active:shadow-neo-in-sm"
             >
               ویرایش
             </button>
@@ -67,7 +67,7 @@ export default function AnniversaryCard({ date, onEdit, setByName, isMine = fals
         </div>
 
         {isToday && (
-          <p className="mt-3 rounded-2xl bg-blush-500/10 px-3 py-2 text-center text-[12px] font-bold text-blush-700">
+          <p className="mt-3 rounded-2xl bg-clay-200 px-3 py-2 text-center text-[12px] font-bold text-blush-800 shadow-neo-in-sm">
             🎉 امروز یکی از روزهای خاص شماست!
           </p>
         )}
@@ -95,13 +95,13 @@ export default function AnniversaryCard({ date, onEdit, setByName, isMine = fals
               {milestones.map((item) => (
                 <li
                   key={item.key}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-white/70 px-3 py-2"
+                  className="flex items-center justify-between gap-2 rounded-xl bg-clay-200 px-3 py-2 shadow-neo-in-sm"
                 >
                   <span className="flex min-w-0 items-center gap-1.5 text-[11.5px] font-semibold text-ink-700">
                     <span aria-hidden="true">{item.emoji}</span>
                     <span className="truncate">{item.title}</span>
                   </span>
-                  <span className="shrink-0 text-[10.5px] font-bold text-blush-600">
+                  <span className="shrink-0 text-[10.5px] font-bold text-blush-800">
                     {daysUntilLabel(item.daysUntil)}
                   </span>
                 </li>
@@ -111,7 +111,7 @@ export default function AnniversaryCard({ date, onEdit, setByName, isMine = fals
         )}
 
         {setByName && (
-          <p className="mt-3 text-[10px] text-ink-500">
+          <p className="mt-3 text-[10px] text-ink-700">
             این تاریخ را {isMine ? 'خودت' : setByName} ثبت کرده
             {onEdit ? '؛ اگر اشتباه است از ویرایش عوضش کن.' : '.'}
           </p>
@@ -132,15 +132,17 @@ function Countdown({
   sub: string
   accent: 'blush' | 'lilac'
 }) {
+  // Raised, so the countdown pair reads as two controls sitting on the slab.
+  // Text colours are the deep steps: the light ones fail on clay.
   const styles =
     accent === 'blush'
-      ? 'border-blush-200 bg-white/80 text-blush-600'
-      : 'border-lilac-200 bg-white/80 text-lilac-600'
+      ? 'bg-clay-100 text-blush-800 shadow-neo-sm'
+      : 'bg-clay-100 text-lilac-700 shadow-neo-sm'
   return (
-    <div className={`rounded-2xl border px-3 py-2.5 ${styles}`}>
-      <p className="text-[10px] font-semibold text-ink-500">{eyebrow}</p>
+    <div className={`rounded-2xl px-3 py-2.5 ${styles}`}>
+      <p className="text-[10px] font-semibold text-ink-700">{eyebrow}</p>
       <p className="mt-0.5 text-[14px] font-extrabold">{value}</p>
-      <p className="mt-0.5 text-[10px] font-medium text-ink-500">{sub}</p>
+      <p className="mt-0.5 text-[10px] font-medium text-ink-700">{sub}</p>
     </div>
   )
 }

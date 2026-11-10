@@ -53,7 +53,7 @@ export default function InstallHint() {
 
   return (
     <section
-      className="card animate-fade-up border border-blush-200 p-4"
+      className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-4 shadow-neo"
       aria-label="نصب روی گوشی"
     >
       <div className="flex items-start gap-3">
@@ -62,14 +62,14 @@ export default function InstallHint() {
           alt=""
           width={44}
           height={44}
-          className="h-11 w-11 shrink-0 rounded-xl shadow-soft"
+          className="h-11 w-11 shrink-0 rounded-xl bg-clay-200 p-1 shadow-neo-in-sm"
         />
 
         <div className="min-w-0 flex-1">
           <p className="text-[12.5px] font-extrabold text-ink-900">
             کنارت را روی گوشی‌ات نصب کن
           </p>
-          <p className="mt-1 text-[11px] leading-5 text-ink-500">
+          <p className="mt-1 text-[11px] leading-5 text-ink-700">
             {ios
               ? 'بعد از نصب، آیکونش کنار بقیه‌ی برنامه‌ها می‌نشیند و هر بار مستقیم باز می‌شود.'
               : 'بعد از نصب، مثل بقیه‌ی برنامه‌ها از صفحه‌ی خانه بازش می‌کنی، بدون نوار آدرس.'}
@@ -80,7 +80,7 @@ export default function InstallHint() {
           type="button"
           onClick={handleDismiss}
           aria-label="بستن"
-          className="-mt-1 -mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-blush-50 hover:text-ink-700"
+          className="-mt-1 -mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-700 transition hover:bg-blush-50 hover:text-ink-900"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
@@ -94,12 +94,12 @@ export default function InstallHint() {
       </div>
 
       {ios ? (
-        <ol className="mt-3 space-y-2 rounded-2xl bg-blush-50 px-3.5 py-3">
+        <ol className="mt-3 space-y-2 rounded-2xl bg-clay-200 px-3.5 py-3 shadow-neo-in-sm">
           <li className="flex items-center gap-2 text-[11px] leading-5 text-ink-700">
             <Step n="۱" />
             <span>
               در سافاری دکمه‌ی{' '}
-              <span className="inline-flex items-center gap-1 rounded-md bg-white px-1.5 py-0.5 font-bold">
+              <span className="inline-flex items-center gap-1 rounded-md bg-clay-100 px-1.5 py-0.5 font-bold shadow-neo-sm">
                 <ShareGlyph />
                 اشتراک‌گذاری
               </span>{' '}
@@ -123,7 +123,7 @@ export default function InstallHint() {
           {busy ? 'در حال باز کردن…' : 'نصب کن'}
         </button>
       ) : (
-        <p className="mt-3 text-[11px] leading-5 text-ink-500">
+        <p className="mt-3 text-[11px] leading-5 text-ink-700">
           از منوی مرورگر گزینه‌ی «افزودن به صفحه‌ی خانه» یا «نصب برنامه» را انتخاب کن.
         </p>
       )}
@@ -133,7 +133,7 @@ export default function InstallHint() {
 
 function Step({ n }: { n: string }) {
   return (
-    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-extrabold text-blush-600">
+    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-clay-100 text-[10px] font-extrabold text-blush-800 shadow-neo-sm">
       {n}
     </span>
   )

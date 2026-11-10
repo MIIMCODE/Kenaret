@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
+import { NeoBackdrop, NeoStat } from '../components/Neo'
 import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import PairingCodeCard from '../components/PairingCodeCard'
@@ -20,7 +21,7 @@ import {
   unlinkPartner,
 } from '../lib/api'
 import { toPersianError } from '../lib/errors'
-import { formatJalaliLong } from '../lib/jalali'
+import { daysBetweenIso, formatJalaliLong, toPersianDigits, todayIso } from '../lib/jalali'
 import type { CoupleRequestSummary, PairingState } from '../types/database'
 
 export default function DashboardPage() {
@@ -156,17 +157,65 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-dvh">
+      <NeoBackdrop />
       <AppHeader />
 
       <main className="page space-y-4">
-        {/* Greeting */}
-        <section className="animate-fade-up">
-          <p className="text-[12px] font-semibold text-ink-500">سلام 👋</p>
-          <h1 className="mt-0.5 text-[23px] font-extrabold leading-9 text-ink-900">
-            {profile?.display_name ?? 'دوست من'}
-            <span className="mr-2 text-[15px] font-medium text-ink-500">خوش اومدی</span>
-          </h1>
+        {/*
+          Greeting, pressed out of the clay instead of sitting on it.
+          No border and no white fill: neo-morphism gets its edges from the two
+          shadows, and adding a hairline border on top of them is what makes
+          soft UI look muddy.
+        */}
+        <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+          <div className="flex items-center gap-4">
+            <div className="rounded-full bg-clay-200 p-1.5 shadow-neo-in-sm">
+              <Avatar src={profile?.avatar_url} name={profile?.display_name} size={46} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11.5px] font-semibold text-ink-700">سلام 👋</p>
+              <h1 className="truncate text-[22px] font-extrabold leading-8 text-ink-900">
+                {profile?.display_name ?? 'دوست من'}
+              </h1>
+            </div>
+            {/* The day, as a raised pill — it is the one thing that changes
+                every morning, so it gets its own object. */}
+            <div className="rounded-2xl bg-clay-200 px-3 py-2 text-center shadow-neo-in-sm">
+              <p className="text-[13px] font-extrabold leading-none text-blush-800">
+                {toPersianDigits(new Date().toLocaleDateString('fa-IR', { day: 'numeric' }))}
+              </p>
+              <p className="mt-1 text-[9px] font-bold leading-none text-ink-700">
+                {new Date().toLocaleDateString('fa-IR', { month: 'long' })}
+              </p>
+            </div>
+          </div>
         </section>
+
+        {/*
+          The couple's own numbers, pressed into the surface.
+          Only shown once there is a start date; `daysBetweenIso` is calendar
+          days, so this is "how many days we have been us", not a duration.
+        */}
+        {hasPartner && state.anniversary?.date && (
+          <section className="flex items-stretch gap-3">
+            <NeoStat
+              label="با هم بوده‌ایم"
+              value={toPersianDigits(Math.max(0, daysBetweenIso(state.anniversary.date, todayIso())))}
+              unit="روز"
+            />
+            <NeoStat
+              label="تا سالگرد بعدی"
+              value={toPersianDigits(
+                Math.max(
+                  0,
+                  365 - (Math.max(0, daysBetweenIso(state.anniversary.date, todayIso())) % 365),
+                ),
+              )}
+              unit="روز"
+              tone="lilac"
+            />
+          </section>
+        )}
 
         {notice && <Alert tone="success">{notice}</Alert>}
         {error && <Alert tone="error">{error}</Alert>}
@@ -178,9 +227,11 @@ export default function DashboardPage() {
                 the only one that leaves something behind. */}
             <Link
               to="/album"
-              className="card flex items-center gap-3 p-4 transition hover:shadow-soft"
+              className="flex items-center gap-3 rounded-[1.75rem] bg-clay-100 p-4 shadow-neo transition-shadow duration-200 hover:shadow-neo-lg active:shadow-neo-in"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-blush-400 to-lilac-500 text-white shadow-soft">
+              {/* The icon tile is inset, so the glyph looks stamped into the
+                  card rather than floating on top of it. */}
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="3.5" stroke="currentColor" strokeWidth="1.7" />
                   <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
@@ -194,9 +245,9 @@ export default function DashboardPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px] font-extrabold text-ink-900">آلبوم ما</p>
-                <p className="truncate text-[11px] text-ink-500">یک عکس، هر روز — از هر دویتان</p>
+                <p className="truncate text-[11px] text-ink-700">یک عکس، هر روز — از هر دویتان</p>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-ink-500/50">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-ink-700/55">
                 <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Link>
@@ -205,7 +256,11 @@ export default function DashboardPage() {
                 page: it should not look like just another tab. */}
             <Link
               to="/vault"
-              className="flex items-center gap-3 rounded-2xl border border-[#2b1a24] bg-gradient-to-l from-[#1d1017] via-[#2a1721] to-[#331b27] p-4 text-[#f4e7e2] shadow-card transition hover:brightness-110"
+              /* The private room stays the darkest thing on the page — that is
+                 the point of it — but its edges now follow the same two-light
+                 rule, so it belongs to the same surface instead of being a
+                 rectangle pasted on top. */
+              className="flex items-center gap-3 rounded-[1.75rem] bg-gradient-to-l from-[#1d1017] via-[#2a1721] to-[#331b27] p-4 text-[#f4e7e2] shadow-[8px_8px_20px_rgba(180,150,150,0.45),-8px_-8px_20px_rgba(255,255,255,0.85)] transition duration-200 active:scale-[0.995] active:shadow-[inset_6px_6px_14px_rgba(0,0,0,0.55),inset_-4px_-4px_12px_rgba(255,255,255,0.06)]"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-[#f4c3d1]">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -216,9 +271,9 @@ export default function DashboardPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px] font-extrabold">فضای خصوصی</p>
-                <p className="truncate text-[11px] text-[#f4e7e2]/45">فقط با رمز شما دو نفر باز می‌شود</p>
+                <p className="truncate text-[11px] text-[#f4e7e2]/60">فقط با رمز شما دو نفر باز می‌شود</p>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-[#f4e7e2]/30">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-[#f4e7e2]/55">
                 <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Link>
@@ -227,9 +282,9 @@ export default function DashboardPage() {
                 only thing here that both people touch every day. */}
             <Link
               to="/chat"
-              className="card flex items-center gap-3 p-4 transition hover:shadow-soft"
+              className="flex items-center gap-3 rounded-[1.75rem] bg-clay-100 p-4 shadow-neo transition-shadow duration-200 hover:shadow-neo-lg active:shadow-neo-in"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blush-500 text-white shadow-soft">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-blush-600 to-blush-800 text-white shadow-neo-pink">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
                     d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.8-.8L3 21l1.9-5a8.3 8.3 0 0 1-.9-3.8A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"
@@ -242,7 +297,7 @@ export default function DashboardPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px] font-extrabold text-ink-900">گفت‌وگو</p>
-                <p className="truncate text-[11px] text-ink-500">
+                <p className="truncate text-[11px] text-ink-700">
                   فقط بین تو و {partner.display_name ?? 'شریکت'}
                 </p>
               </div>
@@ -252,7 +307,7 @@ export default function DashboardPage() {
                 viewBox="0 0 24 24"
                 fill="none"
                 aria-hidden="true"
-                className="shrink-0 text-ink-500/50"
+                className="shrink-0 text-ink-700/55"
               >
                 <path
                   d="M15 6l-6 6 6 6"
@@ -268,7 +323,7 @@ export default function DashboardPage() {
 
             {/* Relationship start date: the heart of the couple dashboard */}
             {state.anniversary && state.anniversary.needs_answer && state.anniversary.is_your_turn && (
-              <section className="card animate-fade-up p-5">
+              <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
                 <AnniversarySetup
                   partnerName={partner.display_name}
                   onDone={(result) => {
@@ -287,7 +342,7 @@ export default function DashboardPage() {
             {state.anniversary &&
               state.anniversary.needs_answer &&
               !state.anniversary.is_your_turn && (
-                <section className="card animate-fade-up p-5 text-center">
+                <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 text-center shadow-neo">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-100 text-blush-500">
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
@@ -295,11 +350,11 @@ export default function DashboardPage() {
                     </svg>
                   </span>
                   <h3 className="mt-2.5 text-[14px] font-extrabold text-ink-900">منتظر تاریخ آشنایی</h3>
-                  <p className="mx-auto mt-1 max-w-[19rem] text-[11.5px] leading-6 text-ink-500">
+                  <p className="mx-auto mt-1 max-w-[19rem] text-[11.5px] leading-6 text-ink-700">
                     این سؤال را برای {partner.display_name ?? 'شریکت'} فرستادیم. همین‌که تاریخ را ثبت کند،
                     شمارنده‌ی «با هم بودن» و روزهای مهم برای هر دویتان فعال می‌شود.
                   </p>
-                  <p className="mt-2 text-[10.5px] text-ink-500">
+                  <p className="mt-2 text-[10.5px] text-ink-700">
                     یادت آمد؟ می‌توانی همین حالا خودت ثبتش کنی.
                   </p>
                   <button
@@ -325,13 +380,13 @@ export default function DashboardPage() {
               )}
 
             {editingAnniversary && state.anniversary?.date && (
-              <section className="card animate-fade-up p-5">
+              <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-[14px] font-extrabold text-ink-900">ویرایش تاریخ شروع</h3>
                   <button
                     type="button"
                     onClick={() => setEditingAnniversary(false)}
-                    className="rounded-lg px-2 py-1 text-[11px] font-bold text-ink-500 hover:text-ink-700"
+                    className="rounded-lg px-2 py-1 text-[11px] font-bold text-ink-700 hover:text-ink-900"
                   >
                     بستن
                   </button>
@@ -359,7 +414,7 @@ export default function DashboardPage() {
               }}
             />
 
-            <section className="card p-5">
+            <section className="rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
               <h3 className="text-[14px] font-extrabold text-ink-900">شما دو نفر</h3>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <PersonMini
@@ -375,7 +430,7 @@ export default function DashboardPage() {
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="text-[10px] font-bold text-ink-500">وصل</span>
+                  <span className="text-[10px] font-bold text-ink-700">وصل</span>
                 </div>
                 <PersonMini
                   name={partner.display_name ?? 'شریک'}
@@ -418,7 +473,7 @@ export default function DashboardPage() {
                   const first = state.incoming[0]
                   if (first) void handleDecline(first)
                 }}
-                className="-mt-2 w-full rounded-xl py-1.5 text-[11.5px] font-semibold text-ink-500 transition hover:text-red-500"
+                className="-mt-2 w-full rounded-xl py-1.5 text-[11.5px] font-semibold text-ink-700 transition hover:text-red-500"
               >
                 رد کردن جدیدترین درخواست
               </button>
@@ -437,7 +492,7 @@ export default function DashboardPage() {
             )}
 
             {!hasOutgoing && (
-              <section className="card p-5">
+              <section className="rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
                 <ConnectForm
                   ownCode={state.pairing_code}
                   onConnected={() => {
@@ -450,7 +505,7 @@ export default function DashboardPage() {
             )}
 
             {hasOutgoing && state.incoming.length === 0 && (
-              <p className="text-center text-[11.5px] leading-5 text-ink-500">
+              <p className="text-center text-[11.5px] leading-5 text-ink-700">
                 وقتی شریکت درخواستت را قبول کرد، همین‌جا می‌بینیش.
               </p>
             )}
@@ -461,8 +516,11 @@ export default function DashboardPage() {
 
         {/* Quick links */}
         <section className="grid grid-cols-2 gap-3 pt-1">
-          <Link to="/settings" className="card flex items-center gap-2.5 p-4 transition hover:shadow-soft">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blush-100 text-blush-600">
+          <Link
+            to="/settings"
+            className="flex items-center gap-2.5 rounded-[1.5rem] bg-clay-100 p-4 shadow-neo-sm transition-shadow duration-200 hover:shadow-neo active:shadow-neo-in-sm"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="8" r="3.6" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -470,12 +528,15 @@ export default function DashboardPage() {
             </span>
             <div>
               <p className="text-[12.5px] font-bold text-ink-900">پروفایل من</p>
-              <p className="text-[10.5px] text-ink-500">عکس، اسم و علاقه‌ها</p>
+              <p className="text-[10.5px] text-ink-700">عکس، اسم و علاقه‌ها</p>
             </div>
           </Link>
 
-          <Link to="/dates" className="card flex items-center gap-2.5 p-4 transition hover:shadow-soft">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lilac-100 text-lilac-500">
+          <Link
+            to="/dates"
+            className="flex items-center gap-2.5 rounded-[1.5rem] bg-clay-100 p-4 shadow-neo-sm transition-shadow duration-200 hover:shadow-neo active:shadow-neo-in-sm"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-clay-200 text-lilac-700 shadow-neo-in-sm">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="3.5" y="5" width="17" height="15" rx="4" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M8 3v4M16 3v4M3.5 10h17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -483,12 +544,12 @@ export default function DashboardPage() {
             </span>
             <div>
               <p className="text-[12.5px] font-bold text-ink-900">روزهای مهم</p>
-              <p className="text-[10.5px] text-ink-500">سالگرد، ماهگرد، تولد</p>
+              <p className="text-[10.5px] text-ink-700">سالگرد، ماهگرد، تولد</p>
             </div>
           </Link>
         </section>
 
-        <p className="pt-2 text-center text-[10.5px] leading-5 text-ink-500">
+        <p className="pt-2 text-center text-[10.5px] leading-5 text-ink-700">
           داده‌های پریود پیش‌فرض فقط برای خود صاحب حساب است؛ اشتراک‌گذاری فقط با اجازه‌ی
           خودش روشن می‌شود.
         </p>
@@ -513,9 +574,9 @@ function PersonMini({
       <Avatar src={avatar} name={name} size={56} ring />
       <p className="mt-2 max-w-full truncate text-[13px] font-bold text-ink-900">
         {name}
-        {me && <span className="mr-1 text-[10px] font-medium text-ink-500">(تو)</span>}
+        {me && <span className="mr-1 text-[10px] font-medium text-ink-700">(تو)</span>}
       </p>
-      {birth && <p className="text-[10.5px] text-ink-500">{formatJalaliLong(birth)}</p>}
+      {birth && <p className="text-[10.5px] text-ink-700">{formatJalaliLong(birth)}</p>}
     </div>
   )
 }

@@ -75,7 +75,7 @@ export default function AnniversarySetup({
   return (
     <div className={compact ? 'space-y-4' : 'space-y-5'}>
       <div className="text-center">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blush-100 text-blush-500">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <rect x="3.5" y="5" width="17" height="15" rx="4" stroke="currentColor" strokeWidth="1.7" />
             <path d="M8 3v4M16 3v4M3.5 10h17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -86,7 +86,7 @@ export default function AnniversarySetup({
           </svg>
         </span>
         <h2 className="mt-3 text-[17px] font-extrabold text-ink-900">تاریخ آشنایی‌اتون کی بوده؟</h2>
-        <p className="mx-auto mt-1.5 max-w-[19rem] text-[12px] leading-6 text-ink-500">
+        <p className="mx-auto mt-1.5 max-w-[19rem] text-[12px] leading-6 text-ink-700">
           با این تاریخ، کنارت حساب می‌کند چند وقت است با هم هستید، ماهگرد و سالگردتان را نشانت می‌دهد و
           روزهای مهم را از قبل یادت می‌اندازد.
         </p>
@@ -104,10 +104,10 @@ export default function AnniversarySetup({
       />
 
       {preview && (
-        <div className="rounded-2xl border border-blush-100 bg-blush-50/70 px-4 py-3 text-center">
-          <p className="text-[11px] font-semibold text-ink-500">یعنی تا امروز</p>
-          <p className="mt-0.5 text-[14px] font-extrabold text-blush-600">{preview.label}</p>
-          <p className="mt-1 text-[10.5px] text-ink-500">شروع از {anniversaryLabel(preview.startIso)}</p>
+        <div className="rounded-2xl bg-clay-200 px-4 py-3 text-center shadow-neo-in-sm">
+          <p className="text-[11px] font-semibold text-ink-700">یعنی تا امروز</p>
+          <p className="mt-0.5 text-[14px] font-extrabold text-blush-800">{preview.label}</p>
+          <p className="mt-1 text-[10.5px] text-ink-700">شروع از {anniversaryLabel(preview.startIso)}</p>
         </div>
       )}
 
