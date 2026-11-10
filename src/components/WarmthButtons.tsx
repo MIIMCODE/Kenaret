@@ -54,8 +54,8 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
   }
 
   return (
-    <div className="border-t border-blush-100 px-5 py-4">
-      <p className="mb-2 text-[11.5px] font-bold text-ink-500">
+    <div className="mx-5 border-t border-clay-300 py-4">
+      <p className="mb-2 text-[11.5px] font-bold text-ink-700">
         خبری ازت بگیر{partnerName ? ` به ${partnerName}` : ''}
       </p>
 
@@ -63,16 +63,18 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
         {OPTIONS.map((option) => {
           const active = sentKind === option.kind
           return (
+            // Pressed in when chosen, raised when not: the shadow carries the
+            // state, so there is no border to fight with it.
             <button
               key={option.kind}
               type="button"
               onClick={() => void handleTap(option)}
               disabled={busy !== null}
               aria-pressed={active}
-              className={`flex flex-col items-center gap-1 rounded-2xl border px-1.5 py-2.5 text-[11px] font-bold transition disabled:opacity-60 ${
+              className={`flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[11px] font-bold transition-shadow duration-200 disabled:opacity-60 ${
                 active
-                  ? 'border-blush-300 bg-blush-50 text-blush-700'
-                  : 'border-blush-100 bg-white text-ink-700 hover:border-blush-200 hover:bg-blush-50/60'
+                  ? 'bg-clay-200 text-blush-800 shadow-neo-in-sm'
+                  : 'bg-clay-100 text-ink-700 shadow-neo-sm hover:shadow-neo'
               }`}
             >
               <span className="text-[18px] leading-none" aria-hidden="true">
@@ -85,7 +87,7 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
       </div>
 
       {notice && (
-        <p role="status" className="mt-2 rounded-xl bg-mint-100 px-3 py-1.5 text-[11px] font-bold text-mint-500">
+        <p role="status" className="mt-2 rounded-xl bg-mint-100 px-3 py-1.5 text-[11px] font-bold text-mint-700">
           {notice}
         </p>
       )}
@@ -94,7 +96,7 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
           {error}
         </p>
       )}
-      <p className="mt-2 text-[10px] leading-5 text-ink-500">
+      <p className="mt-2 text-[10px] leading-5 text-ink-700">
         بی‌متن، بی‌گفت‌وگو — فقط یک اشاره که در زنگوله‌اش می‌نشیند. روزی چند بار بیشتر نه.
       </p>
     </div>

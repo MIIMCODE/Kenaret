@@ -10,11 +10,12 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
   const nextBirthday = birthday ? daysUntilNextBirthday(birthday) : null
 
   return (
-    <section className="card overflow-hidden">
+    <section className="overflow-hidden rounded-[1.75rem] bg-clay-100 shadow-neo">
       <div className="relative px-5 pb-5 pt-6">
+        {/* The partner's name sits on a soft wash instead of a header band —
+            an inset panel, so the card above it still reads as one surface. */}
         <div
-          className="absolute inset-x-0 top-0 h-24"
-          style={{ backgroundImage: 'linear-gradient(135deg, #ffe9ef, #f3eefb)' }}
+          className="absolute inset-x-3 top-3 h-24 rounded-[1.35rem] bg-clay-200 shadow-neo-in-sm"
           aria-hidden="true"
         />
 
@@ -25,16 +26,16 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
             {partner.display_name ?? 'شریک تو'}
           </h2>
 
-          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-mint-100 px-3 py-1 text-[11px] font-bold text-mint-500">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint-500" />
+          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-mint-100 px-3 py-1 text-[11px] font-bold text-mint-700 shadow-[inset_1px_1px_3px_rgba(28,107,85,0.12)]">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint-700" />
             به هم وصل هستید
           </span>
 
           {birthday && (
-            <p className="mt-3 text-[12.5px] text-ink-500">
+            <p className="mt-3 text-[12.5px] text-ink-700">
               تولد: <span className="font-bold text-ink-700">{formatJalaliLong(birthday)}</span>
               {nextBirthday !== null && nextBirthday <= 30 && (
-                <span className="mr-1.5 rounded-md bg-blush-100 px-1.5 py-0.5 text-[10.5px] font-bold text-blush-700">
+                <span className="mr-1.5 rounded-md bg-blush-100 px-1.5 py-0.5 text-[10.5px] font-bold text-blush-800">
                   {nextBirthday === 0 ? 'امروزه! 🎂' : `${fa(nextBirthday)} روز مانده`}
                 </span>
               )}
@@ -44,13 +45,13 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
       </div>
 
       {partner.interests.length > 0 && (
-        <div className="border-t border-blush-100 px-5 py-4">
-          <p className="mb-2 text-[11.5px] font-bold text-ink-500">علاقه‌مندی‌ها</p>
+        <div className="mx-5 border-t border-clay-300 py-4">
+          <p className="mb-2 text-[11.5px] font-bold text-ink-700">علاقه‌مندی‌ها</p>
           <div className="flex flex-wrap gap-1.5">
             {partner.interests.map((interest) => (
               <span
                 key={interest}
-                className="rounded-full bg-blush-50 px-2.5 py-1 text-[12px] font-medium text-blush-700"
+                className="rounded-full bg-clay-200 px-2.5 py-1 text-[12px] font-medium text-ink-700 shadow-neo-in-sm"
               >
                 {interest}
               </span>
@@ -61,11 +62,11 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
 
       <WarmthButtons partnerName={partner.display_name} />
 
-      <div className="border-t border-blush-100 px-5 py-3">
+      <div className="mx-5 border-t border-clay-300 py-3">
         <button
           type="button"
           onClick={onUnlink}
-          className="w-full rounded-xl py-2 text-[12px] font-semibold text-ink-500 transition hover:bg-red-50 hover:text-red-500"
+          className="w-full rounded-xl py-2 text-[12px] font-semibold text-ink-700 transition hover:bg-red-50 hover:text-red-500"
         >
           قطع ارتباط با {partner.display_name ?? 'شریک'}
         </button>

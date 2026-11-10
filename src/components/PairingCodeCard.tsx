@@ -62,8 +62,9 @@ export default function PairingCodeCard({ code, displayName }: Props) {
   const grouped = code ? code.replace(/(.{4})(?=.)/g, '$1 ') : '—'
 
   return (
-    <div className="relative overflow-hidden rounded-3xl p-5 text-white shadow-soft"
-      style={{ backgroundImage: 'linear-gradient(135deg, #ffaec3 0%, #f9628b 52%, #e84874 100%)' }}
+    <div
+      className="relative overflow-hidden rounded-[1.75rem] p-5 text-white shadow-[8px_8px_20px_rgba(201,53,96,0.28),-8px_-8px_20px_rgba(255,255,255,0.9)]"
+      style={{ backgroundImage: 'linear-gradient(135deg, #e84874 0%, #c93560 52%, #a52c50 100%)' }}
     >
       {/* decorative bubbles */}
       <div className="pointer-events-none absolute -left-8 -top-10 h-28 w-28 rounded-full bg-white/15" />
@@ -71,8 +72,8 @@ export default function PairingCodeCard({ code, displayName }: Props) {
 
       <div className="relative">
         <div className="flex items-center justify-between">
-          <p className="text-[12px] font-bold text-white/85">کد جفت‌شدن تو</p>
-          <span className="rounded-full bg-white/20 px-2.5 py-1 text-[10.5px] font-bold">
+          <p className="text-[12px] font-bold text-white/90">کد جفت‌شدن تو</p>
+          <span className="rounded-full bg-black/15 px-2.5 py-1 text-[10.5px] font-bold">
             ۸ کاراکتر
           </span>
         </div>
@@ -85,7 +86,7 @@ export default function PairingCodeCard({ code, displayName }: Props) {
           {grouped}
         </div>
 
-        <p className="mt-2 text-center text-[11.5px] leading-5 text-white/80">
+        <p className="mt-2 text-center text-[11.5px] leading-5 text-white/90">
           این کد را برای شریکت بفرست تا بتواند درخواست وصل شدن بدهد.
         </p>
 
@@ -93,7 +94,7 @@ export default function PairingCodeCard({ code, displayName }: Props) {
           <button
             type="button"
             onClick={copy}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-4 py-2.5 text-[13px] font-extrabold text-blush-600 transition active:scale-[0.98]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-4 py-2.5 text-[13px] font-extrabold text-blush-800 transition active:scale-[0.98]"
           >
             {copied ? (
               <>
@@ -111,7 +112,7 @@ export default function PairingCodeCard({ code, displayName }: Props) {
           <button
             type="button"
             onClick={share}
-            className="flex items-center justify-center gap-1.5 rounded-2xl bg-white/20 px-4 py-2.5 text-[13px] font-bold text-white transition active:scale-[0.98]"
+            className="flex items-center justify-center gap-1.5 rounded-2xl bg-black/20 px-4 py-2.5 text-[13px] font-bold text-white transition active:scale-[0.98]"
           >
             <ShareIcon />
             فرستادن

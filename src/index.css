@@ -85,17 +85,35 @@
   }
 
   .btn-ghost {
-    @apply btn bg-white/70 text-blush-700 border border-blush-200 hover:bg-white;
+    @apply btn bg-clay-100 text-blush-800 shadow-neo-sm hover:shadow-neo active:shadow-neo-in-sm;
   }
 
   .btn-soft {
-    @apply btn bg-blush-100 text-blush-700 hover:bg-blush-200;
+    @apply btn bg-clay-200 text-blush-800 shadow-neo-in-sm hover:shadow-neo-in;
   }
 
+  /*
+    Neo-morphic form controls.
+    A raised card with a bright white input on top of it is the exact mistake
+    neo-morphism punishes: the field looks like a hole cut in paper. Inputs are
+    therefore pressed *into* the clay — the inset shadow is the border, and the
+    focus ring is a soft pink glow rather than a hard outline.
+  */
   .field {
-    @apply w-full rounded-2xl border border-blush-200 bg-white px-4 py-3 text-[15px]
-           text-ink-900 placeholder:text-ink-500/60 focus:border-blush-400 focus:ring-4
-           focus:ring-blush-100 transition outline-none;
+    @apply w-full rounded-2xl bg-clay-200 px-4 py-3 text-[15px] text-ink-900
+           placeholder:text-ink-700/70 shadow-neo-in-sm transition-shadow
+           outline-none;
+  }
+
+  .field:focus {
+    box-shadow:
+      inset 3px 3px 7px rgba(214, 186, 181, 0.55),
+      inset -3px -3px 7px rgba(255, 255, 255, 0.9),
+      0 0 0 3px rgba(249, 98, 139, 0.18);
+  }
+
+  .field:disabled {
+    @apply opacity-60;
   }
 
   .label {
@@ -103,16 +121,16 @@
   }
 
   .hint {
-    @apply text-[12px] leading-5 text-ink-500;
+    @apply text-[12px] leading-5 text-ink-700;
   }
 
   .chip {
-    @apply rounded-full border border-blush-200 bg-white px-3.5 py-1.5 text-[13px] font-medium
-           text-ink-700 transition hover:border-blush-300 hover:bg-blush-50;
+    @apply rounded-full bg-clay-100 px-3.5 py-1.5 text-[13px] font-medium text-ink-700
+           shadow-neo-sm transition-shadow hover:shadow-neo;
   }
 
   .chip-active {
-    @apply border-blush-400 bg-blush-500 text-white hover:bg-blush-500 hover:border-blush-400;
+    @apply bg-blush-600 text-white shadow-neo-pink hover:bg-blush-600 hover:shadow-neo-pink;
   }
 
   .page {
