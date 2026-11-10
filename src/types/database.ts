@@ -155,3 +155,26 @@ export interface PushDevice {
   created_at: string
   last_ok_at: string | null
 }
+
+// ------------------------------------------------------------------
+// گفت‌وگو (chat)
+// ------------------------------------------------------------------
+
+/** A message as the client sees it, newest-first pages from `chat_messages`. */
+export interface ChatMessage {
+  id: string
+  sender_id: string
+  /** Empty for an image, and for anything that was deleted. */
+  body: string
+  kind: 'text' | 'image'
+  media_path: string | null
+  media_w: number | null
+  media_h: number | null
+  /** Non-null once the sender changed the text. The UI marks it. */
+  edited_at: string | null
+  /** Soft delete: the other person keeps the shape of the thread. */
+  deleted_at: string | null
+  created_at: string
+  /** True only on your own messages, once your partner has read them. */
+  seen: boolean
+}
