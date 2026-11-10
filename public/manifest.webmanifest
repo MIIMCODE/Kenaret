@@ -1,0 +1,44 @@
+{
+  "name": "کنارت — همیشه کنارت",
+  "short_name": "کنارت",
+  "id": "./",
+  "description": "فضایی گرم و خصوصی برای زوج‌هایی که از هم دورند: کد جفت‌شدن، روزهای مهم و یادآوری‌ها.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./index.html#/app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fffaf6",
+  "theme_color": "#f9628b",
+  "categories": [
+    "lifestyle",
+    "social"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
