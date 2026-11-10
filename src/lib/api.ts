@@ -368,3 +368,16 @@ export async function fetchPushDevices(): Promise<PushDevice[]> {
   if (error) throw error
   return (data ?? []) as PushDevice[]
 }
+
+/**
+ * Seeds one throwaway notification for the caller, so the "test" button works
+ * even when the cron job has already drained the queue.
+ *
+ * Returns 0 when the account has no live device — which the UI reports as
+ * "this phone isn't registered yet" rather than a fake success.
+ */
+export async function seedTestPush(): Promise<number> {
+  const { data, error } = await supabase.rpc('push_seed_test')
+  if (error) throw error
+  return Number(data ?? 0)
+}

@@ -1,24 +1,22 @@
-// ============================================================
-// push-send — encrypts and delivers Web Push
+// push-send — encrypts and delivers Web Push. See migration 0011.
 //
-// Called every five minutes by pg_cron → pg_net (see migration 0011), and
-// callable by a signed-in user for a one-off "test on this phone".
+// Called every five minutes by pg_cron -> pg_net, AND called by the browser
+// from the "send a test" button. Those two callers need different things, which
+// is what this file is shaped around.
 //
-// It is the only place in the stack that holds the VAPID private key, and the
-// only place that does RFC 8291 encryption — SQL has no business doing either.
+// The browser path is the fussy one. `supabase.functions.invoke()` sends
+// `Authorization` and `Content-Type: application/json`, which forces a CORS
+// preflight — and a function that answers OPTIONS with 405 and sends no
+// `Access-Control-Allow-*` headers makes the browser reject the response
+// before the app ever sees it. So:
 //
-// Why `npm:web-push` instead of hand-rolled crypto: the aes128gcm header, the
-// HKDF info strings and the VAPID JWT are all easy to get subtly wrong, and a
-// subtly-wrong push fails *silently* on the device. A maintained library is the
-// honest choice; it is pinned to an exact version so a surprise major release
-// cannot change the wire format under us.
+//   · OPTIONS is answered explicitly, with the headers the browser asks for;
+//   · every response (including errors) carries those headers, because a 500
+//     without them also looks like a network failure to the client;
+//   · the worker token header is allowed through, for manual admin runs.
 //
-// Auth is one of two narrow doors:
-//   · the cron worker presents a shared token that exists only in Supabase's
-//     function secrets and in the vault row the cron function reads;
-//   · a signed-in user presents their own JWT, and may only reach their own
-//     devices (`p_user` is pinned to them server-side, not trusted from input).
-// ============================================================
+// Auth is still two narrow doors: the cron worker's shared token, or a
+// signed-in user's own JWT (which may only reach that user's devices).
 
 import webpush from 'npm:web-push@3.6.7'
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
@@ -30,7 +28,6 @@ const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY')!
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:noreply@kenaret.app'
 const WORKER_TOKEN = Deno.env.get('PUSH_WORKER_TOKEN') ?? ''
 
-/** Cap per invocation: a backlog must not blow the wall-clock limit. */
 const BATCH = 40
 const CONCURRENCY = 8
 
@@ -38,10 +35,23 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
+/** Headers every response needs, including the preflight and any error. */
+const CORS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers':
+    'authorization, x-client-info, apikey, content-type, x-worker-token',
+  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-max-age': '86400',
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+    headers: {
+      ...CORS,
+      'content-type': 'application/json',
+      'cache-control': 'no-store',
+    },
   })
 
 type Identity = { mode: 'worker' } | { mode: 'user'; userId: string }
@@ -59,23 +69,19 @@ async function authenticate(req: Request): Promise<Identity | null> {
   return { mode: 'user', userId: data.user.id }
 }
 
-/** Runs `fn` over `items` with a small, fixed parallelism. */
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length)
   let cursor = 0
-
   async function worker() {
     while (cursor < items.length) {
       const index = cursor++
       out[index] = await fn(items[index])
     }
   }
-
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
   return out
 }
 
-/** A push-service status that means "this endpoint will never work again". */
 function isGone(statusCode: number | undefined): boolean {
   return statusCode === 404 || statusCode === 410
 }
@@ -94,85 +100,104 @@ interface Job {
 }
 
 Deno.serve(async (req) => {
+  // The preflight. Answering this is what makes the browser-side test work.
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { status: 200, headers: CORS })
+  }
+
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
 
-  const who = await authenticate(req)
-  if (!who) return json({ error: 'unauthorized' }, 401)
-
-  if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
-    return json({ error: 'VAPID keys are not configured' }, 500)
-  }
-
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE)
-
-  let limit = BATCH
   try {
-    const body = await req.json()
-    if (who.mode === 'worker' && typeof body?.limit === 'number') {
-      limit = Math.min(Math.max(body.limit, 1), BATCH)
+    const who = await authenticate(req)
+    if (!who) return json({ error: 'unauthorized' }, 401)
+
+    if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
+      return json({ error: 'VAPID keys are not configured' }, 500)
     }
-  } catch {
-    // Cron sends no body; that is fine.
-  }
 
-  // A user-triggered run is always scoped to that user. The id comes from the
-  // verified JWT, never from the request body.
-  const onlyUser = who.mode === 'user' ? who.userId : null
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE)
 
-  // `push_dispatch` claims rows atomically (`for update skip locked`), so a
-  // cron run and a manual test cannot send the same notification twice.
-  const { data: jobs, error: dispatchError } = await admin.rpc('push_dispatch', {
-    p_limit: limit,
-    p_user: onlyUser,
-  })
+    let limit = BATCH
+    try {
+      const body = await req.json()
+      if (who.mode === 'worker' && typeof body?.limit === 'number') {
+        limit = Math.min(Math.max(body.limit, 1), BATCH)
+      }
+    } catch {
+      // Cron sends no body; that is fine.
+    }
 
-  if (dispatchError) {
-    console.error('push_dispatch failed', dispatchError)
-    return json({ error: dispatchError.message }, 500)
-  }
+    // A user-triggered run is always scoped to that user. The id comes from the
+    // verified JWT, never from the request body.
+    const onlyUser = who.mode === 'user' ? who.userId : null
 
-  const queue = ((jobs ?? []) as Job[]).filter((job) => !onlyUser || job.user_id === onlyUser)
-
-  if (queue.length === 0) {
-    return json({ ok: true, claimed: 0, sent: 0, failed: 0, mode: who.mode })
-  }
-
-  const results = await mapLimit(queue, CONCURRENCY, async (job) => {
-    const payload = JSON.stringify({
-      title: job.title,
-      body: job.body ?? '',
-      url: job.url ?? '/app',
-      topic: job.topic,
+    // push_dispatch claims rows atomically (for update skip locked), so a cron
+    // run and a manual test cannot send the same notification twice.
+    const { data: jobs, error: dispatchError } = await admin.rpc('push_dispatch', {
+      p_limit: limit,
+      p_user: onlyUser,
     })
 
-    try {
-      await webpush.sendNotification(
-        { endpoint: job.endpoint, keys: { p256dh: job.p256dh, auth: job.auth } },
-        payload,
-        { TTL: 60 * 60 * 12, urgency: 'normal' },
-      )
-      await admin.rpc('push_finish', { p_queue_id: job.queue_id, p_ok: true })
-      return { queue_id: job.queue_id, ok: true as const }
-    } catch (error) {
-      const statusCode = (error as { statusCode?: number })?.statusCode
-      const message = (error as Error)?.message ?? 'send failed'
-      // 404/410 means the subscription is dead; 429/5xx deserve a retry.
-      await admin.rpc('push_finish', {
-        p_queue_id: job.queue_id,
-        p_ok: false,
-        p_error: `${statusCode ?? 'ERR'} ${message}`.slice(0, 300),
-        p_gone: isGone(statusCode),
-      })
-      return { queue_id: job.queue_id, ok: false as const, statusCode }
+    if (dispatchError) {
+      console.error('push_dispatch failed', dispatchError)
+      return json({ error: dispatchError.message }, 500)
     }
-  })
 
-  const sent = results.filter((r) => r.ok).length
-  return json({
-    ok: true,
-    claimed: queue.length,
-    sent,
-    failed: queue.length - sent,
-    mode: who.mode,
-  })
+    const queue = ((jobs ?? []) as Job[]).filter((job) => !onlyUser || job.user_id === onlyUser)
+
+    if (queue.length === 0) {
+      return json({ ok: true, claimed: 0, sent: 0, failed: 0, mode: who.mode })
+    }
+
+    const results = await mapLimit(queue, CONCURRENCY, async (job) => {
+      const payload = JSON.stringify({
+        title: job.title,
+        body: job.body ?? '',
+        url: job.url ?? '/app',
+        topic: job.topic,
+      })
+
+      try {
+        await webpush.sendNotification(
+          { endpoint: job.endpoint, keys: { p256dh: job.p256dh, auth: job.auth } },
+          payload,
+          { TTL: 60 * 60 * 12, urgency: 'normal' },
+        )
+        // Name the device explicitly: the previous version guessed, and a dead
+        // phone could revoke a healthy one.
+        await admin.rpc('push_finish', {
+          p_queue_id: job.queue_id,
+          p_ok: true,
+          p_subscription: job.subscription_id,
+        })
+        return { queue_id: job.queue_id, ok: true as const }
+      } catch (error) {
+        const statusCode = (error as { statusCode?: number })?.statusCode
+        const message = (error as Error)?.message ?? 'send failed'
+        // 404/410 means the subscription is dead; 429/5xx deserve a retry.
+        await admin.rpc('push_finish', {
+          p_queue_id: job.queue_id,
+          p_ok: false,
+          p_error: `${statusCode ?? 'ERR'} ${message}`.slice(0, 300),
+          p_gone: isGone(statusCode),
+          p_subscription: job.subscription_id,
+        })
+        return { queue_id: job.queue_id, ok: false as const, statusCode }
+      }
+    })
+
+    const sent = results.filter((r) => r.ok).length
+    return json({
+      ok: true,
+      claimed: queue.length,
+      sent,
+      failed: queue.length - sent,
+      mode: who.mode,
+    })
+  } catch (error) {
+    // Even an unexpected throw must stay CORS-readable, otherwise the browser
+    // reports a network error and the real cause is hidden.
+    console.error('push-send crashed', error)
+    return json({ error: (error as Error)?.message ?? 'internal error' }, 500)
+  }
 })

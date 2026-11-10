@@ -348,6 +348,90 @@ $fn$;
 revoke all on function public.push_enqueue_reminders(int) from public, anon, authenticated;
 revoke all on function public.push_enqueue_warmth(uuid, uuid, text, uuid) from public, anon, authenticated;
 
+/**
+ * Parks rows whose owner has no live device once they have exhausted retries.
+ *
+ * Without this, an account that never installed the app accumulates `pending`
+ * rows forever, and the queue stops being a useful signal. Rows that are still
+ * *waiting* (attempts 0) are left alone on purpose: a phone may subscribe
+ * tomorrow and should still get tomorrow's reminder.
+ */
+create or replace function public.push_reap()
+returns int
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $fn$
+declare
+  v_n int;
+begin
+  update public.push_queue q
+     set status = 'skipped',
+         claimed_at = null,
+         last_error = coalesce(q.last_error, 'NO_DEVICE')
+   where q.status = 'pending'
+     and q.attempts >= 5
+     and not exists (
+       select 1 from public.push_subscriptions s
+       where s.user_id = q.user_id and s.revoked_at is null
+     );
+
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$fn$;
+
+revoke all on function public.push_reap() from public, anon, authenticated;
+
+/**
+ * Seeds one throwaway row so the "send a test" button always has something.
+ *
+ * The five-minute cron normally drains the queue, so by the time somebody taps
+ * test there is usually nothing pending — and the first version then reported
+ * a cheerful "sent" with zero sent, which reads exactly like a broken feature.
+ */
+create or replace function public.push_seed_test()
+returns int
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_n   int;
+begin
+  if v_uid is null then
+    raise exception 'auth required' using errcode = 'insufficient_privilege';
+  end if;
+
+  -- Only worth doing when this account actually has a live device; otherwise
+  -- the caller is told "this phone isn't registered" instead of a fake success.
+  if not exists (
+    select 1 from public.push_subscriptions s
+    where s.user_id = v_uid and s.revoked_at is null
+  ) then
+    return 0;
+  end if;
+
+  insert into public.push_queue (user_id, topic, title, body, url, status)
+  values (
+    v_uid,
+    'test:' || to_char(now(), 'YYYYMMDDHH24MISS'),
+    'کنارت — آزمایشی 🤍',
+    'اگر این را می‌بینی، نوتیفیکیشن کار می‌کند.',
+    '/app',
+    'pending'
+  )
+  on conflict (user_id, topic) do nothing;
+
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$fn$;
+
+revoke all on function public.push_seed_test() from public, anon;
+grant execute on function public.push_seed_test() to authenticated;
+
 -- ------------------------------------------------------------
 -- 5. The worker: claim, then report back
 -- ------------------------------------------------------------
@@ -436,10 +520,11 @@ $fn$;
  * revoked here — that is how the table stays honest without a cleanup job.
  */
 create or replace function public.push_finish(
-  p_queue_id bigint,
-  p_ok       boolean,
-  p_error    text default null,
-  p_gone     boolean default false
+  p_queue_id      bigint,
+  p_ok            boolean,
+  p_error         text default null,
+  p_gone          boolean default false,
+  p_subscription  uuid default null
 )
 returns void
 language plpgsql
@@ -461,30 +546,23 @@ begin
    where q.id = p_queue_id
   returning q.user_id into v_user;
 
-  if p_ok then
-    update public.push_subscriptions s
-       set last_ok_at = now(), last_error = null
-     where s.id in (
-       select distinct s2.id
-       from public.push_subscriptions s2
-       where s2.user_id = v_user and s2.revoked_at is null
-     )
-       and p_gone = false;
-  end if;
-
-  if p_gone then
+  -- Act on the device that was actually pushed to. An earlier version
+  -- revoked *any* live device of that user whose last_ok_at was still null,
+  -- so one dead phone could silence a perfectly healthy one.
+  if p_subscription is not null and p_gone then
     update public.push_subscriptions s
        set revoked_at = coalesce(s.revoked_at, now()),
            last_error = left(coalesce(p_error, 'gone'), 300)
-     where s.user_id = v_user
-       and s.revoked_at is null
-       and s.last_ok_at is null;
+     where s.id = p_subscription;
+  elsif p_subscription is not null and p_ok then
+    update public.push_subscriptions s
+       set last_ok_at = now(), last_error = null
+     where s.id = p_subscription;
   end if;
 end;
 $fn$;
 
-revoke all on function public.push_dispatch(int) from public, anon, authenticated;
-revoke all on function public.push_finish(bigint, boolean, text, boolean) from public, anon, authenticated;
+revoke all on function public.push_finish(bigint, boolean, text, boolean, uuid) from public, anon, authenticated;
 
 -- ------------------------------------------------------------
 -- 6. Warmth now also rings the phone

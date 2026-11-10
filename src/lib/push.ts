@@ -1,4 +1,10 @@
-import { fetchPushConfig, registerPushSubscription, deletePushSubscription, invokePushSend } from './api'
+import {
+  fetchPushConfig,
+  registerPushSubscription,
+  deletePushSubscription,
+  invokePushSend,
+  seedTestPush,
+} from './api'
 import type { PushCapability } from '../types/database'
 
 /**
@@ -227,9 +233,23 @@ export async function syncSubscription(): Promise<void> {
 /**
  * Asks the server to push one notification to this account right now.
  *
- * Scoped server-side to the caller's own devices, so this cannot be used to
- * ring somebody else's phone.
+ * Two steps on purpose. The queue is normally drained by the five-minute cron
+ * job, so by the time somebody taps "test" there is usually nothing pending —
+ * the old version then reported a cheerful "sent" with zero sent, which looked
+ * exactly like a broken notification. Seeding a throwaway row first makes the
+ * button mean what it says.
+ *
+ * Scoped server-side to the caller's own devices; this cannot ring anybody
+ * else's phone.
  */
-export async function testPush(): Promise<{ sent: number; failed: number }> {
-  return invokePushSend()
+export async function testPush(): Promise<
+  { ok: true; sent: number; failed: number } | { ok: false; reason: 'no-device' }
+> {
+  if ((await currentEndpoint()) === null) return { ok: false, reason: 'no-device' }
+
+  const seeded = await seedTestPush()
+  if (seeded === 0) return { ok: false, reason: 'no-device' }
+
+  const result = await invokePushSend()
+  return { ok: true, sent: result.sent, failed: result.failed }
 }
