@@ -285,6 +285,18 @@ Other behaviours worth knowing:
 - The service worker sets `tag` from `topic`, so a newer notification for the
   same subject replaces the older one instead of stacking.
 
+#### Why the notification icon looks different from the app icon
+Android draws a notification's small icon from its **alpha channel only**: the
+colour is thrown away and every opaque pixel becomes the system tint. A normal
+app icon is a fully-opaque square, so pointing `icon` at one produces a solid
+white blob in the status bar — which is exactly what the first version did.
+
+`icon-gen.mjs` generates `public/icons/notification-96.png` instead: the same
+heart, white, on a **fully transparent** background, centred inside the safe
+area. Measured alpha coverage is ~39 % (a heart) rather than ~96 % (a square).
+The generator is checked in so the asset can be regenerated rather than
+hand-edited.
+
 ### Installing on the phone (PWA)
 Kenaret installs to the home screen and then behaves like an app: its own
 icon, no address bar, and a cold start straight into the dashboard.

@@ -27,7 +27,7 @@
  * stacking — two «فردا می‌بینیش» cards would look like a bug.
  */
 
-const VERSION = 'v2'
+const VERSION = 'v3'
 const SHELL_CACHE = `kenaret-shell-${VERSION}`
 const ASSET_CACHE = `kenaret-assets-${VERSION}`
 
@@ -96,8 +96,17 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: resolveUrl('icons/icon-192.png'),
-      badge: resolveUrl('icons/icon-192.png'),
+      // Both of these are drawn from their ALPHA CHANNEL ONLY and then tinted,
+      // so a full-bleed app icon becomes a solid white rectangle — which is
+      // exactly what shipped in v2: a fat white blob in the status bar.
+      //
+      // These are the transparent, white-on-nothing heart instead (generated
+      // by `icon-gen.mjs`). `badge` is the small status-bar mark; `icon` is
+      // what a collapsed notification shows on builds that honour it. The
+      // full-colour app icon is irrelevant here precisely because colour is
+      // discarded.
+      icon: resolveUrl('icons/notification-96.png'),
+      badge: resolveUrl('icons/notification-96.png'),
       dir: 'rtl',
       lang: 'fa',
       // Reusing a topic collapses duplicates of the same subject.
