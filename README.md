@@ -191,9 +191,14 @@ vague weight.
 Three taps on the partner card — **🤍 دلم تنگ شده**, **🫂 بغل**, **☀️ قوت قلب** —
 and the signal appears in the partner's bell on their next visit.
 
-It is deliberately **not a chat**: no text, no threads, no history page, nothing
-to keep up with. That constraint is the feature — the moment it grows a message
-box it becomes another inbox to feel guilty about.
+It was built as **not a chat**: no text, no threads, no history page, nothing to
+keep up with. The reasoning was that a message box becomes another inbox to feel
+guilty about.
+
+**That reasoning lost to the data.** warmth was tapped exactly zero times in
+every day it existed. A safeguard nobody uses is not protecting anyone — it is
+just a missing feature with a good story attached. گفت‌وگو (§ below) is the
+message box, and warmth survives alongside it as the one-tap path.
 
 - `warmth` is couple-scoped like `cycle_shares`; writes are RPC-only.
 - `send_warmth(kind)` rate-limits **in the database**, not the UI: five per hour
@@ -210,6 +215,44 @@ box it becomes another inbox to feel guilty about.
 - Warmth **ignores the reminders master switch**. A reminder is the app talking
   to you; a hug is your partner. Silencing dates must not block the person, and
   `ReminderSettings` says so in the switch's hint.
+
+### گفت‌وگو (chat)
+
+A real two-way conversation, added on request after warmth went unused.
+
+The interesting part is not that there is a message box — it is the set of
+constraints that keep it from becoming the inbox warmth was avoiding:
+
+- **Couple-scoped, RPC-only writes.** `messages` has a `select` grant and
+  nothing else; a browser `insert` fails with *permission denied*. Every write
+  goes through `send_message`, `send_image`, `edit_message`, `delete_message`,
+  all of which re-derive the couple from `auth.uid()` and never trust a
+  `couple_id` from the client.
+- **Rate limits in the database.** 30 messages a minute, 2000 characters each.
+  Enforced inside the RPC, so a tampered client cannot exceed it.
+- **Edits are marked, deletes are soft.** `edited_at` puts «ویرایش‌شده» on the
+  bubble — silently rewriting something the other person already read is a lie.
+  `deleted_at` keeps the row and blanks the body, so the thread keeps its shape
+  instead of closing a gap.
+- **Read receipts are sent, not inferred.** `message_reads` is one row per
+  (message, reader). Opening the screen calls `mark_messages_read(until)`;
+  nothing is marked while the tab is hidden, so a phone in a pocket does not
+  swallow «دیده شد». Your own bubbles show ✓, then ✓✓ once they read it.
+- **Notify, don't broadcast.** A new message enqueues one `push_queue` row with
+  the topic `msg:<id>` — the same unique constraint that makes every other
+  notification duplicate-proof protects this too. The body is truncated to 120
+  characters: a lock screen is not a private surface.
+- **Images** go to a private `chat-media` bucket at `<couple-id>/<uuid>.<ext>`.
+  The storage policy is a prefix check against `current_couple_id()`, and
+  `send_image()` re-checks the same prefix, so a tampered client cannot attach
+  another couple's file. They are served through short-lived signed URLs.
+- **Polling, not websockets.** A couple sends a handful of messages a day; a
+  6-second poll that stops when the tab is hidden costs almost nothing and
+  cannot half-open on a phone that slept. Push covers the closed-app case.
+
+Unread shows up in three places: the badge on the header button, the tab
+title (`(۳) کنارت`), and the push notification itself. The badge is read-only —
+only opening the chat consumes anything.
 
 ### نوتیفیکیشن روی گوشی (Web Push)
 The bell only speaks to someone who has already opened the app. Web Push is the

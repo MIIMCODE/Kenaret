@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import Logo from './Logo'
 import Avatar from './Avatar'
 import ReminderBell from './ReminderBell'
+import ChatBell from './ChatBell'
 import { useAuth } from '../hooks/useAuth'
 
 export default function AppHeader() {
@@ -15,6 +16,7 @@ export default function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <ChatBell />
           <ReminderBell />
 
           <Link

@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type { ReminderQueueRow } from './reminders'
 import type {
+  ChatMessage,
   Gender,
   PairingState,
   PartnerCycleStatus,
@@ -380,4 +381,90 @@ export async function seedTestPush(): Promise<number> {
   const { data, error } = await supabase.rpc('push_seed_test')
   if (error) throw error
   return Number(data ?? 0)
+}
+
+// ------------------------------------------------------------------
+// گفت‌وگو (chat)
+// ------------------------------------------------------------------
+
+/**
+ * The active couple's id and partner id.
+ *
+ * The chat media bucket is keyed on the couple id, so the client needs it to
+ * build an upload path. `get_pairing_state()` deliberately does not carry it —
+ * it is used by the dashboard, and widening it would leak the id into a payload
+ * that has no use for it.
+ */
+export async function fetchCurrentCouple(): Promise<{ id: string; partner_id: string } | null> {
+  const { data, error } = await supabase.rpc('current_couple')
+  if (error) throw error
+  if (!data) return null
+  return data as { id: string; partner_id: string }
+}
+
+/**
+ * One page of history, newest first.
+ *
+ * `before` is the cursor: pass the oldest `created_at` you already hold to walk
+ * backwards. The server caps the page at 100 and returns `seen` only where it
+ * means something (your own messages, once your partner read them).
+ */
+export async function fetchMessages(before: string | null = null, limit = 30): Promise<ChatMessage[]> {
+  const { data, error } = await supabase.rpc('chat_messages', {
+    p_before: before,
+    p_limit: limit,
+  })
+  if (error) throw error
+  return (data ?? []) as ChatMessage[]
+}
+
+/** Sends a text message. The push to the partner is queued inside the RPC. */
+export async function sendMessage(body: string): Promise<{ id: string; created_at: string }> {
+  const { data, error } = await supabase.rpc('send_message', { p_body: body })
+  if (error) throw error
+  return data as { id: string; created_at: string }
+}
+
+/** Sends an already-uploaded image. `path` must start with the couple id. */
+export async function sendImage(
+  path: string,
+  width?: number | null,
+  height?: number | null,
+): Promise<{ id: string; created_at: string }> {
+  const { data, error } = await supabase.rpc('send_image', {
+    p_path: path,
+    p_w: width ?? null,
+    p_h: height ?? null,
+  })
+  if (error) throw error
+  return data as { id: string; created_at: string }
+}
+
+/** How many of the partner's messages are unread. Read-only, safe to poll. */
+export async function fetchUnreadMessages(): Promise<number> {
+  const { data, error } = await supabase.rpc('unread_message_count')
+  if (error) throw error
+  return Number(data ?? 0)
+}
+
+/**
+ * Marks everything up to `until` as read for the signed-in user.
+ *
+ * Returns how many were newly marked, so the caller can tell whether the badge
+ * actually needs to drop instead of re-rendering unconditionally.
+ */
+export async function markMessagesRead(until?: string | null): Promise<number> {
+  const { data, error } = await supabase.rpc('mark_messages_read', { p_until: until ?? null })
+  if (error) throw error
+  return Number(data ?? 0)
+}
+
+export async function editMessage(id: string, body: string): Promise<void> {
+  const { error } = await supabase.rpc('edit_message', { p_id: id, p_body: body })
+  if (error) throw error
+}
+
+export async function deleteMessage(id: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_message', { p_id: id })
+  if (error) throw error
 }

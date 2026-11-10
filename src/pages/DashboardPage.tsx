@@ -167,6 +167,47 @@ export default function DashboardPage() {
         {/* ==== Connected ==== */}
         {hasPartner && partner && (
           <>
+            {/* The conversation. Above everything else, because it is the
+                only thing here that both people touch every day. */}
+            <Link
+              to="/chat"
+              className="card flex items-center gap-3 p-4 transition hover:shadow-soft"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blush-500 text-white shadow-soft">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.8-.8L3 21l1.9-5a8.3 8.3 0 0 1-.9-3.8A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] font-extrabold text-ink-900">گفت‌وگو</p>
+                <p className="truncate text-[11px] text-ink-500">
+                  فقط بین تو و {partner.display_name ?? 'شریکت'}
+                </p>
+              </div>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+                className="shrink-0 text-ink-500/50"
+              >
+                <path
+                  d="M15 6l-6 6 6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+
             <PartnerCard partner={partner} onUnlink={handleUnlink} />
 
             {/* Relationship start date: the heart of the couple dashboard */}
