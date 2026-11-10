@@ -249,3 +249,92 @@ export interface VaultItem {
   height: number | null
   created_at: string
 }
+
+// ------------------------------------------------------------------
+// رودررو (the game)
+// ------------------------------------------------------------------
+
+export type GameKind = 'truth' | 'dare' | 'together'
+export type GameSource = 'builtin' | 'ours'
+
+/** One card in the couple's deck. */
+export interface GameCard {
+  id: string
+  kind: GameKind
+  level: 1 | 2 | 3
+  body: string
+  /** Seeded by the app rather than written by either of them. */
+  builtin: boolean
+  created_by: string | null
+  created_at: string
+}
+
+/** One answer from one person, on a `together` card. */
+export interface GameTogetherAnswer {
+  user_id: string
+  body: string
+}
+
+/** A turn that is waiting for an answer. */
+export interface GameOpenTurn {
+  id: string
+  card_id: string
+  kind: GameKind
+  level: 1 | 2 | 3
+  body: string
+  /** Whose turn it is. */
+  asked_of: string
+  /** Who dealt it. */
+  asked_by: string
+  /**
+   * Whether *this* user may answer it, decided by the server.
+   *
+   * The client does not compare ids to work this out: a `together` card is
+   * answerable by either of them until they have answered, and duplicating
+   * that rule here would eventually disagree with the database.
+   */
+  can_answer: boolean
+  together_answers: GameTogetherAnswer[]
+  created_at: string
+}
+
+/** A finished turn, as shown in the history. */
+export interface GameTurn {
+  id: string
+  card_id: string
+  kind: GameKind
+  level: 1 | 2 | 3
+  body: string
+  answer: string | null
+  asked_of: string
+  asked_by: string
+  outcome: 'answered' | 'skipped'
+  answered_at: string | null
+  created_at: string
+}
+
+export interface GameSettings {
+  /** The loudest card that may be dealt: 1 آرام, 2 جسور, 3 رک. */
+  max_level: 1 | 2 | 3
+  avoid_repeats: boolean
+}
+
+export interface GameCounts {
+  total: number
+  builtin: number
+  ours: number
+  played: number
+}
+
+export interface GameState {
+  settings: GameSettings
+  counts: GameCounts
+  /** JSON null, not `undefined`, when the table is free — see `game_state()`. */
+  open_turn: GameOpenTurn | null
+  recent: GameTurn[]
+}
+
+export interface GameCardsPage {
+  total: number
+  cards: GameCard[]
+}

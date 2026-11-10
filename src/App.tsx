@@ -20,6 +20,7 @@ import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import AlbumPage from './pages/AlbumPage'
 import VaultPage from './pages/VaultPage'
+import GamePage from './pages/GamePage'
 import ChatPage from './pages/ChatPage'
 import DatesPage from './pages/DatesPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -138,7 +139,17 @@ function PushBridge() {
  * unmounting anything on each navigation, the bar keeps its state while the
  * user moves between /app, /chat, /dates, /album and /settings.
  */
-const NAV_PATHS = ['/app', '/chat', '/dates', '/album', '/settings']
+/**
+ * Routes that show the tab bar.
+ *
+ * `/game` is deliberately in this list even though it has no tab of its own.
+ * The bar has five fixed destinations and R18 says they do not change, so the
+ * game lives one tap from the dashboard, inside the same shell. `BottomNav`
+ * simply finds no tab matching `/game` — its indicator stays on the last tab
+ * it knew, which is exactly what "you are in a room off the hallway" should
+ * look like.
+ */
+const NAV_PATHS = ['/app', '/chat', '/dates', '/album', '/settings', '/game']
 
 function AppNav() {
   const { status, profile } = useAuth()
@@ -230,6 +241,16 @@ export default function App() {
           element={
             <RequireAuth>
               <VaultPage />
+            </RequireAuth>
+          }
+        />
+
+        {/* رودررو — the game. Reached from the dashboard, not from a tab. */}
+        <Route
+          path="/game"
+          element={
+            <RequireAuth>
+              <GamePage />
             </RequireAuth>
           }
         />
