@@ -6,6 +6,7 @@ import { useAuth } from './hooks/useAuth'
 import { listenForNotificationNavigation } from './lib/sw-register'
 import { syncSubscription } from './lib/push'
 import { FullPageLoader } from './components/Spinner'
+import BottomNav from './components/BottomNav'
 import { isSupabaseConfigured } from './lib/supabase'
 
 import LandingPage from './pages/LandingPage'
@@ -128,6 +129,30 @@ function PushBridge() {
   return null
 }
 
+/**
+ * Decides whether the tab bar should exist at all.
+ *
+ * It is rendered globally but only on the signed-in, post-onboarding pages —
+ * a tab bar on the login screen or halfway through onboarding would offer
+ * doors that are not open yet. Because this returns `null` rather than
+ * unmounting anything on each navigation, the bar keeps its state while the
+ * user moves between /app, /chat, /dates, /album and /settings.
+ */
+const NAV_PATHS = ['/app', '/chat', '/dates', '/album', '/settings']
+
+function AppNav() {
+  const { status, profile } = useAuth()
+  const { pathname } = useLocation()
+
+  const eligible =
+    status === 'signed-in' &&
+    Boolean(profile?.onboarding_completed) &&
+    NAV_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+
+  if (!eligible) return null
+  return <BottomNav />
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
@@ -143,6 +168,15 @@ export default function App() {
     <>
       <ScrollToTop />
       <PushBridge />
+      {/*
+        The tab bar lives OUTSIDE <Routes> — once, for the whole app.
+        It used to be mounted inside each page, which meant every navigation
+        unmounted and rebuilt it: the entrance animation replayed, the sliding
+        bubble was destroyed and re-created, and the unread poll restarted.
+        Out here it survives navigation, so the bubble has something continuous
+        to slide along.
+      */}
+      <AppNav />
       <Routes>
         <Route path="/" element={<LandingPage />} />
 

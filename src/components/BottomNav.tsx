@@ -264,7 +264,10 @@ export default function BottomNav() {
     >
       <div
         ref={barRef}
-        className="pointer-events-auto relative flex w-full max-w-[21.5rem] animate-nav-rise items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl"
+        /* No entrance animation and no key: this element must never be rebuilt.
+               A fade-in here reads as "the whole bar is re-created on every tab
+               change", which is exactly the flicker it caused. */
+        className="pointer-events-auto relative flex w-full max-w-[21.5rem] items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl"
       >
         {visible.map((tab) => {
           const active = tab.match(pathname)
@@ -318,9 +321,14 @@ export default function BottomNav() {
           style={{
             width: indicator.width,
             transform: `translateX(${indicator.x}px)`,
-            // 350ms with a springy curve — supplied by the user, and it is a
-            // good choice: 1.3 on the second control point overshoots just
-            // enough to read as physical without wobbling.
+            /*
+              350ms with a springy curve: 1.3 on the second control point
+              overshoots just enough to read as physical without wobbling.
+
+              The transition is switched OFF for the very first placement, so
+              the bubble starts under the active tab instead of flying there
+              from x=0 as the page appears. After that it only ever slides.
+            */
             transition: indicator.ready
               ? 'transform 350ms cubic-bezier(0.34, 1.3, 0.64, 1), width 350ms cubic-bezier(0.34, 1.3, 0.64, 1)'
               : 'none',
