@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react'
 import Avatar from './Avatar'
 import { fetchCurrentCouple, fetchUnreadMessages } from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
@@ -117,12 +117,21 @@ export default function BottomNav() {
   const [unread, setUnread] = useState(0)
   const timer = useRef<number | null>(null)
   /**
-   * A spring has to be *replayed*, and React will not restart a CSS animation
-   * just because the className is the same. Bumping a per-tab nonce rebuilds
-   * the node, which restarts the animation from 0% — that is what makes the
-   * bounce land on the tab you just touched instead of only the first one.
+   * The sliding indicator.
+   *
+   * One bubble for the whole bar, not one per tab. It is placed from *measured
+   * geometry* (`getBoundingClientRect`) rather than from an index or a
+   * percentage, because that is the only thing that stays correct when the
+   * number of tabs changes (the chat tab disappears when there is no partner),
+   * when the user's font is larger, and under RTL — where `offsetLeft` is not
+   * consistently reported from the same edge by every engine.
+   *
+   * `x` is a physical offset from the bar's left edge and `translateX` is
+   * always physical too, so direction never enters the arithmetic.
    */
-  const [popKey, setPopKey] = useState(0)
+  const [indicator, setIndicator] = useState({ x: 0, width: 0, ready: false })
+  const barRef = useRef<HTMLDivElement | null>(null)
+  const tabRefs = useRef(new Map<string, HTMLAnchorElement>())
 
   /**
    * One poll for both badges.
@@ -161,6 +170,49 @@ export default function BottomNav() {
       document.removeEventListener('visibilitychange', tick)
     }
   }, [pathname])
+
+  /** Re-measures the active tab and moves the bubble to it. */
+  const placeIndicator = useCallback(() => {
+    const bar = barRef.current
+    if (!bar) return
+    const activeEl = Array.from(tabRefs.current.values()).find(
+      (el) => el.getAttribute('aria-current') === 'page',
+    )
+    if (!activeEl) return
+
+    const barBox = bar.getBoundingClientRect()
+    const tabBox = activeEl.getBoundingClientRect()
+
+    setIndicator((prev) => {
+      const next = {
+        x: tabBox.left - barBox.left,
+        width: tabBox.width,
+        ready: true,
+      }
+      // Skip a render when nothing moved; `resize` fires a lot.
+      if (prev.ready && prev.x === next.x && prev.width === next.width) return prev
+      return next
+    })
+  }, [])
+
+  /** Layout effect, not effect: measure before the first paint or the bubble
+   *  visibly jumps from the left edge on load. */
+  useLayoutEffect(() => {
+    placeIndicator()
+  }, [placeIndicator, pathname, hasPartner])
+
+  useEffect(() => {
+    const onResize = () => placeIndicator()
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    // Web fonts change the label widths after first paint, which moves every
+    // tab and would leave the bubble a few pixels off.
+    if (document.fonts?.ready) void document.fonts.ready.then(onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+  }, [placeIndicator])
 
   const tabs: Tab[] = [
     {
@@ -210,38 +262,28 @@ export default function BottomNav() {
       aria-label="بخش‌های کنارت"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
     >
-      <div className="pointer-events-auto flex w-full max-w-[21.5rem] animate-nav-rise items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl">
+      <div
+        ref={barRef}
+        className="pointer-events-auto relative flex w-full max-w-[21.5rem] animate-nav-rise items-stretch gap-0.5 rounded-full border border-white/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_34px_-14px_rgba(58,48,56,0.45)] backdrop-blur-xl"
+      >
         {visible.map((tab) => {
           const active = tab.match(pathname)
           const badge = tab.to === '/chat' ? unreadLabel : null
           return (
             <Link
               key={tab.to}
+              ref={(el) => {
+                if (el) tabRefs.current.set(tab.to, el)
+                else tabRefs.current.delete(tab.to)
+              }}
               to={tab.to}
               aria-current={active ? 'page' : undefined}
               aria-label={tab.label}
-              onClick={() => {
-                if (!active) setPopKey((n) => n + 1)
-              }}
               className={`relative flex flex-1 basis-0 flex-col items-center gap-1 rounded-full px-2 py-2 transition-colors duration-200 ${
                 active ? 'text-blush-600' : 'text-ink-500 hover:text-ink-700'
               }`}
             >
-              {/* The pink pill is its own layer so it can spring in without the
-                  label and icon moving with it — a whole tab scaling up would
-                  push its neighbours around on every tap. */}
-              <span
-                aria-hidden="true"
-                className={`absolute inset-0 rounded-full bg-blush-500/12 transition-opacity duration-200 ${
-                  active ? 'animate-spring-in opacity-100' : 'opacity-0'
-                }`}
-                key={active ? `pill-${popKey}` : 'pill'}
-              />
-
-              <span
-                key={active ? `icon-${popKey}` : 'icon'}
-                className={`relative ${active ? 'animate-spring-pop' : ''}`}
-              >
+              <span className="relative">
                 {tab.icon(active)}
                 {badge && (
                   <span className="absolute -top-1.5 -left-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-blush-500 px-1 text-[9px] font-extrabold leading-none text-white">
@@ -259,6 +301,32 @@ export default function BottomNav() {
             </Link>
           )
         })}
+
+        {/*
+          ONE bubble for the whole bar. It is the last child so it paints
+          underneath the icons and labels, and `pointer-events-none` keeps it
+          from swallowing taps aimed at a tab.
+
+          It slides rather than fades: previously each tab carried its own pill
+          and the pill cross-faded on change. A single element that travels
+          shows *where the selection went*, which is the whole point of an
+          indicator.
+        */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-1.5 left-0 rounded-full bg-[#f9628b]/14"
+          style={{
+            width: indicator.width,
+            transform: `translateX(${indicator.x}px)`,
+            // 350ms with a springy curve — supplied by the user, and it is a
+            // good choice: 1.3 on the second control point overshoots just
+            // enough to read as physical without wobbling.
+            transition: indicator.ready
+              ? 'transform 350ms cubic-bezier(0.34, 1.3, 0.64, 1), width 350ms cubic-bezier(0.34, 1.3, 0.64, 1)'
+              : 'none',
+            opacity: indicator.ready ? 1 : 0,
+          }}
+        />
       </div>
     </nav>
   )
