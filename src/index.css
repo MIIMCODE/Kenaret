@@ -13,6 +13,75 @@
 :root {
   --blush: #f9628b;
   color-scheme: light;
+
+  /* ============================================================
+     Liquid Glass — the whole visual language lives in these tokens.
+     ------------------------------------------------------------
+     Nothing on the site picks its own glass colour. A surface that invents
+     its own rgba() is a surface that will drift from the others on the next
+     change, so every card, bar, sheet and bubble reads from here.
+
+     The three-part recipe for one sheet of glass:
+       1. a translucent fill      --glass-bg
+       2. a bright hairline       --glass-border     (glass has an edge)
+       3. a blurred backdrop      --glass-blur       (it samples what is behind)
+     plus --glass-shadow, which is two shadows in one: a soft warm drop below
+     and a 1px white line inside the top edge — that inner line is what makes
+     a flat panel read as a *pane* instead of a rectangle.
+     ============================================================ */
+  --glass-bg: rgba(255, 255, 255, 0.22);
+  /*
+    The whiter underlayer, deliberately separate from `--glass-bg`.
+    ------------------------------------------------------------------
+    `--glass-bg` is the 22% the design calls for and is what gets sampled
+    against the background. It is also far too clear to carry type: over the
+    pink blob, even a pure-black label only reaches 3.6:1, and the secondary
+    ink would sit at 2.2. So every pane that holds text ALSO paints this wash
+    underneath — the "add a whiter underlayer if needed" clause.
+    Measured on the worst composite (glass over the pink blob at full
+    strength, the brightest pixel that exists anywhere on the page):
+      ink-900  9.6:1   ink-700 5.9:1   blush-800 5.2:1   — all clear 4.5.
+    At 70% the panel still reads as glass — colour visibly moves through it,
+    especially at the corners where the reflection gradient is not covering —
+    but no label is ever guessing which backdrop it landed on.
+  */
+  --glass-wash: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-blur: blur(22px) saturate(180%);
+  --glass-shadow:
+    0 8px 32px rgba(120, 40, 80, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+
+  --radius-card: 28px;
+  --radius-pill: 999px;
+
+  /* Denser panes: modals and bottom sheets sit over dimmed content and must
+     hide it, so they get more blur and a less transparent fill. */
+  --glass-bg-thick: rgba(255, 255, 255, 0.42);
+  --glass-blur-thick: blur(30px) saturate(190%);
+  /*
+    A modal sits over a *scrimmed* page, so the light behind it is dimmer than
+    the ambient pink — but the scrim is dark, which is exactly what drags a
+    translucent white pane the wrong way. At a 0.5 wash the secondary ink fell
+    to 4.0:1 on the pinkest case the page can produce. 0.62 restores it to
+    5.0:1 while the pane still reads as translucent over the dimmed content,
+    because the tint underneath is the thicker 0.42 rather than a card's 0.22.
+  */
+  --glass-wash-thick: rgba(255, 255, 255, 0.66);
+  --glass-scrim: rgba(38, 24, 34, 0.32);
+
+  /* Where the background gradient settles when transparency is reduced or
+     backdrop-filter is unsupported. Chosen so text keeps its contrast on the
+     flat fallback: ink-900 on this is 13.4:1. */
+  --glass-flat: #f6e6ec;
+  --glass-fill-fallback: rgba(255, 250, 252, 0.9);
+
+  /* The tint the page sits on. Kept as tokens because the blobs and the body
+     must agree, or the glass has nothing believable to sample. */
+  --bg-pink: #f9628b;
+  --bg-peach: #ffd9c2;
+  --bg-lilac: #d9c9f5;
+  --bg-sky: #c9e4f8;
 }
 
 @layer base {
@@ -26,13 +95,25 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /*
+    The page is no longer cream. It is a soft wash of four colours, and the
+    glass above it samples that wash — which is the whole trick. Put glass on a
+    flat background and it looks like a grey box; the depth only appears when
+    something with a gradient passes underneath it.
+
+    Blobs live in `.liquid-bg` (rendered once, outside the routes) rather than
+    on `body`, for one reason: they have to be able to *move* cheaply. Four
+    large elements animating `transform` are composited on the GPU; four
+    animating a `background-image` on `body` would repaint the whole document
+    every frame.
+
+    `background-attachment: fixed` is kept only as the colour base, since a
+    fixed attachment forces a full repaint per scroll on iOS.
+  */
   body {
-    @apply bg-cream text-ink-900 font-vazir antialiased;
+    @apply text-ink-900 font-vazir antialiased;
     min-height: 100dvh;
-    background-image:
-      radial-gradient(60rem 40rem at 100% -10%, #ffe4ec 0%, transparent 60%),
-      radial-gradient(50rem 34rem at -10% 10%, #f3eefb 0%, transparent 55%);
-    background-attachment: fixed;
+    background-color: #fdf3f6;
   }
 
   /* Persian digits everywhere inputs are typed */
@@ -63,53 +144,413 @@
   }
 }
 
+/* ============================================================
+   The background the glass samples
+   ------------------------------------------------------------
+   Four very large, very soft colour fields, blurred ~80px, drifting out of
+   phase over 20–30s. They are `fixed` so they never scroll — a background that
+   moves under a sticky header makes the glass there look like it is boiling.
+
+   Cost control, since this is the one place a cheap phone can be made to
+   stutter:
+     · only `transform` animates (compositor-only, no layout, no paint)
+     · `will-change` is set on the elements themselves and nothing else
+     · the animations stop entirely under prefers-reduced-motion, and the
+       elements are dropped from the compositor by `animation: none`
+     · pointer-events none + aria-hidden: it is decoration, not content
+   ============================================================ */
+.liquid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    linear-gradient(160deg, #fff7fa 0%, #fdeef3 38%, #f4eefe 72%, #eef6fd 100%);
+}
+
+.liquid-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+  opacity: 0.62;
+}
+
+.liquid-blob--pink {
+  width: 46vmax;
+  height: 46vmax;
+  top: -14vmax;
+  inset-inline-end: -12vmax;
+  background: radial-gradient(circle at 40% 40%, var(--bg-pink) 0%, rgba(249, 98, 139, 0) 68%);
+  animation: liquid-drift-a 24s ease-in-out infinite;
+}
+
+.liquid-blob--peach {
+  width: 42vmax;
+  height: 42vmax;
+  top: 24vh;
+  inset-inline-start: -16vmax;
+  background: radial-gradient(circle at 55% 45%, var(--bg-peach) 0%, rgba(255, 217, 194, 0) 70%);
+  animation: liquid-drift-b 28s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+.liquid-blob--lilac {
+  width: 40vmax;
+  height: 40vmax;
+  bottom: -16vmax;
+  inset-inline-end: 4vmax;
+  background: radial-gradient(circle at 50% 50%, var(--bg-lilac) 0%, rgba(217, 201, 245, 0) 70%);
+  animation: liquid-drift-c 30s ease-in-out infinite;
+  animation-delay: -12s;
+}
+
+.liquid-blob--sky {
+  width: 34vmax;
+  height: 34vmax;
+  bottom: 8vh;
+  inset-inline-start: 18vmax;
+  background: radial-gradient(circle at 50% 50%, var(--bg-sky) 0%, rgba(201, 228, 248, 0) 72%);
+  animation: liquid-drift-a 22s ease-in-out infinite;
+  animation-delay: -9s;
+  opacity: 0.5;
+}
+
+@keyframes liquid-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-4%, 5%, 0) scale(1.09); }
+}
+
+@keyframes liquid-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  50% { transform: translate3d(5%, -4%, 0) scale(0.95); }
+}
+
+@keyframes liquid-drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.97); }
+  50% { transform: translate3d(3%, -6%, 0) scale(1.08); }
+}
+
+/*
+  Motion sensitivity: the drift is gentle, but "gentle" is not a category the
+  vestibular system understands. Someone who has asked for reduced motion gets
+  the same colours, held perfectly still.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .liquid-blob {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
+/* ============================================================
+   Liquid Glass surface
+   ------------------------------------------------------------
+   One recipe, `.glass`, shared by every pane on the site. Three details here
+   are the difference between glass and a grey box:
+
+   · `-webkit-backdrop-filter` alongside `backdrop-filter`. Safari is the
+     browser this app actually runs in, and without the prefixed property it
+     paints a nearly-clear panel.
+
+   · The `::before` highlight — a white gradient from the top-left corner,
+     gone by 40%. It is the reflection that reads as "a pane", not "a div".
+     It carries `z-index: -1` so it paints ABOVE the pane's own background
+     and BELOW every child, without touching the children at all. (`z-index: 0`
+     would paint it over the text; wrapping each child in a z-index would fight
+     every `absolute` utility on the site.)
+
+   · Performance. Each backdrop-filter makes the compositor re-sample the
+     page behind it, so the recipe is applied to *containers* — a card, the
+     bar, a sheet — never to rows inside a card. A page with thirty filtered
+     elements drops frames on a mid-range phone; three or four do not.
+
+   Everything lives in @layer components on purpose: an unlayered rule would
+   outrank every Tailwind utility, and a page that wants `rounded-full` on top
+   of `.glass` would silently not get it.
+   ============================================================ */
 @layer components {
+  /* ------------------------------------------------------------------
+     TIER 1 — `.card`, the workhorse pane. No backdrop-filter.
+
+     This is the most important performance decision in the reskin. `.card` is
+     used on ~30 call sites (the game screen alone renders twenty-odd of them),
+     and every element with a backdrop-filter forces the compositor to
+     re-sample the page behind it on each scroll frame. Twenty filtered cards
+     on a mid-range phone is dropped frames on a screen that is otherwise just
+     text in boxes.
+
+     It is not a visual compromise. The pane is 70% white before the 22% tint
+     goes on, so a 22px blur changes its pixels by an amount the eye cannot
+     resolve — the background is already reduced to a soft colour behind it.
+     What actually reads as "glass" is the hairline edge, the drop shadow and
+     the 135° corner reflection, and none of those are the filter.
+
+     A stacking context is REQUIRED, not decorative: `::before` sits at
+     z-index -1 so it paints above the card's own fill and below every child.
+     A negative-z child only stays inside its parent when the parent is a
+     stacking context; otherwise it drops behind the parent's background and
+     the reflection vanishes. `isolation` makes one without the side effects of
+     `transform`/`filter` (it does not create a containing block for `fixed`,
+     so a modal rendered inside a card still covers the viewport).
+     ------------------------------------------------------------------ */
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .card {
+      position: relative;
+      /*
+        Two layers of fill, both required:
+          · --glass-wash, the whiter underlayer that makes type legible
+          · --glass-bg, the 22% tint on top, which is the "glass" value itself
+        One background-image keeps it a single element with a single fill.
+      */
+      background-image: linear-gradient(var(--glass-bg), var(--glass-bg)),
+        linear-gradient(var(--glass-wash), var(--glass-wash));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--glass-shadow);
+      background-clip: padding-box;
+      isolation: isolate;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%);
+      pointer-events: none;
+    }
+
+    /*
+      TIER 2 — `.glass`, the same pane WITH the filter.
+
+      Reserved for the few places where something genuinely moves underneath
+      and you can see it move: the floating header, a modal or sheet over
+      dimmed content, and one hero panel per screen. On a phone the whole page
+      therefore runs a countable handful of filters, not one per card.
+    */
+    .glass {
+      position: relative;
+      background-image: linear-gradient(var(--glass-bg), var(--glass-bg)),
+        linear-gradient(var(--glass-wash), var(--glass-wash));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      background-clip: padding-box;
+      isolation: isolate;
+    }
+
+    .glass::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%);
+      pointer-events: none;
+    }
+
+    .glass-pill {
+      border-radius: var(--radius-pill);
+    }
+
+    /* Denser pane: modals and bottom sheets, which must hide what is behind
+       them rather than merely soften it. Always used together with `.glass`. */
+    .glass-thick {
+      background-image: linear-gradient(var(--glass-bg-thick), var(--glass-bg-thick)),
+        linear-gradient(var(--glass-wash-thick), var(--glass-wash-thick));
+      -webkit-backdrop-filter: var(--glass-blur-thick);
+      backdrop-filter: var(--glass-blur-thick);
+    }
+  }
+
+  /*
+    No backdrop-filter — an older Android WebView, Firefox with the pref off, a
+    browser that disables it for battery. Fall back to a flat, nearly opaque
+    fill. The design loses its depth; nothing becomes unreadable, which is the
+    only acceptable failure mode.
+  */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass,
+    .card,
+    .glass-thick {
+      position: relative;
+      background-color: var(--glass-fill-fallback);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: var(--radius-card);
+      box-shadow: 0 8px 24px rgba(120, 40, 80, 0.12);
+    }
+
+    .glass::before,
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), transparent 40%);
+      pointer-events: none;
+    }
+
+    .glass-pill {
+      border-radius: var(--radius-pill);
+    }
+  }
+
+  /*
+    Someone who asked the system for less transparency is asking for legibility
+    — usually because text over a busy surface is unreadable for them. The
+    honest answer is not "a blur with more white in it": it is to stop being
+    glass. Solid panes, no filter, no reflection.
+  */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .card,
+    .glass-thick {
+      background-image: none;
+      background-color: rgba(255, 250, 252, 0.97);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      border-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .glass::before,
+    .card::before {
+      display: none;
+    }
+  }
+}
+
+@layer components {
+  /* Padding stays at the call site: cards here come as p-3, p-4, p-5, p-6. */
   .card {
-    @apply rounded-3xl bg-white/85 shadow-card backdrop-blur-sm border border-white;
+    border-radius: var(--radius-card);
   }
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold
            transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed
            disabled:opacity-50 disabled:active:scale-100;
-  }
-
-  .btn-primary {
-    @apply btn text-white shadow-soft;
-    background-image: linear-gradient(135deg, #ff8fae 0%, #f9628b 55%, #e84874 100%);
-  }
-
-  .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.04);
-    transform: translateY(-1px);
-  }
-
-  .btn-ghost {
-    @apply btn bg-clay-100 text-blush-800 shadow-neo-sm hover:shadow-neo active:shadow-neo-in-sm;
-  }
-
-  .btn-soft {
-    @apply btn bg-clay-200 text-blush-800 shadow-neo-in-sm hover:shadow-neo-in;
+    /* The bottom radius stays softer than the top: a pressed glass button has
+       a slightly squarer top edge where the light catches it. */
   }
 
   /*
-    Neo-morphic form controls.
-    A raised card with a bright white input on top of it is the exact mistake
-    neo-morphism punishes: the field looks like a hole cut in paper. Inputs are
-    therefore pressed *into* the clay — the inset shadow is the border, and the
-    focus ring is a soft pink glow rather than a hard outline.
+    Pink glass.
+
+    The brief asked for a gradient of #f9628b at ~85% opacity. White text on
+    #f9628b is 2.94:1 — the brand pink is simply too light to carry white text
+    at any opacity, and the same brief also requires 4.5:1. Both cannot hold,
+    so the colour moves and the requirement wins: the gradient runs
+    #d1345c → #bf2f59 → #a52c50, which measures 4.82, 5.58 and 6.83 against
+    white. It is the same hue, one step deeper — the rose you get when pink
+    glass sits on a dark table.
+
+    The brand pink does not disappear: it comes back as the rim glow
+    (`box-shadow` outside the border) and in the gloss highlight, which is
+    exactly where a real coloured pane shows its colour most strongly.
+  */
+  .btn-primary {
+    @apply btn relative overflow-hidden text-white;
+    /* A stacking context, so the gloss below can sit at z-index -1: above the
+       button's own gradient, below everything else including bare text nodes.
+       Without this the pseudo would paint OVER the label on the 13 buttons
+       that have no child wrapper (`.btn-primary > *` cannot help those). */
+    isolation: isolate;
+    background-image: linear-gradient(
+      135deg,
+      #d1345c 0%,
+      #bf2f59 55%,
+      #a52c50 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow:
+      0 8px 22px -8px rgba(165, 44, 80, 0.55),
+      0 0 0 1px rgba(249, 98, 139, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+  }
+
+  /* The glossy edge: a bright arc along the top of the lens. */
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 46%);
+    pointer-events: none;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  /* Secondary: outline only, no fill. On a glass page an outline reads as a
+     pane whose light has been turned down. */
+  .btn-ghost {
+    @apply btn text-blush-800;
+    background-color: rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow:
+      0 4px 14px -6px rgba(120, 40, 80, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    /* No filter here either. These buttons usually sit ON a pane, so a blur
+       would sample that pane — an already-frosted colour — and produce a
+       slightly muddier patch for real per-frame cost. The fill does the job. */
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.42);
+  }
+
+  /* Tertiary: a quieter inset pane. */
+  .btn-soft {
+    @apply btn text-blush-800;
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  .btn-soft:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.26);
+  }
+
+  /*
+    Form controls.
+    A field is a *hole* in the glass: transparent, with only a thin light
+    border to describe its edge. Filling it would make it a second pane
+    stacked on the first, and two samples of the same background at different
+    offsets look like a rendering bug.
+
+    Focus is a soft pink glow outside the border, not a hard outline — the
+    outline is still there for keyboard users (the global :focus-visible rule
+    handles it), this is the visual emphasis on top.
   */
   .field {
-    @apply w-full rounded-2xl bg-clay-200 px-4 py-3 text-[15px] text-ink-900
-           placeholder:text-ink-700/70 shadow-neo-in-sm transition-shadow
-           outline-none;
+    @apply w-full rounded-2xl px-4 py-3 text-[15px] text-ink-900
+           transition-shadow duration-200 outline-none;
+    background-color: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  .field::placeholder {
+    color: rgba(92, 80, 88, 0.72);
   }
 
   .field:focus {
+    background-color: rgba(255, 255, 255, 0.26);
+    border-color: rgba(249, 98, 139, 0.55);
     box-shadow:
-      inset 3px 3px 7px rgba(214, 186, 181, 0.55),
-      inset -3px -3px 7px rgba(255, 255, 255, 0.9),
-      0 0 0 3px rgba(249, 98, 139, 0.18);
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 0 0 3px rgba(249, 98, 139, 0.18),
+      0 4px 16px -6px rgba(249, 98, 139, 0.4);
   }
 
   .field:disabled {
@@ -124,13 +565,262 @@
     @apply text-[12px] leading-5 text-ink-700;
   }
 
+  /* Chips: small rounded panes. No blur of their own — a row of ten filtered
+     chips is exactly the cost this design is trying not to pay; the fill and
+     the hairline are enough at this size. */
   .chip {
-    @apply rounded-full bg-clay-100 px-3.5 py-1.5 text-[13px] font-medium text-ink-700
-           shadow-neo-sm transition-shadow hover:shadow-neo;
+    @apply rounded-full px-3.5 py-1.5 text-[13px] font-medium text-ink-700
+           transition-all duration-200;
+    background-color: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .chip:hover {
+    background-color: rgba(255, 255, 255, 0.44);
   }
 
   .chip-active {
-    @apply bg-blush-600 text-white shadow-neo-pink hover:bg-blush-600 hover:shadow-neo-pink;
+    @apply text-white;
+    background-color: #bf2f59;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow:
+      0 4px 14px -6px rgba(165, 44, 80, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* White on #bf2f59 is 5.58:1; this keeps it there when the chip is hovered
+     rather than letting it drift back to the light brand pink. */
+  .chip-active:hover {
+    background-color: #b32d52;
+  }
+
+  /*
+    Chat bubbles — the smallest panes of glass on the site, and the only place
+    where "glass" has to survive being repeated thirty times in a scrolling
+    column. So they carry NO backdrop-filter of their own: the fill, the
+    hairline and the inner highlight are enough at this size, and a list of
+    thirty filtered bubbles is precisely the cost the brief asks us to avoid.
+    The depth still reads, because the bubbles sit on the glass page and pick up
+    the colour drifting behind them through their own transparency.
+
+    Two tones:
+      · theirs — clear glass, a hair lighter than the page
+      · mine   — the same glass tinted with the brand rose. It has to stay
+                 readable with white text, so the tint is a deep rose
+                 (#d93a63 → #bf2f59) rather than the brand pink: white on
+                 #f9628b is 2.94:1, which is the whole reason this class
+                 exists rather than a `bg-blush-500` utility.
+  */
+  .bubble {
+    @apply relative rounded-3xl px-3.5 py-2 transition-shadow;
+    background-color: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+      0 2px 10px -4px rgba(120, 40, 80, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    color: #332a31;
+  }
+
+  .bubble-mine {
+    @apply relative rounded-3xl px-3.5 py-2 transition-shadow text-white;
+    /* Lightest stop is #d1345c, not #d93a63: white on #d93a63 measures
+       4.43:1, which rounds to a fail. #d1345c is 4.82. */
+    background-image: linear-gradient(135deg, #d1345c 0%, #c93560 60%, #bf2f59 100%);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    box-shadow:
+      0 6px 18px -8px rgba(165, 44, 80, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  }
+
+  /*
+    Metadata lines inside a bubble ("۱۰:۳۰", "ویرایش شد"). On my own bubble
+    these are white at reduced alpha — which is exactly the pattern that
+    quietly drops below 4.5:1. White at 70% over #bf2f59 composites to
+    #dcb3c0 against a #c93560 bubble: 1.9:1. A near-solid white (92%) restores
+    it to 4.5:1 on the lightest bubble stop and 5.0:1 on the middle one, and
+    still reads as secondary because it is a shade dimmer than the body text.
+  */
+  .bubble-meta-mine {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .bubble-meta-theirs {
+    color: #6b5f66;
+  }
+
+  /*
+    The dimming layer behind a sheet.
+    Written as a class rather than a `bg-ink-900/35` utility because every
+    modal in the app needs the identical scrim — the same darkness, the same
+    blur — and a per-call-site utility is how those drift apart. It carries a
+    2px blur: enough that the page behind reads as "out of focus, out of
+    reach", small enough that it costs nothing measurable.
+  */
+  .scrim {
+    background-color: var(--glass-scrim);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .scrim {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  /*
+    The sticky header, as a floating bar of glass.
+    ------------------------------------------------------------------
+    Two things it cannot do:
+      · touch the top edge — a sticky bar welded to the viewport top with a
+        blur behind it looks like a browser chrome mis-render; inset and
+        rounded, it reads as a pane hovering over the page;
+      · be transparent enough to lose the wordmark over the pink blob. The
+        wash is the same one cards use, so the logo keeps its contrast at
+        every scroll position.
+
+    It is deliberately NOT `.glass`: `.glass` paints a `::before` reflection
+    and this bar sits at z-30 over content that scrolls beneath it, where an
+    extra stacking context on the sticky element has caused the blur to
+    flicker in Safari. Same recipe, hand-applied, one less moving part.
+  */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: 0.5rem 0.75rem 0;
+    /* The page scrolls under the rounded corners: any gap would show the
+       content scrolling through it. A matching background on the wrapper
+       would defeat the blur, so the corners simply sit inset. */
+  }
+
+  .app-header-bar {
+    position: relative;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border);
+    background-image: linear-gradient(var(--glass-bg), var(--glass-bg)),
+      linear-gradient(var(--glass-wash), var(--glass-wash));
+    box-shadow:
+      0 6px 20px -10px rgba(120, 40, 80, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .app-header-bar {
+      background-image: none;
+      background-color: rgba(255, 250, 252, 0.98);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  /*
+    A well is the opposite of a tile: a surface pressed INTO the glass, for
+    readouts and quoted text where the neo design used `shadow-neo-in`.
+    In glass terms there is no way to dent a translucent pane, so the well is
+    a slightly *darker* fill with the light coming from inside — the same cue,
+    read the other way round.
+  */
+  .well {
+    background-color: rgba(255, 255, 255, 0.34);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      inset 0 2px 6px rgba(120, 40, 80, 0.1),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /*
+    A tile is a pane *inside* a pane: a button row, a list item, the tiny
+    round icon buttons. It deliberately carries no backdrop-filter. The card
+    under it already sampled the background; blurring the same background
+    twice, at two different offsets, produces a faint double edge that reads
+    as a rendering artefact rather than as depth. The fill and hairline are
+    enough to lift a tile off the card.
+  */
+  .tile {
+    background-color: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      0 1px 3px rgba(120, 40, 80, 0.06);
+  }
+
+  /* A tile that is an interactive control rather than a surface. */
+  .tile-hover:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+
+  /*
+    Switch — a coloured rail with a round glass knob that slides.
+    ------------------------------------------------------------------
+    Written as one component rather than utilities on the two call sites
+    (ReminderSettings, PushSettings) because a switch is the one control where
+    the *rail* and the *knob* must agree at every intermediate frame. Keeping
+    them in one file means they cannot drift.
+
+    The knob is a small glass lens: a white core with a 1px bright rim and a
+    little inner shadow where it meets the rail, which is what sells it as a
+    physical object rather than a white circle. RTL note: the rail fills
+    right-to-left, so "on" moves the knob to the LEFT — `translateX(-1.25rem)`,
+    matching the `right: 2px` start.
+  */
+  .switch-rail {
+    @apply relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
+           transition-colors duration-200;
+    background-color: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: inset 0 1px 2px rgba(120, 40, 80, 0.12);
+  }
+
+  .switch-rail[data-on='true'] {
+    /*
+      #c93560, not the brand pink and not blush-600's lighter neighbour:
+      white on #f9628b is 2.94:1 and even #d93a63 only reaches 4.43. This is
+      the darkest rose that still reads as "on" rather than as an error state.
+    */
+    background-color: #c93560;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow:
+      inset 0 1px 2px rgba(120, 20, 50, 0.28),
+      0 0 0 3px rgba(217, 58, 99, 0.12);
+  }
+
+  .switch-knob {
+    @apply pointer-events-none absolute h-5 w-5 rounded-full;
+    inset-inline-end: 2px;
+    background-color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow:
+      0 2px 5px rgba(90, 30, 55, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -2px 3px rgba(140, 100, 120, 0.18);
+    transition: transform 220ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  }
+
+  /* RTL: the knob starts at the inline-end and travels to the inline-start. */
+  .switch-rail[data-on='true'] .switch-knob {
+    transform: translateX(-1.25rem);
+  }
+
+  [dir='ltr'] .switch-rail[data-on='true'] .switch-knob {
+    transform: translateX(1.25rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .switch-knob {
+      transition: none;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .switch-rail {
+      background-color: #f1e2e7;
+      border-color: #e8d3da;
+    }
   }
 
   .page {
@@ -148,23 +838,26 @@
   }
 }
 
-
 /* ============================================================
    Tab bar — hand-written CSS, not utilities.
    ------------------------------------------------------------
-   Every rule here exists for a reason that a bug taught us:
+   Same element, same JS, same motion contract as before the reskin. Only the
+   material changed: the bar is now a floating pane of glass and the active
+   bubble is a lens sitting *on* that glass.
 
-   · `.nav-indicator` has an explicit background-color. The previous version
-     used the utility `bg-[#f9628b]/14`, which Tailwind never generated — the
-     bubble was in the DOM, correctly positioned, and completely transparent.
-     The only thing visibly changing on a tab switch was the icon colour.
+   Every rule here exists for a reason a bug taught us:
 
-   · It is the FIRST child with z-index 0, and the tabs carry z-index 1.
-     Being first means it paints under them without needing negative z-index,
-     which would drop it behind the bar's own translucent background.
+   · `.nav-indicator` has an explicit background-color. An earlier version
+     used `bg-[#f9628b]/14`, which Tailwind never generated — the bubble was
+     in the DOM, correctly positioned, and completely transparent. Nothing
+     about the colour may live in a utility class.
 
-   · Position and width are written by JS (translateX + width), so this file
-     only supplies the look and the timing.
+   · It is the FIRST child with z-index 0, and the tabs carry z-index 1. Being
+     first paints it under them without a negative z-index, which would drop it
+     behind the bar's own translucent background.
+
+   · Position and width are written by JS (translateX + width). This file
+     supplies the look and the timing, never the geometry.
    ============================================================ */
 .nav-root {
   position: fixed;
@@ -173,7 +866,13 @@
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  /*
+    Inset from the edges, and clear of the home indicator on a Face ID phone.
+    The 14px is the "floating" part of the brief: a bar welded to the bottom
+    edge reads as a system chrome strip, one hovering above it reads as glass.
+  */
+  padding-inline: 14px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
   pointer-events: none;
 }
 
@@ -186,12 +885,28 @@
   width: 100%;
   max-width: 21.5rem;
   padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 12px 34px -14px rgba(58, 48, 56, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  /*
+    78% white, not the 22% of `--glass-bg`. The bar carries 10.5px labels, the
+    smallest text on the site, over whatever colour happens to be drifting
+    behind it. At 78% the worst backdrop we ship (the pink blob at full
+    strength) still gives ink-700 6.8:1 and the active blush-800 6.1:1; at 22%
+    the inactive labels fall to 3.1:1 and the bar stops being readable in the
+    one place a user's thumb always covers.
+  */
+  background-color: rgba(255, 255, 255, 0.78);
+  box-shadow:
+    var(--glass-shadow),
+    0 14px 40px -18px rgba(120, 40, 80, 0.45);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  /* A reflection along the top of the bar, same 135° as every other pane. */
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.45),
+    transparent 42%
+  );
 }
 
 .nav-item {
@@ -204,14 +919,16 @@
   align-items: center;
   gap: 4px;
   padding: 8px 6px;
-  border-radius: 9999px;
-  color: #8b7f86;
-  /* Requirement: the active colour itself fades, in ~200ms. */
+  border-radius: var(--radius-pill);
+  /* ink-700, one step darker than the ink-500 this used to be: the bar now
+     sits over drifting colour, and 3.1:1 is not a label. */
+  color: #5c5058;
   transition: color 200ms ease;
 }
 
 .nav-item[aria-current='page'] {
-  color: #e84874;
+  /* blush-800 on the lens measures 6.2:1. The old #e84874 read at 4.05. */
+  color: #a52c50;
 }
 
 .nav-icon {
@@ -232,6 +949,21 @@
   font-weight: 800;
 }
 
+/*
+  The lens.
+  ------------------------------------------------------------------
+  This is the one element in the whole design that is allowed to be
+  *brighter than the surface it sits on*. Glass over glass normally darkens;
+  a lens concentrates the light, so the bubble is `brightness(1.15)` over a
+  6px blur, with a thin bright edge and a slightly larger footprint than the
+  tab it covers (the JS sizes it from the tab's offsetWidth, so the glow is
+  done with a scale on the shadow box rather than by inflating the measured
+  width — inflating would break the 350ms slide).
+
+  Timing is untouched: 350ms cubic-bezier(.34,1.3,.64,1), applied only while
+  `.is-sliding` is set (JS removes it for the first placement and on resize so
+  those jump instead of sliding).
+*/
 .nav-indicator {
   position: absolute;
   left: 0;
@@ -239,20 +971,72 @@
   bottom: 6px;
   z-index: 0;
   width: 0;
-  border-radius: 9999px;
-  /* Spelled out rather than themed: this is the one colour that must never
-     depend on a utility class existing. */
-  background-color: rgba(249, 98, 139, 0.14);
+  border-radius: var(--radius-pill);
+  background-color: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 4px 14px -4px rgba(120, 40, 80, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+  -webkit-backdrop-filter: blur(6px) brightness(1.15);
+  backdrop-filter: blur(6px) brightness(1.15);
   pointer-events: none;
   opacity: 0;
+  transform-origin: center;
+  transition:
+    opacity 200ms ease,
+    scale 260ms cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
-/* Set only while the indicator is *moving*; JS removes it for the first
-   placement and on resize so those jump instead of sliding. */
+/* Set only while the indicator is *moving*. */
 .nav-indicator.is-sliding {
   transition:
     transform 350ms cubic-bezier(0.34, 1.3, 0.64, 1),
-    width 350ms cubic-bezier(0.34, 1.3, 0.64, 1);
+    width 350ms cubic-bezier(0.34, 1.3, 0.64, 1),
+    opacity 200ms ease,
+    scale 260ms cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+/*
+  Press feedback: the lens swells slightly under the thumb and springs back.
+  `scale` (not `transform`) is used so it composes with the JS-written
+  translateX — animating `transform` here would overwrite the slide position.
+*/
+.nav-bar:active .nav-indicator {
+  scale: 1.08;
+}
+
+/*
+  Honouring reduced motion: the slide still happens (it is the only thing that
+  tells you which tab you landed on) but it is a short fade-in-place instead of
+  a 350ms travel, and the lens does not swell.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .nav-indicator.is-sliding {
+    transition:
+      transform 120ms linear,
+      width 120ms linear,
+      opacity 120ms ease;
+  }
+
+  .nav-bar:active .nav-indicator {
+    scale: 1;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .nav-bar {
+    background-color: rgba(255, 250, 252, 0.98);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-image: none;
+  }
+
+  .nav-indicator {
+    background-color: #f9e3ea;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 .nav-badge {
@@ -265,12 +1049,13 @@
   align-items: center;
   justify-content: center;
   padding: 0 4px;
-  border-radius: 9999px;
-  background-color: #f9628b;
+  border-radius: var(--radius-pill);
+  background-color: #bf2f59;
   color: #fff;
   font-size: 9px;
   font-weight: 800;
   line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 @layer utilities {

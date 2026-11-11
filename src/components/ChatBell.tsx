@@ -92,7 +92,7 @@ export default function ChatBell() {
     <Link
       to="/chat"
       aria-label={unread > 0 ? `گفت‌وگو، ${unread} پیام خوانده‌نشده` : 'گفت‌وگو'}
-      className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-ink-500 shadow-card transition hover:text-blush-600"
+      className="relative flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-blush-600"
     >
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path
@@ -105,7 +105,7 @@ export default function ChatBell() {
       </svg>
 
       {unread > 0 && (
-        <span className="absolute -top-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blush-500 px-1 text-[9.5px] font-extrabold leading-none text-white">
+        <span className="absolute -top-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#bf2f59] px-1 text-[9.5px] font-extrabold leading-none text-white">
           {unread > 9 ? '۹+' : unread.toLocaleString('fa-IR')}
         </span>
       )}

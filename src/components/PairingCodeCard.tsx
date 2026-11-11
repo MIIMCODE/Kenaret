@@ -94,7 +94,7 @@ export default function PairingCodeCard({ code, displayName }: Props) {
           <button
             type="button"
             onClick={copy}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-4 py-2.5 text-[13px] font-extrabold text-blush-800 transition active:scale-[0.98]"
+            className="tile flex flex-1 items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-[13px] font-extrabold text-blush-800 transition active:scale-[0.98]"
           >
             {copied ? (
               <>

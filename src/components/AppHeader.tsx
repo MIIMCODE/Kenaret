@@ -16,8 +16,8 @@ import ReminderBell from './ReminderBell'
  */
 export default function AppHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-white/60 bg-cream/80 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-lg items-center justify-between px-5 py-3">
+    <header className="app-header">
+      <div className="app-header-bar mx-auto flex w-full max-w-lg items-center justify-between px-4 py-2.5">
         {/* Balancing spacer: keeps the mark optically centred without
             absolute-positioning it, which would break the sticky blur. */}
         <span aria-hidden="true" className="h-9 w-9" />

@@ -75,7 +75,7 @@ export default function AnniversarySetup({
   return (
     <div className={compact ? 'space-y-4' : 'space-y-5'}>
       <div className="text-center">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
+        <span className="well inline-flex h-12 w-12 items-center justify-center rounded-2xl text-blush-800">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <rect x="3.5" y="5" width="17" height="15" rx="4" stroke="currentColor" strokeWidth="1.7" />
             <path d="M8 3v4M16 3v4M3.5 10h17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -104,7 +104,7 @@ export default function AnniversarySetup({
       />
 
       {preview && (
-        <div className="rounded-2xl bg-clay-200 px-4 py-3 text-center shadow-neo-in-sm">
+        <div className="well rounded-2xl px-4 py-3 text-center">
           <p className="text-[11px] font-semibold text-ink-700">یعنی تا امروز</p>
           <p className="mt-0.5 text-[14px] font-extrabold text-blush-800">{preview.label}</p>
           <p className="mt-1 text-[10.5px] text-ink-700">شروع از {anniversaryLabel(preview.startIso)}</p>

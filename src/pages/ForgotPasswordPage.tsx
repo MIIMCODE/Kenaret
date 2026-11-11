@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
       title="بازیابی رمز عبور"
       subtitle="ایمت را وارد کن؛ لینک تنظیم رمز جدید برایت می‌فرستیم."
       footer={
-        <Link to="/login" className="font-bold text-blush-600 hover:underline">
+        <Link to="/login" className="font-bold text-blush-800 hover:underline">
           برگشت به صفحه‌ی ورود
         </Link>
       }

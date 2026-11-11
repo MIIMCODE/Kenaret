@@ -216,7 +216,7 @@ export default function JalaliDatePicker({
     >
       {/* Scrim: tapping it closes, exactly like a native picker. */}
       <div
-        className={`absolute inset-0 bg-ink-900/35 backdrop-blur-[2px] transition-opacity duration-150 ${
+        className={`absolute inset-0 scrim transition-opacity duration-150 ${
           closing ? 'opacity-0' : 'opacity-100'
         }`}
         onClick={close}
@@ -233,7 +233,7 @@ export default function JalaliDatePicker({
           closing ? 'animate-sheet-out' : 'animate-sheet-in'
         }`}
       >
-        <div className="max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] border border-blush-100 bg-white px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-soft sm:rounded-3xl sm:pb-3">
+        <div className="glass glass-thick max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:rounded-3xl sm:pb-3">
           {/* drag handle (phones only) */}
           <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-blush-100 sm:hidden" />
 
@@ -255,7 +255,7 @@ export default function JalaliDatePicker({
               type="button"
               onClick={() => stepMonth(-1)}
               aria-label="ماه قبل"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-blush-600 transition hover:bg-white active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-blush-800 transition hover:bg-white active:scale-95"
             >
               <ChevronRight />
             </button>
@@ -282,7 +282,7 @@ export default function JalaliDatePicker({
                     el.click()
                   }
                 }}
-                className="mt-0.5 rounded-lg px-1.5 text-[10.5px] font-semibold text-blush-600"
+                className="mt-0.5 rounded-lg px-1.5 text-[10.5px] font-semibold text-blush-800"
               >
                 پرش به ماه و سال
               </button>
@@ -292,7 +292,7 @@ export default function JalaliDatePicker({
               type="button"
               onClick={() => stepMonth(1)}
               aria-label="ماه بعد"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-blush-600 transition hover:bg-white active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-blush-800 transition hover:bg-white active:scale-95"
             >
               <ChevronLeft />
             </button>
@@ -321,7 +321,7 @@ export default function JalaliDatePicker({
                     window.setTimeout(clampView, 0)
                   }}
                   className={`rounded-xl py-2.5 text-[13px] font-semibold transition ${
-                    y === viewYear ? 'bg-blush-500 text-white' : 'text-ink-700 hover:bg-blush-50'
+                    y === viewYear ? 'bg-[#bf2f59] text-white' : 'text-ink-700 hover:bg-blush-50'
                   }`}
                 >
                   {toPersianDigits(y)}
@@ -363,13 +363,7 @@ export default function JalaliDatePicker({
                       aria-label={iso ? toPersianDigits(`${day} ${JALALI_MONTHS[viewMonth - 1]} ${viewYear}`) : undefined}
                       // 44 px targets: the iOS minimum for a comfortable tap.
                       className={`h-11 rounded-xl text-[14px] font-semibold transition active:scale-95 ${
-                        isSelected
-                          ? 'bg-blush-500 text-white shadow-soft'
-                          : disabled
-                            ? 'cursor-not-allowed text-ink-500/25'
-                            : isToday
-                              ? 'bg-blush-50 text-blush-700 ring-1 ring-blush-200'
-                              : 'text-ink-700 hover:bg-blush-50'
+                        isSelected ? 'bg-[#bf2f59] text-white shadow-soft' : disabled ? 'cursor-not-allowed text-ink-500/25' : isToday ? 'bg-blush-50 text-blush-800 ring-1 ring-blush-200' : 'text-ink-700 hover:bg-blush-50'
                       }`}
                     >
                       {toPersianDigits(day)}

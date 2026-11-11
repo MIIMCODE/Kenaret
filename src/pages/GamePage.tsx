@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import AppHeader from '../components/AppHeader'
 import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
-import { NeoBackdrop } from '../components/Neo'
 import { useAuth } from '../hooks/useAuth'
 import {
   addGameCard,
@@ -169,14 +168,13 @@ export default function GamePage() {
 
   return (
     <div className="min-h-dvh">
-      <NeoBackdrop />
       <AppHeader />
 
       <main className="page space-y-4">
         {/* Title slab */}
-        <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+        <section className="card animate-fade-up rounded-[1.75rem] p-5">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
+            <span className="well flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-blush-800">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
                   d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-4 4v-4H5.5A1.5 1.5 0 0 1 4 14.5z"
@@ -201,14 +199,14 @@ export default function GamePage() {
           </div>
 
           <div className="mt-3 flex items-center gap-2 text-[10.5px] font-bold text-ink-700">
-            <span className="rounded-full bg-clay-200 px-2.5 py-1 shadow-neo-in-sm">
+            <span className="well rounded-full px-2.5 py-1">
               {toPersianDigits(counts.total)} کارت
             </span>
-            <span className="rounded-full bg-clay-200 px-2.5 py-1 shadow-neo-in-sm">
+            <span className="well rounded-full px-2.5 py-1">
               {toPersianDigits(counts.played)} دور
             </span>
             {counts.ours > 0 && (
-              <span className="rounded-full bg-clay-200 px-2.5 py-1 text-blush-800 shadow-neo-in-sm">
+              <span className="well rounded-full px-2.5 py-1 text-blush-800">
                 {toPersianDigits(counts.ours)} از خودتون
               </span>
             )}
@@ -226,7 +224,7 @@ export default function GamePage() {
         {error && <Alert tone="error">{error}</Alert>}
 
         {loading ? (
-          <section className="flex items-center justify-center rounded-[1.75rem] bg-clay-100 p-10 shadow-neo">
+          <section className="card flex items-center justify-center rounded-[1.75rem] p-10">
             <Spinner className="h-6 w-6" />
           </section>
         ) : openTurn ? (
@@ -258,10 +256,8 @@ export default function GamePage() {
               type="button"
               onClick={() => setTab(key)}
               aria-pressed={tab === key}
-              className={`flex-1 basis-0 rounded-2xl px-3 py-2.5 text-[12px] font-bold transition-shadow duration-200 ${
-                tab === key
-                  ? 'bg-clay-200 text-blush-800 shadow-neo-in-sm'
-                  : 'bg-clay-100 text-ink-700 shadow-neo-sm hover:shadow-neo'
+              className={`tile flex-1 basis-0 rounded-2xl px-3 py-2.5 text-[12px] font-bold transition-shadow duration-200 ${
+                tab === key ? 'bg-white/75 text-blush-800' : 'text-ink-700 hover:brightness-[1.03]'
               }`}
             >
               {label}
@@ -284,7 +280,7 @@ export default function GamePage() {
         <p className="pt-2 text-center text-[10.5px] leading-5 text-ink-700">
           هر دو نفر می‌توانید کارت اضافه کنید و سطح بازی را عوض کنید. کارت‌های خودتان را
           می‌توانید از فهرست بردارید؛ کارت‌های پیش‌فرض می‌مانند تا فهرست مشترک‌تان معنی داشته باشد.
-          <span className="mx-1.5 text-blush-600">•</span>
+          <span className="mx-1.5 text-blush-800">•</span>
           {me}
         </p>
       </main>
@@ -312,7 +308,7 @@ function LevelPicker({
   onChange: (level: 1 | 2 | 3) => void
 }) {
   return (
-    <section className="rounded-[1.75rem] bg-clay-100 p-4 shadow-neo">
+    <section className="card rounded-[1.75rem] p-4">
       <div className="mb-2.5 flex items-baseline justify-between gap-2">
         <h2 className="text-[12.5px] font-extrabold text-ink-900">تا کجا بریم؟</h2>
         <p className="text-[10.5px] text-ink-700">هر وقت خواستی عوضش کن</p>
@@ -327,10 +323,8 @@ function LevelPicker({
               onClick={() => onChange(level.value)}
               disabled={disabled}
               aria-pressed={active}
-              className={`rounded-2xl px-2 py-2.5 text-center transition-shadow duration-200 disabled:opacity-60 ${
-                active
-                  ? 'bg-clay-200 shadow-neo-in-sm'
-                  : 'bg-clay-100 shadow-neo-sm hover:shadow-neo'
+              className={`tile rounded-2xl px-2 py-2.5 text-center transition-shadow duration-200 disabled:opacity-60 ${
+                active ? 'bg-white/75' : 'hover:brightness-[1.03]'
               }`}
             >
               <span
@@ -367,7 +361,7 @@ function DealCard({
 }) {
   const empty = counts.total === 0
   return (
-    <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+    <section className="card animate-fade-up rounded-[1.75rem] p-5">
       <p className="text-center text-[11.5px] leading-6 text-ink-700">
         {empty
           ? 'هنوز کارتی توی دسته نیست. از تب «کارت جدید» یکی بنویس.'
@@ -402,7 +396,7 @@ function DealCard({
         type="button"
         onClick={() => onDeal(null)}
         disabled={busy || empty}
-        className="mt-2 w-full rounded-2xl bg-clay-100 py-3 text-[12.5px] font-extrabold text-ink-900 shadow-neo-sm transition-shadow duration-200 hover:shadow-neo active:shadow-neo-in-sm disabled:opacity-50"
+        className="tile mt-2 w-full rounded-2xl py-3 text-[12.5px] font-extrabold text-ink-900 transition duration-200 hover:brightness-[1.03] disabled:opacity-50"
       >
         {busy ? 'دارم می‌کشم…' : 'هر چی شد، بکش'}
       </button>
@@ -426,18 +420,28 @@ function DealButton({
   // Each gradient must clear 4.5:1 behind white at *both* ends, and these
   // buttons also carry 9.5px labels at white/90. blush-600 is only 3.74:1, so
   // the pink starts at #bf2f59 — 5.58:1, and 4.79:1 for the small text.
+  /*
+    The three gradients are unchanged from the neo round — every stop already
+    clears 4.5:1 behind white — but the extruded neo shadows are gone. On a
+    glass button the depth comes from the gradient plus the shared inner
+    highlight in `.btn-glass`, not from a shadow cast onto the page: a coloured
+    pane does not cast a pink shadow, it tints what is behind it.
+  */
   const tone =
     accent === 'blush'
-      ? 'from-[#bf2f59] to-blush-800 shadow-neo-pink'
+      ? 'from-[#bf2f59] to-blush-800'
       : accent === 'lilac'
-        ? 'from-lilac-700 to-lilac-900 shadow-[8px_8px_18px_rgba(103,67,159,0.25),-8px_-8px_18px_rgba(255,255,255,0.85)]'
-        : 'from-[#1c6b55] to-[#145246] shadow-[8px_8px_18px_rgba(28,107,85,0.25),-8px_-8px_18px_rgba(255,255,255,0.85)]'
+        ? 'from-lilac-700 to-lilac-900'
+        : 'from-[#1c6b55] to-[#145246]'
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b ${tone} px-2 py-3 text-white transition duration-200 active:scale-[0.98] disabled:opacity-50`}
+      className={`flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b ${
+        tone
+      } px-2 py-3 text-white transition duration-200 active:scale-[0.98] disabled:opacity-50`}
     >
       <span className="text-[13px] font-extrabold">{label}</span>
       <span className="text-[9.5px] font-medium text-white/90">{hint}</span>
@@ -469,9 +473,9 @@ function TurnCard({
   const answeredByOther = isTogether && turn.together_answers.length === 1 && !myAnswer
 
   return (
-    <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+    <section className="card animate-fade-up rounded-[1.75rem] p-5">
       <div className="flex items-center justify-between gap-2">
-        <span className="rounded-full bg-clay-200 px-2.5 py-1 text-[10.5px] font-extrabold text-blush-800 shadow-neo-in-sm">
+        <span className="well rounded-full px-2.5 py-1 text-[10.5px] font-extrabold text-blush-800">
           {kindLabel}
         </span>
         <span className="text-[10px] font-bold text-ink-700">
@@ -481,7 +485,7 @@ function TurnCard({
 
       {/* The card itself: pressed into the surface, because the words are the
           object here and the panel around them should recede. */}
-      <p className="mt-3 rounded-2xl bg-clay-200 p-4 text-center text-[15px] font-extrabold leading-8 text-ink-900 shadow-neo-in">
+      <p className="well mt-3 rounded-2xl p-4 text-center text-[15px] font-extrabold leading-8 text-ink-900">
         {turn.body}
       </p>
 
@@ -497,7 +501,7 @@ function TurnCard({
           {turn.together_answers.map((a) => (
             <li
               key={a.user_id}
-              className="rounded-xl bg-clay-200 px-3 py-2 text-[11.5px] leading-6 text-ink-700 shadow-neo-in-sm"
+              className="well rounded-xl px-3 py-2 text-[11.5px] leading-6 text-ink-700"
             >
               <span className="font-bold text-ink-900">
                 {a.user_id === turn.asked_by ? 'کسی که کشید' : 'اون یکی'}:
@@ -527,7 +531,7 @@ function TurnCard({
               type="button"
               onClick={onAnswer}
               disabled={!draft.trim() || busy !== null}
-              className="flex-1 basis-0 rounded-2xl bg-gradient-to-b from-[#bf2f59] to-blush-800 py-3 text-[12.5px] font-extrabold text-white shadow-neo-pink transition duration-200 active:scale-[0.98] disabled:opacity-50"
+              className="tile flex-1 basis-0 rounded-2xl bg-gradient-to-b from-[#bf2f59] to-blush-800 py-3 text-[12.5px] font-extrabold text-white transition duration-200 active:scale-[0.98] disabled:opacity-50"
             >
               {busy === 'answer' ? 'دارم می‌فرستم…' : 'ثبتش کن'}
             </button>
@@ -535,14 +539,14 @@ function TurnCard({
               type="button"
               onClick={onSkip}
               disabled={busy !== null}
-              className="rounded-2xl bg-clay-100 px-4 py-3 text-[12px] font-bold text-ink-700 shadow-neo-sm transition-shadow duration-200 hover:shadow-neo active:shadow-neo-in-sm disabled:opacity-50"
+              className="card rounded-2xl px-4 py-3 text-[12px] font-bold text-ink-700 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95 disabled:opacity-50"
             >
               رد کن
             </button>
           </div>
         </div>
       ) : (
-        <div className="mt-3 rounded-2xl bg-clay-200 p-3.5 text-center shadow-neo-in-sm">
+        <div className="well mt-3 rounded-2xl p-3.5 text-center">
           <p className="text-[11.5px] font-bold text-ink-900">
             {askedOfMe ? 'جوابت ثبت شد' : 'منتظر جوابش'}
           </p>
@@ -555,7 +559,7 @@ function TurnCard({
             type="button"
             onClick={onSkip}
             disabled={busy !== null}
-            className="mt-2.5 rounded-xl bg-clay-100 px-3.5 py-2 text-[11px] font-bold text-blush-800 shadow-neo-sm transition-shadow hover:shadow-neo disabled:opacity-50"
+            className="tile mt-2.5 rounded-xl px-3.5 py-2 text-[11px] font-bold text-blush-800 transition hover:brightness-[1.03] disabled:opacity-50"
           >
             برو کارت بعدی
           </button>
@@ -613,7 +617,7 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
   }
 
   return (
-    <section className="rounded-[1.75rem] bg-clay-100 p-4 shadow-neo">
+    <section className="card rounded-[1.75rem] p-4">
       <div className="mb-2.5 flex items-baseline justify-between gap-2">
         <h2 className="text-[13px] font-extrabold text-ink-900">دسته‌ی شما</h2>
         <span className="text-[10.5px] font-bold text-ink-700">
@@ -666,7 +670,7 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
           <Spinner className="h-5 w-5" />
         </div>
       ) : cards.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-clay-200 px-3 py-4 text-center text-[11.5px] leading-6 text-ink-700 shadow-neo-in-sm">
+        <p className="well mt-4 rounded-2xl px-3 py-4 text-center text-[11.5px] leading-6 text-ink-700">
           با این فیلتر کارتی نیست. از تب «کارت جدید» یکی بنویس.
         </p>
       ) : (
@@ -674,11 +678,11 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
           {cards.map((card) => (
             <li
               key={card.id}
-              className="flex items-start gap-2 rounded-2xl bg-clay-200 px-3 py-2.5 shadow-neo-in-sm"
+              className="well flex items-start gap-2 rounded-2xl px-3 py-2.5"
             >
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-1.5">
-                  <span className="rounded-md bg-clay-100 px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800 shadow-neo-sm">
+                  <span className="card rounded-md px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800">
                     {card.kind === 'truth' ? 'حقیقت' : card.kind === 'dare' ? 'جرئت' : 'باهم'}
                   </span>
                   <span className="text-[9px] font-bold text-ink-700">
@@ -698,7 +702,7 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
                   onClick={() => void handleRetire(card)}
                   disabled={removing === card.id}
                   aria-label="برداشتن این کارت"
-                  className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-clay-100 text-[13px] font-bold text-ink-700 shadow-neo-sm transition hover:text-red-500 disabled:opacity-50"
+                  className="tile mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[13px] font-bold text-ink-700 transition hover:text-red-500 disabled:opacity-50"
                 >
                   {removing === card.id ? '·' : '×'}
                 </button>
@@ -725,10 +729,8 @@ function SmallFilter({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
-        active
-          ? 'bg-clay-200 text-blush-800 shadow-neo-in-sm'
-          : 'bg-clay-100 text-ink-700 shadow-neo-sm hover:shadow-neo'
+      className={`tile rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
+        active ? 'bg-white/75 text-blush-800' : 'text-ink-700 hover:brightness-[1.03]'
       }`}
     >
       {children}
@@ -739,7 +741,7 @@ function SmallFilter({
 function HistoryList({ turns, me }: { turns: GameTurn[]; me: string | null }) {
   if (turns.length === 0) {
     return (
-      <section className="rounded-[1.75rem] bg-clay-100 p-6 text-center shadow-neo">
+      <section className="card rounded-[1.75rem] p-6 text-center">
         <p className="text-[11.5px] leading-6 text-ink-700">
           هنوز دوری بازی نکردید. اولین کارت رو بکشید.
         </p>
@@ -748,15 +750,15 @@ function HistoryList({ turns, me }: { turns: GameTurn[]; me: string | null }) {
   }
 
   return (
-    <section className="rounded-[1.75rem] bg-clay-100 p-4 shadow-neo">
+    <section className="card rounded-[1.75rem] p-4">
       <h2 className="mb-2.5 text-[13px] font-extrabold text-ink-900">دورهای قبل</h2>
       <ul className="space-y-2">
         {turns.map((turn) => {
           const answeredByMe = turn.asked_of === me
           return (
-            <li key={turn.id} className="rounded-2xl bg-clay-200 px-3 py-2.5 shadow-neo-in-sm">
+            <li key={turn.id} className="well rounded-2xl px-3 py-2.5">
               <div className="mb-1 flex items-center gap-1.5">
-                <span className="rounded-md bg-clay-100 px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800 shadow-neo-sm">
+                <span className="card rounded-md px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800">
                   {turn.kind === 'truth' ? 'حقیقت' : turn.kind === 'dare' ? 'جرئت' : 'باهم'}
                 </span>
                 {turn.outcome === 'skipped' && (
@@ -765,7 +767,7 @@ function HistoryList({ turns, me }: { turns: GameTurn[]; me: string | null }) {
               </div>
               <p className="text-[11.5px] leading-6 text-ink-900">{turn.body}</p>
               {turn.answer && (
-                <p className="mt-1.5 rounded-lg bg-clay-100 px-2 py-1.5 text-[11px] leading-6 text-ink-700 shadow-neo-sm">
+                <p className="well mt-1.5 rounded-lg px-2 py-1.5 text-[11px] leading-6 text-ink-700">
                   <span className="font-bold text-ink-900">
                     {answeredByMe ? 'جواب تو' : 'جوابش'}:
                   </span>{' '}
@@ -821,7 +823,7 @@ function AddCardForm({
   }
 
   return (
-    <section className="rounded-[1.75rem] bg-clay-100 p-4 shadow-neo">
+    <section className="card rounded-[1.75rem] p-4">
       <h2 className="text-[13px] font-extrabold text-ink-900">کارت جدید</h2>
       <p className="mt-1 text-[10.5px] leading-5 text-ink-700">
         هر چی بنویسید توی دسته‌ی مشترک می‌مونه و هر دو نفرش می‌بینید.
@@ -834,10 +836,8 @@ function AddCardForm({
             type="button"
             onClick={() => setKind(option.value)}
             aria-pressed={kind === option.value}
-            className={`rounded-2xl px-2 py-2 text-center transition-shadow duration-200 ${
-              kind === option.value
-                ? 'bg-clay-200 shadow-neo-in-sm'
-                : 'bg-clay-100 shadow-neo-sm hover:shadow-neo'
+            className={`tile rounded-2xl px-2 py-2 text-center transition-shadow duration-200 ${
+              kind === option.value ? 'bg-white/75' : 'hover:brightness-[1.03]'
             }`}
           >
             <span
@@ -859,10 +859,8 @@ function AddCardForm({
             type="button"
             onClick={() => setLevel(option.value)}
             aria-pressed={level === option.value}
-            className={`flex-1 basis-0 rounded-xl px-2 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
-              level === option.value
-                ? 'bg-clay-200 text-blush-800 shadow-neo-in-sm'
-                : 'bg-clay-100 text-ink-700 shadow-neo-sm'
+            className={`tile flex-1 basis-0 rounded-xl px-2 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
+              level === option.value ? 'bg-white/75 text-blush-800' : 'text-ink-700 hover:brightness-[1.03]'
             }`}
           >
             {option.label}
@@ -902,7 +900,7 @@ function AddCardForm({
         type="button"
         onClick={() => void submit()}
         disabled={busy || tooShort}
-        className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#bf2f59] to-blush-800 py-3 text-[12.5px] font-extrabold text-white shadow-neo-pink transition duration-200 active:scale-[0.98] disabled:opacity-50"
+        className="tile mt-3 w-full rounded-2xl bg-gradient-to-b from-[#bf2f59] to-blush-800 py-3 text-[12.5px] font-extrabold text-white transition duration-200 active:scale-[0.98] disabled:opacity-50"
       >
         {busy ? 'دارم اضافه می‌کنم…' : 'اضافه‌اش کن'}
       </button>

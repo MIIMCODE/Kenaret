@@ -614,9 +614,7 @@ function SetupRoom(props: {
         type="button"
         onClick={() => props.setAcknowledged(!props.acknowledged)}
         className={`mb-5 flex w-full items-start gap-3 rounded-2xl border p-3.5 text-right transition ${
-          props.acknowledged
-            ? 'border-[#f0a8be]/40 bg-[#f0a8be]/10'
-            : 'border-white/10 bg-white/[0.03]'
+          props.acknowledged ? 'border-[#f0a8be]/40 bg-[#f0a8be]/10' : 'border-white/10 bg-white/[0.03]'
         }`}
       >
         <span
@@ -734,8 +732,15 @@ function Tile({ decoded, mine, onOpen }: { decoded: Decoded; mine: boolean; onOp
 
 // ---------------------------------------------------------------- viewer
 function Viewer({ decoded, onClose, onDelete }: { decoded: Decoded; onClose: () => void; onDelete: () => void }) {
+  /*
+    A near-black lightbox, not a glass sheet: the whole point of this screen is
+    to show a photo with nothing on top of it, so the surface stays dark and
+    flat. `/97` used to sit on the colour here and Tailwind silently generated
+    nothing for that step — the overlay was fully transparent in production.
+    Solid colour, no opacity modifier.
+  */
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0c0609]/97 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0c0609] backdrop-blur-sm">
       <div className="flex items-center justify-between px-5 py-4">
         <button type="button" onClick={onClose} className="text-[12.5px] text-[#f4e7e2]/60" aria-label="بستن">
           بستن

@@ -169,7 +169,7 @@ export default function DatesPage() {
         {/* what's today */}
         {today.length > 0 && (
           <section className="animate-fade-up rounded-3xl border border-blush-200 bg-gradient-to-bl from-blush-50 to-lilac-100/60 p-4">
-            <p className="text-[11px] font-bold text-blush-600">امروز</p>
+            <p className="text-[11px] font-bold text-blush-800">امروز</p>
             <ul className="mt-1.5 space-y-1">
               {today.map((event) => (
                 <li key={event.key} className="flex items-center gap-2 text-[13px] font-semibold text-ink-900">
@@ -193,7 +193,7 @@ export default function DatesPage() {
               </div>
               <Link
                 to="/settings"
-                className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-700"
+                className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-800"
               >
                 تغییر
               </Link>
@@ -233,7 +233,7 @@ export default function DatesPage() {
                 چرخه. از تنظیمات می‌توانی خاموشش کنی.
               </p>
             ) : (
-              <p className="mt-2 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] font-semibold text-blush-700">
+              <p className="mt-2 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] font-semibold text-blush-800">
                 این بخش فقط برای خودت دیده می‌شود، حتی شریکت هم دسترسی ندارد.
               </p>
             )}
@@ -354,7 +354,7 @@ export default function DatesPage() {
           </button>
         )}
 
-        <Link to="/settings" className="block text-center text-[11.5px] font-bold text-blush-600 hover:underline">
+        <Link to="/settings" className="block text-center text-[11.5px] font-bold text-blush-800 hover:underline">
           تنظیم یادآوری‌ها
         </Link>
 
@@ -371,11 +371,7 @@ function EventRow({ event }: { event: CalendarEvent }) {
   return (
     <li
       className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 ${
-        today
-          ? 'border-blush-300 bg-blush-50/80'
-          : event.private
-            ? 'border-lilac-200 bg-lilac-100/40'
-            : 'border-white bg-white/85'
+        today ? 'border-blush-300 bg-blush-50/80' : event.private ? 'border-lilac-200 bg-lilac-100/40' : 'border-white bg-white/85'
       }`}
     >
       <span
@@ -397,7 +393,7 @@ function EventRow({ event }: { event: CalendarEvent }) {
 
       <span
         className={`shrink-0 rounded-lg px-2 py-1 text-[10.5px] font-extrabold ${
-          today ? 'bg-blush-500 text-white' : 'bg-white text-blush-600'
+          today ? 'bg-[#bf2f59] text-white' : 'tile text-blush-800'
         }`}
       >
         {daysUntilLabel(event.daysUntil)}
@@ -421,7 +417,7 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={`rounded-xl px-3 py-1.5 text-[11.5px] font-bold transition ${
-        active ? 'bg-blush-500 text-white' : 'bg-white/80 text-ink-500 hover:bg-white'
+        active ? 'bg-[#bf2f59] text-white' : 'bg-white/80 text-ink-500 hover:bg-white'
       }`}
     >
       {children}
@@ -474,7 +470,7 @@ function PartnerCycleCard({
     <section className="card p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold text-ink-500">حال {who}</p>
-        <span className="rounded-lg bg-lilac-100 px-2 py-0.5 text-[9.5px] font-bold text-ink-600">
+        <span className="rounded-lg bg-lilac-100 px-2 py-0.5 text-[9.5px] font-bold text-ink-700">
           با اجازه‌ی خودش
         </span>
       </div>
@@ -489,7 +485,7 @@ function PartnerCycleCard({
         </div>
       </div>
 
-      <p className="mt-2.5 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-blush-700">
+      <p className="mt-2.5 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-blush-800">
         این خلاصه را خودش با تو به اشتراک گذاشته و هر لحظه می‌تواند خاموشش کند.
       </p>
     </section>

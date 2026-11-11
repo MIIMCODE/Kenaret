@@ -80,7 +80,7 @@ export default function MonthCalendar({
           <button
             type="button"
             onClick={onGoToday}
-            className="mt-0.5 text-[10px] font-bold text-blush-600 hover:underline"
+            className="mt-0.5 text-[10px] font-bold text-blush-800 hover:underline"
           >
             برو به امروز
           </button>
@@ -162,14 +162,14 @@ function DayCell({
         cell.inMonth ? 'text-ink-900' : 'text-ink-500/35',
         cell.isToday ? 'font-extrabold' : 'font-semibold',
         selected
-          ? 'bg-blush-500 text-white shadow-soft'
+          ? 'bg-[#bf2f59] text-white shadow-soft'
           : cell.isToday
-            ? 'bg-blush-100 text-blush-700'
+            ? 'bg-blush-100 text-blush-800'
             : 'hover:bg-blush-50',
         !cell.inMonth && !selected ? 'hover:bg-transparent' : '',
       ].join(' ')}
     >
-      <span className={isFriday && !selected && !cell.isToday ? 'text-blush-600' : ''}>
+      <span className={isFriday && !selected && !cell.isToday ? 'text-blush-800' : ''}>
         {toPersianDigits(cell.day)}
       </span>
 

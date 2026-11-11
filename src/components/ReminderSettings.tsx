@@ -148,7 +148,7 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
                           ? 'font-bold text-red-600'
                           : item.status === 'skipped'
                             ? 'font-bold text-ink-500'
-                            : 'font-bold text-blush-600'
+                            : 'font-bold text-blush-800'
                     }
                   >
                     {statusLabel(item.status)}
@@ -203,14 +203,21 @@ function Row({
           disabled={disabled || busy}
           onChange={(event) => onChange(event.target.checked)}
         />
+        {/*
+          The rail and the knob are one component in index.css (`.switch-rail` /
+          `.switch-knob`) so the two can never drift apart mid-slide. The only
+          thing passed in here is the state, as a data attribute: it keeps the
+          existing `peer` input and its focus-visible ring working exactly as
+          before, and it means the glass recipe lives in the stylesheet where
+          the rest of it is.
+        */}
         <span
           aria-hidden="true"
-          className="h-6 w-11 rounded-full bg-blush-100 transition peer-checked:bg-blush-500 peer-focus-visible:ring-4 peer-focus-visible:ring-blush-200"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:-translate-x-5"
-        />
+          data-on={checked}
+          className="switch-rail peer-focus-visible:ring-4 peer-focus-visible:ring-blush-200"
+        >
+          <span aria-hidden="true" className="switch-knob" />
+        </span>
       </span>
     </label>
   )

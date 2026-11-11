@@ -407,7 +407,7 @@ export default function OnboardingPage() {
               <span className="text-[13.5px] font-bold text-ink-900">
                 اطلاعات پریودت را بعداً وارد می‌کنی؟
               </span>
-              <span className="text-[12px] font-bold text-blush-600">
+              <span className="text-[12px] font-bold text-blush-800">
                 {showCycleSetup ? 'بستن' : 'همین حالا وارد کن'}
               </span>
             </button>

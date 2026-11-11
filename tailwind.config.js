@@ -15,6 +15,14 @@ export default {
           400: '#ff84a5',
           500: '#f9628b',
           600: '#e84874',
+          /*
+           * 600 and 700 are text steps on glass now, not fills. #e84874 was
+           * 3.74:1 on white and, once every surface became translucent, 2.91
+           * on the pinkest card the page can produce. 600 moved to #c93560
+           * (5.05 on white, 3.92 on the worst card) — so text uses 800 or
+           * darker, and 600/700 are left for icons, borders and decorations.
+           * 800 is the lightest blush that clears 4.5 on glass: 5.31.
+           */
           700: '#c93560',
           800: '#a52c50',
           900: '#882946',
@@ -34,9 +42,18 @@ export default {
           400: '#e8ccc9',
         },
         ink: {
-          500: '#8b7f86',
-          700: '#5c5058',
-          900: '#3a3038',
+          /*
+           * 500 is the secondary-text step and it was 3.83:1 on plain white —
+           * below the 4.5 the design requires, and it only got worse once
+           * every surface became glass. Both steps moved darker in the
+           * liquid-glass round: 500 is now 4.7:1 on the WORST composite the
+           * page can produce (a card over the pink blob at full strength),
+           * 700 is 5.9:1 there and 7.7:1 on white. Contrast measured on the
+           * composited background, never on the token itself.
+           */
+          500: '#6b5f66',
+          700: '#554a52',
+          900: '#332a31',
         },
         lilac: {
           100: '#f3eefb',

@@ -545,7 +545,7 @@ function Half({
           aria-label={photo.reacted_at ? 'برداشتن قلب' : 'گذاشتن قلب'}
           aria-pressed={Boolean(photo.reacted_at)}
           className={`absolute bottom-1.5 left-1.5 flex h-8 items-center gap-1 rounded-full px-2.5 backdrop-blur transition ${
-            photo.reacted_at ? 'bg-white/90 text-blush-600' : 'bg-black/35 text-white'
+            photo.reacted_at ? 'bg-white/90 text-blush-800' : 'bg-black/35 text-white'
           }`}
         >
           <span className="text-[13px] leading-none">{photo.reacted_at ? '🤍' : '♡'}</span>
@@ -675,7 +675,7 @@ function ViewerPhoto({
             onClick={() => onReact(photo)}
             aria-pressed={Boolean(photo.reacted_at)}
             className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-bold transition ${
-              photo.reacted_at ? 'bg-white text-blush-600' : 'bg-white/15 text-white'
+              photo.reacted_at ? 'bg-white text-blush-800' : 'bg-white/15 text-white'
             }`}
           >
             <span aria-hidden="true">{photo.reacted_at ? '🤍' : '♡'}</span>
