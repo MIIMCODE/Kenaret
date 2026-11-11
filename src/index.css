@@ -40,7 +40,8 @@
     underneath — the "add a whiter underlayer if needed" clause.
     Measured on the worst composite (glass over the pink blob at full
     strength, the brightest pixel that exists anywhere on the page):
-      ink-900  9.6:1   ink-700 5.9:1   blush-800 5.2:1   — all clear 4.5.
+      ink-900 10.8:1   ink-700 6.6:1   ink-500 4.7:1   blush-800 5.3:1
+    — every step clears 4.5.
     At 70% the panel still reads as glass — colour visibly moves through it,
     especially at the corners where the reflection gradient is not covering —
     but no label is ever guessing which backdrop it landed on.
@@ -63,17 +64,16 @@
     A modal sits over a *scrimmed* page, so the light behind it is dimmer than
     the ambient pink — but the scrim is dark, which is exactly what drags a
     translucent white pane the wrong way. At a 0.5 wash the secondary ink fell
-    to 4.0:1 on the pinkest case the page can produce. 0.62 restores it to
-    5.0:1 while the pane still reads as translucent over the dimmed content,
+    to 4.0:1 on the pinkest case the page can produce; 0.66 restores it to
+    4.6:1 while the pane still reads as translucent over the dimmed content,
     because the tint underneath is the thicker 0.42 rather than a card's 0.22.
   */
   --glass-wash-thick: rgba(255, 255, 255, 0.66);
   --glass-scrim: rgba(38, 24, 34, 0.32);
 
-  /* Where the background gradient settles when transparency is reduced or
-     backdrop-filter is unsupported. Chosen so text keeps its contrast on the
-     flat fallback: ink-900 on this is 13.4:1. */
-  --glass-flat: #f6e6ec;
+  /* The flat pane used when backdrop-filter is unsupported. Nearly opaque on
+     purpose: it is the fallback, and a fallback that is 90% white keeps ink-500
+     at 5.9:1 rather than leaving text on whatever colour happens to drift by. */
   --glass-fill-fallback: rgba(255, 250, 252, 0.9);
 
   /* The tint the page sits on. Kept as tokens because the blobs and the body
