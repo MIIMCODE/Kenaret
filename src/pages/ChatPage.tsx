@@ -563,16 +563,16 @@ export default function ChatPage() {
   const pinnedCount = messages.filter((m) => m.pinned).length
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cream">
+    <div className="flex min-h-dvh flex-col">
       <AppHeader />
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col">
         {/* ---- header ---- */}
-        <div className="sticky top-[61px] z-20 flex items-center gap-2.5 border-b border-blush-100/70 bg-cream/95 px-4 py-2.5 backdrop-blur">
+        <div className="sticky top-[61px] z-20 flex items-center gap-2.5 border-b border-white/60 bg-white/70 px-4 py-2.5 backdrop-blur-md">
           <Link
             to="/app"
             aria-label="بازگشت"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 text-ink-500 shadow-card"
+            className="flex h-8 w-8 shrink-0 items-center justify-center tile rounded-full text-ink-500"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -594,7 +594,7 @@ export default function ChatPage() {
             </p>
             <p className="h-[13px] text-[10px] text-ink-500">
               {partnerTyping ? (
-                <span className="text-blush-600">دارد می‌نویسد…</span>
+                <span className="text-blush-800">دارد می‌نویسد…</span>
               ) : (
                 'فقط شما دو نفر می‌بینید'
               )}
@@ -651,7 +651,7 @@ export default function ChatPage() {
                     type="button"
                     onClick={() => void loadOlder()}
                     disabled={loadingOlder}
-                    className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-blush-600 shadow-card disabled:opacity-50"
+                    className="tile rounded-full px-4 py-1.5 text-[12px] font-bold text-blush-800 disabled:opacity-50"
                   >
                     {loadingOlder ? 'در حال آوردن…' : 'پیام‌های قدیمی‌تر'}
                   </button>
@@ -709,7 +709,7 @@ export default function ChatPage() {
 
         {/* ---- composer ---- */}
         <div
-          className="sticky z-10 border-t border-blush-100 bg-cream/95 px-2.5 pt-2 backdrop-blur"
+          className="sticky z-10 border-t border-white/60 bg-white/70 px-2.5 pt-2 backdrop-blur-md"
           style={{
             /* Sit on top of the tab bar, not under it. Measured height of the
                pill is 62px plus its own 12px bottom gap; the safe-area inset is
@@ -723,7 +723,7 @@ export default function ChatPage() {
             <div className="mb-2 flex items-center gap-2 rounded-2xl bg-blush-50 px-3 py-1.5">
               <span className="h-6 w-0.5 shrink-0 rounded bg-blush-400" aria-hidden="true" />
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold text-blush-700">
+                <p className="text-[10px] font-bold text-blush-800">
                   {replyTo.sender_id === user?.id ? 'به خودت' : `به ${partner?.name ?? 'شریکت'}`}
                 </p>
                 <p className="truncate text-[11px] text-ink-700">{quoteLine(replyTo)}</p>
@@ -753,7 +753,7 @@ export default function ChatPage() {
                 </svg>
               </button>
 
-              <div className="flex flex-1 items-center gap-2 rounded-3xl bg-white px-4 py-2.5">
+              <div className="tile flex flex-1 items-center gap-2 rounded-3xl px-4 py-2.5">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
@@ -772,7 +772,7 @@ export default function ChatPage() {
                 type="button"
                 onClick={() => void finishRecording()}
                 aria-label="فرستادن صدا"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blush-500 text-white shadow-soft active:scale-95"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#bf2f59] text-white shadow-soft active:scale-95"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
@@ -799,7 +799,7 @@ export default function ChatPage() {
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading || !coupleId}
                 aria-label="فرستادن عکس"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink-500 shadow-card transition hover:text-blush-600 disabled:opacity-40"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:text-blush-600 disabled:opacity-40"
               >
                 {uploading ? (
                   <Spinner className="h-4 w-4" />
@@ -836,7 +836,7 @@ export default function ChatPage() {
                 maxLength={2000}
                 placeholder="یک چیزی بنویس…"
                 aria-label="متن پیام"
-                className="max-h-32 min-h-[40px] flex-1 resize-none rounded-3xl border border-blush-100 bg-white px-4 py-2.5 text-[14px] text-ink-900 outline-none placeholder:text-ink-500/60 focus:border-blush-300"
+                className="field max-h-32 min-h-[40px] flex-1 resize-none rounded-3xl px-4 py-2.5"
                 style={{ fieldSizing: 'content' } as React.CSSProperties}
               />
 
@@ -847,7 +847,7 @@ export default function ChatPage() {
                   onClick={() => void send()}
                   disabled={sending}
                   aria-label="فرستادن"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blush-500 text-white shadow-soft transition active:scale-95 disabled:opacity-40"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#bf2f59] text-white shadow-soft transition active:scale-95 disabled:opacity-40"
                 >
                   {sending ? (
                     <Spinner className="h-4 w-4 text-white" />
@@ -869,7 +869,7 @@ export default function ChatPage() {
                   onClick={() => void startRecording()}
                   disabled={uploading || !coupleId}
                   aria-label="ضبط پیام صوتی"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blush-500 text-white shadow-soft transition active:scale-95 disabled:opacity-40"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#bf2f59] text-white shadow-soft transition active:scale-95 disabled:opacity-40"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
@@ -915,15 +915,15 @@ export default function ChatPage() {
 
       {/* ---- edit sheet ---- */}
       {editing && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-ink-900/40 px-4 pb-6 sm:items-center">
-          <div className="w-full max-w-lg rounded-4xl bg-white p-5 shadow-soft">
+        <div className="fixed inset-0 z-40 flex items-end justify-center scrim px-4 pb-6 sm:items-center">
+          <div className="glass glass-thick w-full max-w-lg rounded-4xl p-5">
             <p className="mb-3 text-[14px] font-extrabold text-ink-900">ویرایش پیام</p>
             <textarea
               value={editBody}
               onChange={(event) => setEditBody(event.target.value)}
               rows={3}
               maxLength={2000}
-              className="w-full resize-none rounded-2xl border border-blush-100 bg-cream px-4 py-3 text-[14px] text-ink-900 outline-none focus:border-blush-300"
+              className="field w-full resize-none rounded-2xl px-4 py-3"
             />
             <p className="mt-1.5 text-[11px] text-ink-500">
               شریکت می‌بیند که این پیام ویرایش شده — چیزی بی‌صدا عوض نمی‌شود.
@@ -943,7 +943,7 @@ export default function ChatPage() {
                 type="button"
                 onClick={() => void submitEdit()}
                 disabled={!editBody.trim() || busyId === editing.id}
-                className="flex-1 rounded-full bg-blush-500 py-2.5 text-[13px] font-bold text-white disabled:opacity-50"
+                className="flex-1 rounded-full bg-[#bf2f59] py-2.5 text-[13px] font-bold text-white disabled:opacity-50"
               >
                 {busyId === editing.id ? '…' : 'ذخیره'}
               </button>
@@ -974,11 +974,11 @@ function IconButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 text-ink-500 shadow-card transition hover:text-blush-600"
+      className="relative flex h-8 w-8 shrink-0 items-center justify-center tile rounded-full text-ink-500 transition hover:text-blush-600"
     >
       {children}
       {badge !== undefined && (
-        <span className="absolute -top-0.5 -left-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-blush-500 px-0.5 text-[8.5px] font-extrabold leading-none text-white">
+        <span className="absolute -top-0.5 -left-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#bf2f59] px-0.5 text-[8.5px] font-extrabold leading-none text-white">
           {toPersianDigits(badge)}
         </span>
       )}
@@ -1078,9 +1078,9 @@ function Bubble({
     <div className={`mb-1.5 flex ${mine ? 'justify-start' : 'justify-end'}`}>
       <div className={`flex max-w-[84%] flex-col ${mine ? 'items-start' : 'items-end'}`}>
         <div
-          className={`relative rounded-3xl px-3.5 py-2 transition-shadow ${
-            mine ? 'bg-blush-500 text-white shadow-soft' : 'bg-white text-ink-900 shadow-card'
-          } ${highlighted ? 'ring-2 ring-lilac-500 ring-offset-2' : ''}`}
+          className={`${mine ? 'bubble-mine' : 'bubble'} ${
+            highlighted ? 'ring-2 ring-lilac-500 ring-offset-2' : ''
+          }`}
         >
           {message.forward && (
             <p className="mb-1 flex items-center gap-1 text-[9.5px] font-bold opacity-70">
@@ -1092,7 +1092,7 @@ function Bubble({
 
           {isImage ? (
             failed ? (
-              <p className={`text-[12px] ${mine ? 'text-white/90' : 'text-ink-500'}`}>
+              <p className={`text-[12px] ${mine ? 'bubble-meta-mine' : 'bubble-meta-theirs'}`}>
                 عکس بارگذاری نشد.
               </p>
             ) : imageUrl ? (
@@ -1134,16 +1134,16 @@ function Bubble({
               </span>
             )}
             {message.edited_at && (
-              <span className={`text-[9.5px] ${mine ? 'text-white/70' : 'text-ink-500/70'}`}>
+              <span className={`text-[9.5px] ${mine ? 'bubble-meta-mine' : 'bubble-meta-theirs'}`}>
                 ویرایش‌شده
               </span>
             )}
-            <span className={`text-[9.5px] tabular-nums ${mine ? 'text-white/70' : 'text-ink-500/70'}`}>
+            <span className={`text-[9.5px] tabular-nums ${mine ? 'bubble-meta-mine' : 'bubble-meta-theirs'}`}>
               {formatTime(message.created_at)}
             </span>
             {mine && (
               <span
-                className="text-[9.5px] text-white/80"
+                className="bubble-meta-mine text-[9.5px]"
                 aria-label={pending ? 'در حال فرستادن' : message.seen ? 'دیده شد' : 'فرستاده شد'}
               >
                 {pending ? '◷' : message.seen ? '✓✓' : '✓'}
@@ -1244,7 +1244,7 @@ function VoiceBubble({
   return (
     <div className="flex min-w-[150px] items-center gap-2">
       {failed || !url ? (
-        <p className={`text-[12px] ${mine ? 'text-white/90' : 'text-ink-500'}`}>
+        <p className={`text-[12px] ${mine ? 'bubble-meta-mine' : 'bubble-meta-theirs'}`}>
           {failed ? failedLabel : '…'}
         </p>
       ) : (
@@ -1277,7 +1277,7 @@ function VoiceBubble({
             }}
             aria-label={playing ? 'توقف' : 'پخش'}
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-              mine ? 'bg-white/20 text-white' : 'bg-blush-100 text-blush-600'
+              mine ? 'bg-white/20 text-white' : 'bg-blush-100 text-blush-800'
             }`}
           >
             {playing ? (
@@ -1307,7 +1307,7 @@ function VoiceBubble({
             })}
           </div>
 
-          <span className={`shrink-0 text-[10px] tabular-nums ${mine ? 'text-white/80' : 'text-ink-500'}`}>
+          <span className={`shrink-0 text-[10px] tabular-nums ${mine ? 'bubble-meta-mine' : 'bubble-meta-theirs'}`}>
             {formatDuration(seconds * 1000)}
           </span>
         </>
@@ -1329,15 +1329,15 @@ function SheetShell({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-ink-900/40 sm:items-center">
-      <div className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-t-4xl bg-cream shadow-soft sm:rounded-4xl">
+    <div className="fixed inset-0 z-40 flex items-end justify-center scrim sm:items-center">
+      <div className="glass glass-thick flex max-h-[85dvh] w-full max-w-lg flex-col rounded-t-4xl sm:rounded-4xl">
         <div className="flex items-center justify-between gap-2 border-b border-blush-100 px-5 py-3">
           <p className="text-[14px] font-extrabold text-ink-900">{title}</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="بستن"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-ink-500 shadow-card"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500"
           >
             ✕
           </button>
@@ -1388,7 +1388,7 @@ function SearchSheet({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="چی را پیدا کنم؟"
-        className="w-full rounded-2xl border border-blush-100 bg-white px-4 py-2.5 text-[13.5px] outline-none focus:border-blush-300"
+        className="field w-full rounded-2xl px-4 py-2.5"
       />
 
       {busy && <p className="mt-3 text-center text-[11.5px] text-ink-500">می‌گردم…</p>}
@@ -1405,7 +1405,7 @@ function SearchSheet({
             <button
               type="button"
               onClick={() => onJump(row)}
-              className="w-full rounded-2xl bg-white px-3.5 py-2.5 text-right shadow-card transition hover:shadow-soft"
+              className="w-full rounded-2xl px-3.5 py-2.5 text-right transition hover:shadow-soft"
             >
               <p className="line-clamp-2 text-[12.5px] text-ink-900">
                 {row.kind === 'image' ? '📷 عکس' : row.kind === 'voice' ? '🎙 پیام صوتی' : row.body}
@@ -1451,7 +1451,7 @@ function PinnedSheet({
               <button
                 type="button"
                 onClick={() => onJump(row)}
-                className="w-full rounded-2xl bg-white px-3.5 py-2.5 text-right shadow-card"
+                className="w-full rounded-2xl px-3.5 py-2.5 text-right"
               >
                 <p className="line-clamp-2 text-[12.5px] text-ink-900">
                   {row.kind === 'image'

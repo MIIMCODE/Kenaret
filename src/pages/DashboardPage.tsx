@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
-import { NeoBackdrop, NeoStat } from '../components/Neo'
+import { NeoStat } from '../components/Neo'
 import Alert from '../components/Alert'
 import Avatar from '../components/Avatar'
 import PairingCodeCard from '../components/PairingCodeCard'
@@ -157,19 +157,19 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-dvh">
-      <NeoBackdrop />
       <AppHeader />
 
       <main className="page space-y-4">
         {/*
-          Greeting, pressed out of the clay instead of sitting on it.
-          No border and no white fill: neo-morphism gets its edges from the two
-          shadows, and adding a hairline border on top of them is what makes
-          soft UI look muddy.
+          The greeting card — the first pane of glass a user sees after signing
+          in, so it sets the material for the whole page. `card` brings the
+          recipe (fill, hairline, blur, reflection); the explicit radius keeps
+          the 28px it has always had, which is now also `--radius-card`, so the
+          two agree by construction rather than by coincidence.
         */}
-        <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+        <section className="card animate-fade-up rounded-[1.75rem] p-5">
           <div className="flex items-center gap-4">
-            <div className="rounded-full bg-clay-200 p-1.5 shadow-neo-in-sm">
+            <div className="well rounded-full p-1.5">
               <Avatar src={profile?.avatar_url} name={profile?.display_name} size={46} />
             </div>
             <div className="min-w-0 flex-1">
@@ -180,7 +180,7 @@ export default function DashboardPage() {
             </div>
             {/* The day, as a raised pill — it is the one thing that changes
                 every morning, so it gets its own object. */}
-            <div className="rounded-2xl bg-clay-200 px-3 py-2 text-center shadow-neo-in-sm">
+            <div className="well rounded-2xl px-3 py-2 text-center">
               <p className="text-[13px] font-extrabold leading-none text-blush-800">
                 {toPersianDigits(new Date().toLocaleDateString('fa-IR', { day: 'numeric' }))}
               </p>
@@ -227,11 +227,11 @@ export default function DashboardPage() {
                 the only one that leaves something behind. */}
             <Link
               to="/album"
-              className="flex items-center gap-3 rounded-[1.75rem] bg-clay-100 p-4 shadow-neo transition-shadow duration-200 hover:shadow-neo-lg active:shadow-neo-in"
+              className="card flex items-center gap-3 rounded-[1.75rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
             >
               {/* The icon tile is inset, so the glyph looks stamped into the
                   card rather than floating on top of it. */}
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
+              <span className="well flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-blush-800">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="3.5" stroke="currentColor" strokeWidth="1.7" />
                   <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
@@ -282,9 +282,9 @@ export default function DashboardPage() {
                 only thing here that both people touch every day. */}
             <Link
               to="/chat"
-              className="flex items-center gap-3 rounded-[1.75rem] bg-clay-100 p-4 shadow-neo transition-shadow duration-200 hover:shadow-neo-lg active:shadow-neo-in"
+              className="card flex items-center gap-3 rounded-[1.75rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-blush-600 to-blush-800 text-white shadow-neo-pink">
+              <span className="tile flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-blush-600 to-blush-800 text-white">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
                     d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.8-.8L3 21l1.9-5a8.3 8.3 0 0 1-.9-3.8A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"
@@ -323,7 +323,7 @@ export default function DashboardPage() {
 
             {/* Relationship start date: the heart of the couple dashboard */}
             {state.anniversary && state.anniversary.needs_answer && state.anniversary.is_your_turn && (
-              <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+              <section className="card animate-fade-up rounded-[1.75rem] p-5">
                 <AnniversarySetup
                   partnerName={partner.display_name}
                   onDone={(result) => {
@@ -342,7 +342,7 @@ export default function DashboardPage() {
             {state.anniversary &&
               state.anniversary.needs_answer &&
               !state.anniversary.is_your_turn && (
-                <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 text-center shadow-neo">
+                <section className="card animate-fade-up rounded-[1.75rem] p-5 text-center">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-100 text-blush-500">
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
@@ -380,7 +380,7 @@ export default function DashboardPage() {
               )}
 
             {editingAnniversary && state.anniversary?.date && (
-              <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+              <section className="card animate-fade-up rounded-[1.75rem] p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-[14px] font-extrabold text-ink-900">ویرایش تاریخ شروع</h3>
                   <button
@@ -414,7 +414,7 @@ export default function DashboardPage() {
               }}
             />
 
-            <section className="rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+            <section className="card rounded-[1.75rem] p-5">
               <h3 className="text-[14px] font-extrabold text-ink-900">شما دو نفر</h3>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <PersonMini
@@ -492,7 +492,7 @@ export default function DashboardPage() {
             )}
 
             {!hasOutgoing && (
-              <section className="rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+              <section className="card rounded-[1.75rem] p-5">
                 <ConnectForm
                   ownCode={state.pairing_code}
                   onConnected={() => {
@@ -518,7 +518,7 @@ export default function DashboardPage() {
             together, and it should not read as a settings shortcut. */}
         <Link
           to="/game"
-          className="flex items-center gap-3 rounded-[1.75rem] bg-clay-100 p-4 shadow-neo transition-shadow duration-200 hover:shadow-neo-lg active:shadow-neo-in"
+          className="card flex items-center gap-3 rounded-[1.75rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-lilac-700 to-lilac-900 text-white shadow-[6px_6px_14px_rgba(103,67,159,0.22),-6px_-6px_14px_rgba(255,255,255,0.85)]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -577,9 +577,9 @@ export default function DashboardPage() {
         <section className="grid grid-cols-2 gap-3 pt-1">
           <Link
             to="/settings"
-            className="flex items-center gap-2.5 rounded-[1.5rem] bg-clay-100 p-4 shadow-neo-sm transition-shadow duration-200 hover:shadow-neo active:shadow-neo-in-sm"
+            className="card flex items-center gap-2.5 rounded-[1.5rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-clay-200 text-blush-800 shadow-neo-in-sm">
+            <span className="well flex h-9 w-9 items-center justify-center rounded-xl text-blush-800">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="8" r="3.6" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -593,9 +593,9 @@ export default function DashboardPage() {
 
           <Link
             to="/dates"
-            className="flex items-center gap-2.5 rounded-[1.5rem] bg-clay-100 p-4 shadow-neo-sm transition-shadow duration-200 hover:shadow-neo active:shadow-neo-in-sm"
+            className="card flex items-center gap-2.5 rounded-[1.5rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-clay-200 text-lilac-700 shadow-neo-in-sm">
+            <span className="well flex h-9 w-9 items-center justify-center rounded-xl text-lilac-700">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="3.5" y="5" width="17" height="15" rx="4" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M8 3v4M16 3v4M3.5 10h17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />

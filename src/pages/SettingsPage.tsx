@@ -190,7 +190,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/app"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-ink-500 shadow-card transition hover:text-blush-600"
+            className="flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-blush-600"
             aria-label="بازگشت"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => fileInput.current?.click()}
                 disabled={uploading}
-                className="mt-2 rounded-xl bg-blush-50 px-3 py-1.5 text-[11.5px] font-bold text-blush-700 transition hover:bg-blush-100"
+                className="mt-2 rounded-xl bg-blush-50 px-3 py-1.5 text-[11.5px] font-bold text-blush-800 transition hover:bg-blush-100"
               >
                 تغییر عکس پروفایل
               </button>
@@ -250,7 +250,7 @@ export default function SettingsPage() {
                     setEditingAnniversary(true)
                     setAnniversaryNotice(null)
                   }}
-                  className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-700 transition hover:bg-blush-100"
+                  className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-800 transition hover:bg-blush-100"
                 >
                   تغییر تاریخ
                 </button>
@@ -443,9 +443,7 @@ export default function SettingsPage() {
                         onClick={() => setIsRegular(option.value)}
                         aria-pressed={isRegular === option.value}
                         className={`rounded-2xl border px-3 py-2.5 text-[12.5px] font-bold transition ${
-                          isRegular === option.value
-                            ? 'border-blush-400 bg-blush-500 text-white'
-                            : 'border-blush-200 bg-white text-ink-700'
+                          isRegular === option.value ? 'border-blush-400 bg-[#bf2f59] text-white' : 'tile border-blush-200 text-ink-700'
                         }`}
                       >
                         {option.label}

@@ -93,7 +93,7 @@ export default function CycleShareSettings({ hasCycle }: { hasCycle: boolean }) 
   const disabled = busy || !paired || !hasCycle
 
   return (
-    <div className="space-y-3 rounded-2xl border border-blush-200 bg-white p-4">
+    <div className="tile space-y-3 rounded-2xl p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[12.5px] font-extrabold text-ink-900">اشتراک‌گذاری با شریکم</p>
@@ -106,10 +106,10 @@ export default function CycleShareSettings({ hasCycle }: { hasCycle: boolean }) 
 
       {shared ? (
         <div className="rounded-2xl border border-blush-300 bg-blush-50 px-3.5 py-3">
-          <p className="flex items-center gap-1.5 text-[12px] font-extrabold text-blush-700">
+          <p className="flex items-center gap-1.5 text-[12px] font-extrabold text-blush-800">
             <span aria-hidden="true">👁</span> الان روشن است — شریکت می‌بیند
           </p>
-          <p className="mt-1 text-[11px] leading-5 text-ink-600">
+          <p className="mt-1 text-[11px] leading-5 text-ink-700">
             در صفحه‌ی «روزهای مهم» یک کارت کوچک برایش نشان داده می‌شود. هیچ تاریخی برایش نمایش
             داده نمی‌شود.
           </p>

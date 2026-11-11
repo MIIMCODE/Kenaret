@@ -23,10 +23,10 @@ export default function RequestList({
   if (items.length === 0) return null
 
   return (
-    <section className="rounded-[1.75rem] bg-clay-100 p-4 shadow-neo">
+    <section className="card rounded-[1.75rem] p-4">
       <div className="mb-3 flex items-baseline justify-between">
         <h3 className="text-[14px] font-extrabold text-ink-900">{title}</h3>
-        <span className="rounded-full bg-clay-200 px-2 py-0.5 text-[11px] font-bold text-blush-800 shadow-neo-in-sm">
+        <span className="well rounded-full px-2 py-0.5 text-[11px] font-bold text-blush-800">
           {fa(items.length)}
         </span>
       </div>
@@ -36,7 +36,7 @@ export default function RequestList({
         {items.map((item) => (
           <li
             key={item.couple_id}
-            className="flex items-center gap-3 rounded-2xl bg-clay-200 px-3 py-2.5 shadow-neo-in-sm"
+            className="well flex items-center gap-3 rounded-2xl px-3 py-2.5"
           >
             <Avatar src={item.avatar_url} name={item.display_name} size={42} />
 
@@ -53,10 +53,8 @@ export default function RequestList({
               type="button"
               onClick={() => onAction(item)}
               disabled={pendingId === item.couple_id}
-              className={`shrink-0 rounded-xl px-3 py-1.5 text-[11.5px] font-bold transition active:scale-95 disabled:opacity-50 ${
-                variant === 'incoming'
-                  ? 'bg-mint-100 text-mint-700 shadow-neo-sm hover:text-mint-700'
-                  : 'bg-clay-100 text-blush-800 shadow-neo-sm hover:shadow-neo'
+              className={`tile shrink-0 rounded-xl px-3 py-1.5 text-[11.5px] font-bold transition active:scale-95 disabled:opacity-50 ${
+                variant === 'incoming' ? 'bg-mint-100 text-mint-700 hover:text-mint-700' : 'tile text-blush-800 hover:brightness-[1.03]'
               }`}
             >
               {pendingId === item.couple_id ? '...' : actionLabel}

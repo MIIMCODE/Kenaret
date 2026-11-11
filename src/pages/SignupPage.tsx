@@ -90,7 +90,7 @@ export default function SignupPage() {
         <div className="space-y-4">
           <p className="text-[13.5px] leading-7 text-ink-700">
             لینک تأیید به{' '}
-            <span dir="ltr" className="font-bold text-blush-600">
+            <span dir="ltr" className="font-bold text-blush-800">
               {sentTo}
             </span>{' '}
             فرستادیم. روی لینک داخل ایمیل بزن تا حسابت فعال بشه. اگر ندیدی، پوشه‌ی اسپم را هم چک کن.
@@ -135,7 +135,7 @@ export default function SignupPage() {
 
           {error && <Alert tone="error">{error}</Alert>}
 
-          <Link to="/login" className="block text-center text-[13px] font-bold text-blush-600 hover:underline">
+          <Link to="/login" className="block text-center text-[13px] font-bold text-blush-800 hover:underline">
             برگشت به صفحه‌ی ورود
           </Link>
         </div>
@@ -150,7 +150,7 @@ export default function SignupPage() {
       footer={
         <span>
           قبلاً ثبت‌نام کردی؟{' '}
-          <Link to="/login" className="font-bold text-blush-600 hover:underline">
+          <Link to="/login" className="font-bold text-blush-800 hover:underline">
             وارد شو
           </Link>
         </span>

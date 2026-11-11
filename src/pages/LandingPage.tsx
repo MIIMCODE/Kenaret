@@ -63,10 +63,10 @@ export default function LandingPage() {
 
       <main className="mx-auto w-full max-w-5xl px-5 sm:px-8">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-[2rem] border border-white bg-white/70 shadow-soft">
+        <section className="glass relative overflow-hidden rounded-[2rem]">
           <div className="grid gap-0 sm:grid-cols-2">
             <div className="order-2 flex flex-col justify-center p-7 sm:order-1 sm:p-10">
-              <span className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-blush-100 px-3 py-1 text-[11px] font-bold text-blush-700">
+              <span className="tile mb-4 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold text-blush-800">
                 <HeartMark className="h-3.5 w-3.5" />
                 برای دل‌هایی که دورند
               </span>
@@ -74,7 +74,7 @@ export default function LandingPage() {
               <h1 className="text-balance text-[26px] font-extrabold leading-[1.5] text-ink-900 sm:text-[32px]">
                 هرچند کیلومترها دوریم،
                 <br />
-                <span className="text-blush-600">کنارت</span>م.
+                <span className="text-blush-800">کنارت</span>م.
               </h1>
 
               <p className="mt-4 max-w-md text-[14px] leading-7 text-ink-700">
@@ -111,7 +111,7 @@ export default function LandingPage() {
         <section className="mt-8 grid gap-3 sm:grid-cols-3">
           {FEATURES.map((feature) => (
             <div key={feature.title} className="card p-5">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-blush-100 text-blush-600">
+              <div className="tile mb-3 flex h-10 w-10 items-center justify-center rounded-2xl text-blush-800">
                 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                   {feature.icon}
                 </svg>
@@ -124,17 +124,17 @@ export default function LandingPage() {
 
         {/* Steps */}
         <section className="mt-8 card overflow-hidden">
-          <div className="border-b border-blush-100 bg-white/60 px-6 py-4">
+          <div className="border-b border-white/60 px-6 py-4">
             <h2 className="text-[16px] font-extrabold text-ink-900">کنارت توی سه قدم</h2>
           </div>
-          <ol className="divide-y divide-blush-100">
+          <ol className="divide-y divide-white/50">
             {[
               ['حساب بساز', 'با ایمیل ثبت‌نام کن، تأییدش کن و وارد شو.'],
               ['خودت را معرفی کن', 'جنسیت، اسم، تاریخ تولد و علاقه‌مندی‌هایت را وارد کن.'],
               ['کدت را بفرست', 'کد ۸ حرفی‌ات را برای شریکت بفرست و منتظر تأییدش باش.'],
             ].map(([title, body], index) => (
               <li key={title} className="flex items-start gap-4 px-6 py-4">
-                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blush-500 text-[12px] font-bold text-white">
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#bf2f59] text-[12px] font-bold text-white">
                   {['۱', '۲', '۳'][index]}
                 </span>
                 <div>
@@ -146,7 +146,7 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        <footer className="mt-10 border-t border-blush-100 py-6 text-center">
+        <footer className="mt-10 border-t border-white/60 py-6 text-center">
           <p className="text-[11.5px] leading-6 text-ink-500">
             ساخته‌شده با ❤ برای فاصله‌هایی که یک روز تمام می‌شوند.
           </p>

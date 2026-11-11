@@ -135,9 +135,7 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
               aria-label={avatar.label}
               title={avatar.label}
               className={`group relative aspect-square overflow-hidden rounded-2xl bg-blush-50 transition-all duration-200 ${
-                active
-                  ? 'ring-2 ring-blush-500 ring-offset-2 ring-offset-cream shadow-soft scale-[1.03]'
-                  : 'ring-1 ring-blush-100 hover:ring-blush-300'
+                active ? 'ring-2 ring-blush-500 ring-offset-2 ring-offset-transparent shadow-soft scale-[1.03]' : 'ring-1 ring-blush-100 hover:ring-blush-300'
               }`}
             >
               <img
@@ -149,7 +147,7 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
                 height={256}
               />
               {active && (
-                <span className="absolute bottom-1 left-1 flex h-4 w-4 items-center justify-center rounded-full bg-blush-500 text-white shadow-soft">
+                <span className="absolute bottom-1 left-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#bf2f59] text-white shadow-soft">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path
                       d="M5 12.5l4.5 4.5L19 7"

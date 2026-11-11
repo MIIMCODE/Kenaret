@@ -10,12 +10,12 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
   const nextBirthday = birthday ? daysUntilNextBirthday(birthday) : null
 
   return (
-    <section className="overflow-hidden rounded-[1.75rem] bg-clay-100 shadow-neo">
+    <section className="card overflow-hidden rounded-[1.75rem]">
       <div className="relative px-5 pb-5 pt-6">
         {/* The partner's name sits on a soft wash instead of a header band —
             an inset panel, so the card above it still reads as one surface. */}
         <div
-          className="absolute inset-x-3 top-3 h-24 rounded-[1.35rem] bg-clay-200 shadow-neo-in-sm"
+          className="well absolute inset-x-3 top-3 h-24 rounded-[1.35rem]"
           aria-hidden="true"
         />
 
@@ -45,13 +45,13 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
       </div>
 
       {partner.interests.length > 0 && (
-        <div className="mx-5 border-t border-clay-300 py-4">
+        <div className="mx-5 border-t py-4">
           <p className="mb-2 text-[11.5px] font-bold text-ink-700">علاقه‌مندی‌ها</p>
           <div className="flex flex-wrap gap-1.5">
             {partner.interests.map((interest) => (
               <span
                 key={interest}
-                className="rounded-full bg-clay-200 px-2.5 py-1 text-[12px] font-medium text-ink-700 shadow-neo-in-sm"
+                className="well rounded-full px-2.5 py-1 text-[12px] font-medium text-ink-700"
               >
                 {interest}
               </span>
@@ -62,7 +62,7 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
 
       <WarmthButtons partnerName={partner.display_name} />
 
-      <div className="mx-5 border-t border-clay-300 py-3">
+      <div className="mx-5 border-t py-3">
         <button
           type="button"
           onClick={onUnlink}

@@ -151,7 +151,7 @@ export default function ReminderBell() {
       style={{ height: 'var(--knr-vvh, 100dvh)' }}
     >
       <div
-        className={`absolute inset-0 bg-ink-900/35 backdrop-blur-[2px] transition-opacity duration-150 ${
+        className={`absolute inset-0 scrim transition-opacity duration-150 ${
           closing ? 'opacity-0' : 'opacity-100'
         }`}
         onClick={close}
@@ -162,9 +162,11 @@ export default function ReminderBell() {
         role="dialog"
         aria-modal="true"
         aria-label="یادآوری‌های نزدیک"
-        className={`relative m-0 w-full max-w-md ${closing ? 'animate-sheet-out' : 'animate-sheet-in'}`}
+        className={`relative m-0 w-full max-w-md ${
+          closing ? 'animate-sheet-out' : 'animate-sheet-in'
+        }`}
       >
-        <div className="max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] border border-blush-100 bg-white px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-soft sm:rounded-3xl sm:pb-3">
+        <div className="glass glass-thick max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:rounded-3xl sm:pb-3">
           <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-blush-100 sm:hidden" />
 
           <div className="mb-1 flex items-center justify-between gap-2">
@@ -218,7 +220,7 @@ export default function ReminderBell() {
               {items.map((item) => (
                 <li
                   key={item.key}
-                  className="flex items-center gap-3 rounded-2xl border border-blush-100 bg-white px-3 py-2.5"
+                  className="tile flex items-center gap-3 rounded-2xl px-3 py-2.5"
                 >
                   <span className="text-[17px]" aria-hidden="true">
                     {item.emoji}
@@ -229,7 +231,7 @@ export default function ReminderBell() {
                   </div>
                   <span
                     className={`shrink-0 rounded-lg px-2 py-1 text-[10px] font-extrabold ${
-                      item.daysUntil === 0 ? 'bg-blush-500 text-white' : 'bg-blush-50 text-blush-700'
+                      item.daysUntil === 0 ? 'bg-[#bf2f59] text-white' : 'bg-blush-50 text-blush-800'
                     }`}
                   >
                     {item.when}
@@ -263,7 +265,7 @@ export default function ReminderBell() {
         onClick={() => setOpen(true)}
         aria-label={label}
         title={label}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-ink-500 shadow-card transition hover:text-blush-600"
+        className="relative flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-blush-600"
       >
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path
@@ -281,7 +283,7 @@ export default function ReminderBell() {
         </svg>
 
         {loaded && count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blush-500 px-1 text-[9.5px] font-extrabold text-white shadow-soft">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#bf2f59] px-1 text-[9.5px] font-extrabold text-white shadow-soft">
             {toPersianDigits(count)}
           </span>
         )}

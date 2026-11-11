@@ -17,6 +17,11 @@
  * Bump VERSION when this file's caching behaviour changes; it is not derived
  * from the build, because a new hash on every deploy would empty the cache.
  *
+ * v5: the liquid-glass reskin replaced the whole stylesheet and every visual
+ * class name, so a client still holding the v4 shell would render the new
+ * markup against the old CSS — unlit panels, invisible text. Bumping the
+ * version is what evicts it.
+ *
  * Since v2 it also receives Web Push. A push arrives as a JSON payload built
  * by the `push-send` edge function:
  *
@@ -27,7 +32,7 @@
  * stacking — two «فردا می‌بینیش» cards would look like a bug.
  */
 
-const VERSION = 'v4'
+const VERSION = 'v5'
 const SHELL_CACHE = `kenaret-shell-${VERSION}`
 const ASSET_CACHE = `kenaret-assets-${VERSION}`
 

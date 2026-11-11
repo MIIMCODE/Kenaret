@@ -53,7 +53,7 @@ export default function InstallHint() {
 
   return (
     <section
-      className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-4 shadow-neo"
+      className="card animate-fade-up rounded-[1.75rem] p-4"
       aria-label="نصب روی گوشی"
     >
       <div className="flex items-start gap-3">
@@ -62,7 +62,7 @@ export default function InstallHint() {
           alt=""
           width={44}
           height={44}
-          className="h-11 w-11 shrink-0 rounded-xl bg-clay-200 p-1 shadow-neo-in-sm"
+          className="well h-11 w-11 shrink-0 rounded-xl p-1"
         />
 
         <div className="min-w-0 flex-1">
@@ -94,12 +94,12 @@ export default function InstallHint() {
       </div>
 
       {ios ? (
-        <ol className="mt-3 space-y-2 rounded-2xl bg-clay-200 px-3.5 py-3 shadow-neo-in-sm">
+        <ol className="well mt-3 space-y-2 rounded-2xl px-3.5 py-3">
           <li className="flex items-center gap-2 text-[11px] leading-5 text-ink-700">
             <Step n="۱" />
             <span>
               در سافاری دکمه‌ی{' '}
-              <span className="inline-flex items-center gap-1 rounded-md bg-clay-100 px-1.5 py-0.5 font-bold shadow-neo-sm">
+              <span className="card inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-bold">
                 <ShareGlyph />
                 اشتراک‌گذاری
               </span>{' '}
@@ -133,7 +133,7 @@ export default function InstallHint() {
 
 function Step({ n }: { n: string }) {
   return (
-    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-clay-100 text-[10px] font-extrabold text-blush-800 shadow-neo-sm">
+    <span className="card flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold text-blush-800">
       {n}
     </span>
   )

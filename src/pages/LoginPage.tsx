@@ -87,7 +87,7 @@ export default function LoginPage() {
       footer={
         <span>
           حساب نداری؟{' '}
-          <Link to="/signup" className="font-bold text-blush-600 hover:underline">
+          <Link to="/signup" className="font-bold text-blush-800 hover:underline">
             ثبت‌نام کن
           </Link>
         </span>
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </label>
             <Link
               to="/forgot-password"
-              className="text-[12px] font-semibold text-blush-600 hover:underline"
+              className="text-[12px] font-semibold text-blush-800 hover:underline"
             >
               فراموش کردی؟
             </Link>

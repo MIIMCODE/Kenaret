@@ -82,10 +82,10 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
   if (!reunion || !view) {
     if (!editing) {
       return (
-        <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+        <section className="card animate-fade-up rounded-[1.75rem] p-5">
           <div className="flex items-start gap-3">
             <span
-              className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-lilac-100 text-lilac-600"
+              className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-lilac-100 text-lilac-700"
               aria-hidden="true"
             >
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
@@ -117,7 +117,7 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
       )
     }
     return (
-      <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+      <section className="card animate-fade-up rounded-[1.75rem] p-5">
         <Editor
           draftDate={draftDate}
           setDraftDate={setDraftDate}
@@ -137,7 +137,7 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
   // ------------------------------------------------ editing an existing one
   if (editing) {
     return (
-      <section className="animate-fade-up rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+      <section className="card animate-fade-up rounded-[1.75rem] p-5">
         <Editor
           draftDate={draftDate}
           setDraftDate={setDraftDate}
@@ -159,7 +159,7 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
   const isNear = view.days <= 1
 
   return (
-    <section className="relative animate-fade-up overflow-hidden rounded-[1.75rem] bg-clay-100 p-5 shadow-neo">
+    <section className="card relative animate-fade-up overflow-hidden rounded-[1.75rem] p-5">
       {/* The two blobs are behind the content and clipped by the card, which
           is what keeps the countdown from looking like plain text on paper. */}
       <span className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-blush-200/50 blur-2xl" />
@@ -173,7 +173,7 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="shrink-0 rounded-xl bg-clay-100 px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 shadow-neo-sm transition-shadow hover:shadow-neo active:shadow-neo-in-sm"
+            className="tile shrink-0 rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 transition hover:brightness-[1.03]"
           >
             {isPast ? 'تاریخ تازه' : 'ویرایش'}
           </button>
@@ -192,24 +192,24 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
 
         <p className="mt-2 text-[12px] font-semibold text-ink-700">
           {view.weekday}
-          <span className="mx-1.5 text-blush-600">•</span>
+          <span className="mx-1.5 text-blush-800">•</span>
           {view.dateLabel}
         </p>
 
         {reunion.note && (
-          <p className="mt-2.5 rounded-2xl bg-clay-200 px-3 py-2 text-[11.5px] leading-6 text-ink-700 shadow-neo-in-sm">
+          <p className="well mt-2.5 rounded-2xl px-3 py-2 text-[11.5px] leading-6 text-ink-700">
             {reunion.note}
           </p>
         )}
 
         {isNear && view.upcoming && (
-          <p className="mt-3 rounded-2xl bg-clay-200 px-3 py-2 text-center text-[11.5px] font-bold text-blush-800 shadow-neo-in-sm">
+          <p className="well mt-3 rounded-2xl px-3 py-2 text-center text-[11.5px] font-bold text-blush-800">
             {view.days === 0 ? '🤍 امروز، بالاخره' : '🤍 فردا همین موقع کنار همید'}
           </p>
         )}
 
         {isPast && (
-          <p className="mt-3 rounded-2xl bg-clay-200 px-3 py-2 text-center text-[11px] font-semibold text-ink-700 shadow-neo-in-sm">
+          <p className="well mt-3 rounded-2xl px-3 py-2 text-center text-[11px] font-semibold text-ink-700">
             این تاریخ گذشت. برای دیدار بعدی یک تاریخ تازه بگذار.
           </p>
         )}

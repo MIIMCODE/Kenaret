@@ -54,7 +54,7 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
   }
 
   return (
-    <div className="mx-5 border-t border-clay-300 py-4">
+    <div className="mx-5 border-t py-4">
       <p className="mb-2 text-[11.5px] font-bold text-ink-700">
         خبری ازت بگیر{partnerName ? ` به ${partnerName}` : ''}
       </p>
@@ -71,10 +71,8 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
               onClick={() => void handleTap(option)}
               disabled={busy !== null}
               aria-pressed={active}
-              className={`flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[11px] font-bold transition-shadow duration-200 disabled:opacity-60 ${
-                active
-                  ? 'bg-clay-200 text-blush-800 shadow-neo-in-sm'
-                  : 'bg-clay-100 text-ink-700 shadow-neo-sm hover:shadow-neo'
+              className={`tile flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[11px] font-bold transition-shadow duration-200 disabled:opacity-60 ${
+                active ? 'bg-white/75 text-blush-800' : 'tile text-ink-700 hover:brightness-[1.03]'
               }`}
             >
               <span className="text-[18px] leading-none" aria-hidden="true">

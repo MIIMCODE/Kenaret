@@ -48,7 +48,9 @@ export default function Alert({
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`flex items-start gap-2.5 rounded-2xl border px-3.5 py-3 text-[13px] font-medium leading-6 animate-fade-up ${style.wrap} ${className}`}
+      className={`flex items-start gap-2.5 rounded-2xl border px-3.5 py-3 text-[13px] font-medium leading-6 animate-fade-up ${
+        style.wrap
+      } ${className}`}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" className={`mt-0.5 shrink-0 ${style.icon}`}>
         {style.glyph}

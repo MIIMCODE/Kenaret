@@ -182,7 +182,7 @@ export default function PushSettings() {
           disabled={busy}
           onClick={() => void toggle(!on)}
           className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-right transition disabled:opacity-60 ${
-            on ? 'border-blush-300 bg-blush-50' : 'border-blush-100 bg-white hover:bg-blush-50/50'
+            on ? 'border-blush-300 bg-blush-50/80' : 'tile tile-hover'
           }`}
         >
           <span className="min-w-0">
@@ -195,17 +195,13 @@ export default function PushSettings() {
                 : 'یک بار اجازه می‌خواهد، بعد از آن بی‌صدا کار می‌کند.'}
             </span>
           </span>
+          {/* Same rail/knob component as every other switch: see index.css. */}
           <span
-            className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-              on ? 'bg-blush-500' : 'bg-blush-200'
-            }`}
+            className="switch-rail"
+            data-on={on}
             aria-hidden="true"
           >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${
-                on ? 'right-0.5' : 'right-5.5'
-              }`}
-            />
+            <span className="switch-knob" />
           </span>
         </button>
       )}

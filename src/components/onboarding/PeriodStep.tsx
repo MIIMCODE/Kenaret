@@ -105,9 +105,7 @@ export default function PeriodStep({ value, onChange, errors }: Props) {
                 onClick={() => onChange({ isRegular: option.value })}
                 aria-pressed={active}
                 className={`rounded-2xl border px-3 py-3 text-[13px] font-bold transition ${
-                  active
-                    ? 'border-blush-400 bg-blush-500 text-white shadow-soft'
-                    : 'border-blush-200 bg-white text-ink-700 hover:border-blush-300'
+                  active ? 'border-blush-400 bg-[#bf2f59] text-white shadow-soft' : 'tile tile-hover border-blush-200 text-ink-700 hover:border-blush-300'
                 }`}
               >
                 {option.label}

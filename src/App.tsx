@@ -7,6 +7,7 @@ import { listenForNotificationNavigation } from './lib/sw-register'
 import { syncSubscription } from './lib/push'
 import { FullPageLoader } from './components/Spinner'
 import BottomNav from './components/BottomNav'
+import { LiquidBackground } from './components/Neo'
 import { isSupabaseConfigured } from './lib/supabase'
 
 import LandingPage from './pages/LandingPage'
@@ -179,6 +180,13 @@ export default function App() {
     <>
       <ScrollToTop />
       <PushBridge />
+      {/*
+        One background for the entire site, mounted outside <Routes> for the
+        same reason the tab bar is: it must survive navigation. Re-mounting it
+        per page would restart its 24s drift on every tap and make the whole
+        viewport flash.
+      */}
+      <LiquidBackground />
       {/*
         The tab bar lives OUTSIDE <Routes> — once, for the whole app.
         It used to be mounted inside each page, which meant every navigation

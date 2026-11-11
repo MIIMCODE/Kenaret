@@ -10,7 +10,7 @@ export default function ProgressBar({ step, total, labels }: Props) {
   return (
     <div className="w-full">
       <div className="mb-2 flex items-center justify-between text-[12px] font-semibold">
-        <span className="text-blush-600">
+        <span className="text-blush-800">
           قدم {toFa(step)} از {toFa(total)}
         </span>
         {labels?.[step - 1] && <span className="text-ink-500">{labels[step - 1]}</span>}
