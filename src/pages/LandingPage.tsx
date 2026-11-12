@@ -124,10 +124,10 @@ export default function LandingPage() {
 
         {/* Steps */}
         <section className="mt-8 card overflow-hidden">
-          <div className="border-b border-white/60 px-6 py-4">
+          <div className="border-b border-blush-100 px-6 py-4">
             <h2 className="text-[16px] font-extrabold text-ink-900">کنارت توی سه قدم</h2>
           </div>
-          <ol className="divide-y divide-white/50">
+          <ol className="divide-y divide-blush-100">
             {[
               ['حساب بساز', 'با ایمیل ثبت‌نام کن، تأییدش کن و وارد شو.'],
               ['خودت را معرفی کن', 'جنسیت، اسم، تاریخ تولد و علاقه‌مندی‌هایت را وارد کن.'],
@@ -146,7 +146,7 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        <footer className="mt-10 border-t border-white/60 py-6 text-center">
+        <footer className="mt-10 border-t border-blush-100 py-6 text-center">
           <p className="text-[11.5px] leading-6 text-ink-500">
             ساخته‌شده با ❤ برای فاصله‌هایی که یک روز تمام می‌شوند.
           </p>

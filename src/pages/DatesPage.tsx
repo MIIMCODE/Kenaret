@@ -371,7 +371,7 @@ function EventRow({ event }: { event: CalendarEvent }) {
   return (
     <li
       className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 ${
-        today ? 'border-blush-300 bg-blush-50/80' : event.private ? 'border-lilac-200 bg-lilac-100/40' : 'border-white bg-white/85'
+        today ? 'border-blush-300 bg-blush-50/80' : event.private ? 'border-lilac-200 bg-lilac-100/40' : 'border-blush-100 bg-white'
       }`}
     >
       <span

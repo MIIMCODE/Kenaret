@@ -257,7 +257,7 @@ export default function GamePage() {
               onClick={() => setTab(key)}
               aria-pressed={tab === key}
               className={`tile flex-1 basis-0 rounded-2xl px-3 py-2.5 text-[12px] font-bold transition-shadow duration-200 ${
-                tab === key ? 'bg-white/75 text-blush-800' : 'text-ink-700 hover:brightness-[1.03]'
+                tab === key ? 'tile-active' : 'text-ink-700 hover:brightness-[1.03]'
               }`}
             >
               {label}
@@ -324,7 +324,7 @@ function LevelPicker({
               disabled={disabled}
               aria-pressed={active}
               className={`tile rounded-2xl px-2 py-2.5 text-center transition-shadow duration-200 disabled:opacity-60 ${
-                active ? 'bg-white/75' : 'hover:brightness-[1.03]'
+                active ? 'tile-active' : 'hover:brightness-[1.03]'
               }`}
             >
               <span
@@ -730,7 +730,7 @@ function SmallFilter({
       onClick={onClick}
       aria-pressed={active}
       className={`tile rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
-        active ? 'bg-white/75 text-blush-800' : 'text-ink-700 hover:brightness-[1.03]'
+        active ? 'tile-active' : 'text-ink-700 hover:brightness-[1.03]'
       }`}
     >
       {children}
@@ -837,7 +837,7 @@ function AddCardForm({
             onClick={() => setKind(option.value)}
             aria-pressed={kind === option.value}
             className={`tile rounded-2xl px-2 py-2 text-center transition-shadow duration-200 ${
-              kind === option.value ? 'bg-white/75' : 'hover:brightness-[1.03]'
+              kind === option.value ? 'tile-active' : 'hover:brightness-[1.03]'
             }`}
           >
             <span
@@ -860,7 +860,7 @@ function AddCardForm({
             onClick={() => setLevel(option.value)}
             aria-pressed={level === option.value}
             className={`tile flex-1 basis-0 rounded-xl px-2 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
-              level === option.value ? 'bg-white/75 text-blush-800' : 'text-ink-700 hover:brightness-[1.03]'
+              level === option.value ? 'tile-active' : 'text-ink-700 hover:brightness-[1.03]'
             }`}
           >
             {option.label}

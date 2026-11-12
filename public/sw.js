@@ -32,7 +32,7 @@
  * stacking — two «فردا می‌بینیش» cards would look like a bug.
  */
 
-const VERSION = 'v8'
+const VERSION = 'v9'
 const SHELL_CACHE = `kenaret-shell-${VERSION}`
 const ASSET_CACHE = `kenaret-assets-${VERSION}`
 

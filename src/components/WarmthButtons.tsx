@@ -72,7 +72,7 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
               disabled={busy !== null}
               aria-pressed={active}
               className={`tile flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[11px] font-bold transition-shadow duration-200 disabled:opacity-60 ${
-                active ? 'bg-white/75 text-blush-800' : 'tile text-ink-700 hover:brightness-[1.03]'
+                active ? 'tile-active' : 'tile text-ink-700 hover:brightness-[1.03]'
               }`}
             >
               <span className="text-[18px] leading-none" aria-hidden="true">

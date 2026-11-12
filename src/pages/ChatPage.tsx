@@ -568,7 +568,7 @@ export default function ChatPage() {
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col">
         {/* ---- header ---- */}
-        <div className="sticky top-[61px] z-20 flex items-center gap-2.5 border-b border-white/60 bg-white/70 px-4 py-2.5 backdrop-blur-md">
+        <div className="sticky top-[61px] z-20 flex items-center gap-2.5 border-b border-blush-100 bg-[#fffaf6]/95 px-4 py-2.5">
           <Link
             to="/app"
             aria-label="بازگشت"
@@ -709,7 +709,7 @@ export default function ChatPage() {
 
         {/* ---- composer ---- */}
         <div
-          className="sticky z-10 border-t border-white/60 bg-white/70 px-2.5 pt-2 backdrop-blur-md"
+          className="sticky z-10 border-t border-blush-100 bg-[#fffaf6]/95 px-2.5 pt-2"
           style={{
             /* Sit on top of the tab bar, not under it. Measured height of the
                pill is 62px plus its own 12px bottom gap; the safe-area inset is
