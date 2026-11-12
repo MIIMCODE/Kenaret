@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner'
 import JalaliDatePicker from '../components/JalaliDatePicker'
 import AnniversaryCard from '../components/AnniversaryCard'
 import AnniversarySetup from '../components/AnniversarySetup'
+import CelebrationMusicSettings from '../components/CelebrationMusicSettings'
 import CycleShareSettings from '../components/CycleShareSettings'
 import ReminderSettings from '../components/ReminderSettings'
 import PushSettings from '../components/PushSettings'
@@ -284,6 +285,8 @@ export default function SettingsPage() {
             )}
           </section>
         )}
+
+        {partnerId && <CelebrationMusicSettings />}
 
         {/* ---------- Editable profile ---------- */}
         <section className="card space-y-4 p-5">

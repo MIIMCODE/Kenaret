@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
 import { NeoStat } from '../components/Neo'
 import Alert from '../components/Alert'
@@ -21,17 +21,26 @@ import {
   unlinkPartner,
 } from '../lib/api'
 import { toPersianError } from '../lib/errors'
+import {
+  fetchCelebrationState,
+  shouldAutoOpen,
+  type CelebrationState,
+} from '../lib/celebrate'
 import { daysBetweenIso, formatJalaliLong, toPersianDigits, todayIso } from '../lib/jalali'
 import type { CoupleRequestSummary, PairingState } from '../types/database'
 
 export default function DashboardPage() {
   const { profile, refreshProfile } = useAuth()
+  const navigate = useNavigate()
   const [state, setState] = useState<PairingState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [editingAnniversary, setEditingAnniversary] = useState(false)
+  const [celebration, setCelebration] = useState<CelebrationState | null>(null)
+  // Primitive, so the celebration effect below does not re-run on every poll tick.
+  const paired = Boolean(state?.partner)
 
   const load = useCallback(
     async (showSpinner = false) => {
@@ -67,6 +76,47 @@ export default function DashboardPage() {
       window.clearInterval(interval)
     }
   }, [load])
+
+  /*
+   * جشن — the automatic entrance.
+   *
+   * Runs once per mounted dashboard, and only after the pairing state has
+   * loaded, so a signed-out or unpaired visitor never sees a flash of a room
+   * they cannot enter. The database decides whether tonight counts; this only
+   * decides whether *this device* has already shown it.
+   *
+   * The "already shown" marker lives in sessionStorage rather than state: a
+   * reload of the dashboard is the commonest thing that happens on a phone,
+   * and re-opening the celebration every reload would turn a surprise into an
+   * interruption. Closing the tab resets it, which is the right scope — the
+   * evening gets one entrance per visit, not one forever.
+   */
+  useEffect(() => {
+    if (loading || !paired) return
+
+    let cancelled = false
+
+    async function checkCelebration() {
+      try {
+        const next = await fetchCelebrationState()
+        if (cancelled) return
+        setCelebration(next)
+
+        const seen = readSeen()
+        if (shouldAutoOpen(next, seen)) {
+          markSeen(next)
+          navigate('/celebrate?auto=1')
+        }
+      } catch {
+        // A celebration that cannot be checked must not break the dashboard.
+      }
+    }
+
+    void checkCelebration()
+    return () => {
+      cancelled = true
+    }
+  }, [loading, paired, navigate])
 
   async function handleAccept(item: CoupleRequestSummary) {
     setBusyId(item.couple_id)
@@ -376,6 +426,7 @@ export default function DashboardPage() {
                   onEdit={() => setEditingAnniversary(true)}
                   setByName={partner.display_name}
                   isMine={state.anniversary.set_by !== partner.id}
+                  celebration={celebration?.today_candidate ?? null}
                 />
               )}
 
@@ -638,4 +689,32 @@ function PersonMini({
       {birth && <p className="text-[10.5px] text-ink-700">{formatJalaliLong(birth)}</p>}
     </div>
   )
+}
+
+/* ── the once-per-session celebration marker ────────────────────────────── */
+
+const SEEN_KEY = 'kenaret.celebrated'
+
+function readSeen(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(SEEN_KEY)
+    if (!raw) return new Set()
+    const parsed: unknown = JSON.parse(raw)
+    return Array.isArray(parsed) ? new Set(parsed.filter((v): v is string => typeof v === 'string')) : new Set()
+  } catch {
+    // Private mode, or a value someone else wrote. Either way: show it again.
+    return new Set()
+  }
+}
+
+function markSeen(next: CelebrationState) {
+  const candidate = next.today_candidate
+  if (!candidate) return
+  try {
+    const seen = readSeen()
+    seen.add(`${candidate.kind}:${candidate.ordinal}:${next.today}`)
+    sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen]))
+  } catch {
+    // Storage being unavailable must not stop the navigation that follows.
+  }
 }
