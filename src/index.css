@@ -15,66 +15,40 @@
   color-scheme: light;
 
   /* ============================================================
-     Liquid Glass — the whole visual language lives in these tokens.
+     Surfaces — simple, solid, light.
      ------------------------------------------------------------
-     Nothing on the site picks its own glass colour. A surface that invents
-     its own rgba() is a surface that will drift from the others on the next
-     change, so every card, bar, sheet and bubble reads from here.
+     The site is a warm paper page with white cards on it. That is the whole
+     system, and it is deliberately boring: a card is `bg-white/85`, a hairline
+     border and a soft shadow, the way it was before any of the re-skins.
 
-     The three-part recipe for one sheet of glass:
-       1. a translucent fill      --glass-bg
-       2. a bright hairline       --glass-border     (glass has an edge)
-       3. a blurred backdrop      --glass-blur       (it samples what is behind)
-     plus --glass-shadow, which is two shadows in one: a soft warm drop below
-     and a 1px white line inside the top edge — that inner line is what makes
-     a flat panel read as a *pane* instead of a rectangle.
+     The token names are kept (`--glass-*`) even though nothing is glass any
+     more. They are honest identifiers of *slots* — fill, border, shadow,
+     blur — and renaming them would touch every call site for no design gain.
+     `--glass-blur` is now `none`: the blur slots still exist because a few
+     components ask for them, but asking for no blur is the answer.
+
+     Contrast on the worst composite — a card over the pinkest point the page
+     can put behind it (#ffe4ec), which resolves to #fffbfc: ink-900 13.5:1,
+     ink-700 7.8:1, ink-500 5.9:1, blush-800 7.2:1, lilac-700 6.2:1. Every
+     step clears AA. Solid white is the most legible surface this design has
+     ever had on this page, which is the point of it.
      ============================================================ */
-  --glass-bg: rgba(255, 255, 255, 0.22);
-  /*
-    The whiter underlayer, deliberately separate from `--glass-bg`.
-    ------------------------------------------------------------------
-    `--glass-bg` is the 22% the design calls for and is what gets sampled
-    against the background. It is also far too clear to carry type: over the
-    pink blob, even a pure-black label only reaches 3.6:1, and the secondary
-    ink would sit at 2.2. So every pane that holds text ALSO paints this wash
-    underneath — the "add a whiter underlayer if needed" clause.
-    Measured on the worst composite (glass over the pink blob at full
-    strength, the brightest pixel that exists anywhere on the page):
-      ink-900 10.8:1   ink-700 6.6:1   ink-500 4.7:1   blush-800 5.3:1
-    — every step clears 4.5.
-    At 70% the panel still reads as glass — colour visibly moves through it,
-    especially at the corners where the reflection gradient is not covering —
-    but no label is ever guessing which backdrop it landed on.
-  */
-  --glass-wash: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.55);
-  --glass-blur: blur(22px) saturate(180%);
-  --glass-shadow:
-    0 8px 32px rgba(120, 40, 80, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-wash: rgba(255, 255, 255, 0);
+  --glass-border: rgba(255, 255, 255, 1);
+  --glass-blur: none;
+  --glass-shadow: 0 2px 14px -4px rgba(58, 48, 56, 0.1);
 
   --radius-card: 28px;
   --radius-pill: 999px;
 
-  /* Denser panes: modals and bottom sheets sit over dimmed content and must
-     hide it, so they get more blur and a less transparent fill. */
-  --glass-bg-thick: rgba(255, 255, 255, 0.42);
-  --glass-blur-thick: blur(30px) saturate(190%);
-  /*
-    A modal sits over a *scrimmed* page, so the light behind it is dimmer than
-    the ambient pink — but the scrim is dark, which is exactly what drags a
-    translucent white pane the wrong way. At a 0.5 wash the secondary ink fell
-    to 4.0:1 on the pinkest case the page can produce; 0.66 restores it to
-    4.6:1 while the pane still reads as translucent over the dimmed content,
-    because the tint underneath is the thicker 0.42 rather than a card's 0.22.
-  */
-  --glass-wash-thick: rgba(255, 255, 255, 0.66);
-  --glass-scrim: rgba(38, 24, 34, 0.32);
+  /* Sheets and modals sit over a dimmed page rather than a bright one, so
+     their 85% white would let the dark scrim through and grey the text. They
+     get a nearly solid fill instead. */
+  --glass-bg-thick: rgba(255, 255, 255, 0.97);
 
-  /* The flat pane used when backdrop-filter is unsupported. Nearly opaque on
-     purpose: it is the fallback, and a fallback that is 90% white keeps ink-500
-     at 5.9:1 rather than leaving text on whatever colour happens to drift by. */
-  --glass-fill-fallback: rgba(255, 250, 252, 0.9);
+  /* The dimmer behind every modal and bottom sheet. */
+  --glass-scrim: rgba(38, 24, 34, 0.32);
 
   /* The tint the page sits on. Kept as tokens because the blobs and the body
      must agree, or the glass has nothing believable to sample. */
@@ -113,7 +87,15 @@
   body {
     @apply text-ink-900 font-vazir antialiased;
     min-height: 100dvh;
-    background-color: #fdf3f6;
+    /*
+      The page itself, under the drifting glow layer.
+
+      Cream, not pink. `#fdf3f6` was the liquid-glass wash — it read as "the
+      page is made of the same material as the cards". Cream is the paper the
+      original design put the cards ON, which is what makes a white card look
+      raised rather than cut out.
+    */
+    background-color: #fffaf6;
   }
 
   /* Persian digits everywhere inputs are typed */
@@ -165,56 +147,71 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  /*
+    Cream paper with two soft corner glows — the site's original backdrop.
+    ------------------------------------------------------------------
+    It was a four-stop pink→lilac→sky wash with four huge drifting blobs on top.
+    With the cards now solid white, that backdrop stops being atmosphere and
+    starts being the loudest thing on the screen: the page reads as a colour
+    field with white rectangles on it. Two quiet glows in two corners do the
+    job the original design wanted — a warm page, not a flat one — without
+    competing with the content.
+  */
   background:
-    linear-gradient(160deg, #fff7fa 0%, #fdeef3 38%, #f4eefe 72%, #eef6fd 100%);
+    radial-gradient(60rem 40rem at 100% -10%, #ffe4ec 0%, transparent 60%),
+    radial-gradient(50rem 34rem at -10% 10%, #f3eefb 0%, transparent 55%),
+    #fffaf6;
 }
 
+/*
+  Two quiet glows, not four loud ones.
+  ------------------------------------------------------------------
+  The original backdrop is cream with a pink glow in one corner and a lilac one
+  in the other, and the drift layer now only *reproduces* those two — slowly,
+  out of phase, at low opacity. The peach and sky blobs are gone because a warm
+  page with two accent corners does not need four colours moving in it, and
+  because every extra full-viewport blurred layer is a compositor layer the
+  phone has to keep alive while you scroll.
+
+  They still drift: the page should not feel like a printed sheet. But the
+  amplitude and the opacity are both roughly half what they were, so the
+  movement is something you notice only if you look for it.
+*/
 .liquid-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(90px);
   will-change: transform;
-  opacity: 0.62;
+  opacity: 0.34;
 }
 
 .liquid-blob--pink {
-  width: 46vmax;
-  height: 46vmax;
-  top: -14vmax;
-  inset-inline-end: -12vmax;
+  width: 40vmax;
+  height: 40vmax;
+  top: -16vmax;
+  inset-inline-end: -14vmax;
   background: radial-gradient(circle at 40% 40%, var(--bg-pink) 0%, rgba(249, 98, 139, 0) 68%);
-  animation: liquid-drift-a 24s ease-in-out infinite;
+  animation: liquid-drift-a 26s ease-in-out infinite;
 }
 
 .liquid-blob--peach {
-  width: 42vmax;
-  height: 42vmax;
-  top: 24vh;
-  inset-inline-start: -16vmax;
-  background: radial-gradient(circle at 55% 45%, var(--bg-peach) 0%, rgba(255, 217, 194, 0) 70%);
-  animation: liquid-drift-b 28s ease-in-out infinite;
-  animation-delay: -6s;
+  /* Kept for the component's sake, but it no longer paints: the warm corner
+     is already in the page background, and a third glow was one too many. */
+  display: none;
 }
 
 .liquid-blob--lilac {
-  width: 40vmax;
-  height: 40vmax;
+  width: 36vmax;
+  height: 36vmax;
   bottom: -16vmax;
-  inset-inline-end: 4vmax;
+  inset-inline-start: -12vmax;
   background: radial-gradient(circle at 50% 50%, var(--bg-lilac) 0%, rgba(217, 201, 245, 0) 70%);
-  animation: liquid-drift-c 30s ease-in-out infinite;
+  animation: liquid-drift-c 32s ease-in-out infinite;
   animation-delay: -12s;
 }
 
 .liquid-blob--sky {
-  width: 34vmax;
-  height: 34vmax;
-  bottom: 8vh;
-  inset-inline-start: 18vmax;
-  background: radial-gradient(circle at 50% 50%, var(--bg-sky) 0%, rgba(201, 228, 248, 0) 72%);
-  animation: liquid-drift-a 22s ease-in-out infinite;
-  animation-delay: -9s;
-  opacity: 0.5;
+  display: none;
 }
 
 @keyframes liquid-drift-a {
@@ -272,157 +269,49 @@
    ============================================================ */
 @layer components {
   /* ------------------------------------------------------------------
-     TIER 1 — `.card`, the workhorse pane. No backdrop-filter.
+     The surface. One thing, used everywhere.
 
-     This is the most important performance decision in the reskin. `.card` is
-     used on ~30 call sites (the game screen alone renders twenty-odd of them),
-     and every element with a backdrop-filter forces the compositor to
-     re-sample the page behind it on each scroll frame. Twenty filtered cards
-     on a mid-range phone is dropped frames on a screen that is otherwise just
-     text in boxes.
+     A card is 85% white, a white hairline and a soft warm shadow. That is the
+     whole system — the same one the site shipped with before two rounds of
+     reskinning decided it needed depth. Simple wins here for three reasons:
 
-     It is not a visual compromise. The pane is 70% white before the 22% tint
-     goes on, so a 22px blur changes its pixels by an amount the eye cannot
-     resolve — the background is already reduced to a soft colour behind it.
-     What actually reads as "glass" is the hairline edge, the drop shadow and
-     the 135° corner reflection, and none of those are the filter.
+       · Legibility. Solid white is the best background this page has ever
+         given its text: ink-900 13.5:1, ink-700 7.8:1, ink-500 5.9:1 against
+         the worst thing underneath — the pink glow at its brightest. Every
+         step clears AA with room, with no wash, no underlayer, no fallback.
 
-     A stacking context is REQUIRED, not decorative: `::before` sits at
-     z-index -1 so it paints above the card's own fill and below every child.
-     A negative-z child only stays inside its parent when the parent is a
-     stacking context; otherwise it drops behind the parent's background and
-     the reflection vanishes. `isolation` makes one without the side effects of
-     `transform`/`filter` (it does not create a containing block for `fixed`,
-     so a modal rendered inside a card still covers the viewport).
+       · Cost. A backdrop-filter makes the compositor re-sample the page
+         behind its element on every frame something moves. This site has
+         drifting blobs, a 24s animation loop, and phones with thumbs on them.
+
+       · Honesty. A pane that is 85% opaque and blurred is a blur nobody can
+         see, dressed up as a material. It is a white card. Saying so costs
+         nothing and removes a whole maintenance surface.
+
+     `.glass`, `.glass-thick` and `.glass-pill` survive as aliases because
+     sixteen call sites ask for them by name and they were always asking for
+     "the raised surface", not for a filter.
      ------------------------------------------------------------------ */
-  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    .card {
-      position: relative;
-      /*
-        Two layers of fill, both required:
-          · --glass-wash, the whiter underlayer that makes type legible
-          · --glass-bg, the 22% tint on top, which is the "glass" value itself
-        One background-image keeps it a single element with a single fill.
-      */
-      background-image: linear-gradient(var(--glass-bg), var(--glass-bg)),
-        linear-gradient(var(--glass-wash), var(--glass-wash));
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--glass-shadow);
-      background-clip: padding-box;
-      isolation: isolate;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%);
-      pointer-events: none;
-    }
-
-    /*
-      TIER 2 — `.glass`, the same pane WITH the filter.
-
-      Reserved for the few places where something genuinely moves underneath
-      and you can see it move: the floating header, a modal or sheet over
-      dimmed content, and one hero panel per screen. On a phone the whole page
-      therefore runs a countable handful of filters, not one per card.
-    */
-    .glass {
-      position: relative;
-      background-image: linear-gradient(var(--glass-bg), var(--glass-bg)),
-        linear-gradient(var(--glass-wash), var(--glass-wash));
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--glass-shadow);
-      -webkit-backdrop-filter: var(--glass-blur);
-      backdrop-filter: var(--glass-blur);
-      background-clip: padding-box;
-      isolation: isolate;
-    }
-
-    .glass::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%);
-      pointer-events: none;
-    }
-
-    .glass-pill {
-      border-radius: var(--radius-pill);
-    }
-
-    /* Denser pane: modals and bottom sheets, which must hide what is behind
-       them rather than merely soften it. Always used together with `.glass`. */
-    .glass-thick {
-      background-image: linear-gradient(var(--glass-bg-thick), var(--glass-bg-thick)),
-        linear-gradient(var(--glass-wash-thick), var(--glass-wash-thick));
-      -webkit-backdrop-filter: var(--glass-blur-thick);
-      backdrop-filter: var(--glass-blur-thick);
-    }
+  .card,
+  .glass,
+  .glass-thick {
+    position: relative;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--glass-shadow);
+    background-clip: padding-box;
   }
 
-  /*
-    No backdrop-filter — an older Android WebView, Firefox with the pref off, a
-    browser that disables it for battery. Fall back to a flat, nearly opaque
-    fill. The design loses its depth; nothing becomes unreadable, which is the
-    only acceptable failure mode.
-  */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass,
-    .card,
-    .glass-thick {
-      position: relative;
-      background-color: var(--glass-fill-fallback);
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      border-radius: var(--radius-card);
-      box-shadow: 0 8px 24px rgba(120, 40, 80, 0.12);
-    }
-
-    .glass::before,
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), transparent 40%);
-      pointer-events: none;
-    }
-
-    .glass-pill {
-      border-radius: var(--radius-pill);
-    }
+  /* Sheets sit over a dimmed page and must hide it, not merely tint it. */
+  .glass-thick {
+    background-color: rgba(255, 255, 255, 0.97);
   }
 
-  /*
-    Someone who asked the system for less transparency is asking for legibility
-    — usually because text over a busy surface is unreadable for them. The
-    honest answer is not "a blur with more white in it": it is to stop being
-    glass. Solid panes, no filter, no reflection.
-  */
-  @media (prefers-reduced-transparency: reduce) {
-    .glass,
-    .card,
-    .glass-thick {
-      background-image: none;
-      background-color: rgba(255, 250, 252, 0.97);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-      border-color: rgba(255, 255, 255, 0.9);
-    }
-
-    .glass::before,
-    .card::before {
-      display: none;
-    }
+  .glass-pill {
+    border-radius: var(--radius-pill);
   }
+
 }
 
 @layer components {
@@ -491,53 +380,57 @@
     transform: translateY(-1px);
   }
 
-  /* Secondary: outline only, no fill. On a glass page an outline reads as a
-     pane whose light has been turned down. */
+  /* Secondary: a white button with a visible rim. On white cards a 35%-white
+     fill is nothing at all, so the rim and the blush label carry it — the
+     button is quieter than primary because of its colour, not its opacity.
+     blush-800 on white is 7.93:1. */
   .btn-ghost {
     @apply btn text-blush-800;
-    background-color: rgba(255, 255, 255, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.65);
+    background-color: #fff;
+    border: 1px solid rgba(249, 98, 139, 0.24);
     box-shadow:
-      0 4px 14px -6px rgba(120, 40, 80, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    /* No filter here either. These buttons usually sit ON a pane, so a blur
-       would sample that pane — an already-frosted colour — and produce a
-       slightly muddier patch for real per-frame cost. The fill does the job. */
+      0 3px 10px -5px rgba(120, 40, 80, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
   .btn-ghost:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.42);
+    background-color: #fff6f9;
+    border-color: rgba(249, 98, 139, 0.4);
   }
 
-  /* Tertiary: a quieter inset pane. */
+  /* Tertiary: the quietest of the three — a tint with no shadow at all. */
   .btn-soft {
     @apply btn text-blush-800;
-    background-color: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    background-color: rgba(249, 98, 139, 0.08);
+    border: 1px solid rgba(249, 98, 139, 0.16);
+    box-shadow: none;
   }
 
   .btn-soft:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.26);
+    background-color: rgba(249, 98, 139, 0.14);
   }
 
   /*
     Form controls.
-    A field is a *hole* in the glass: transparent, with only a thin light
-    border to describe its edge. Filling it would make it a second pane
-    stacked on the first, and two samples of the same background at different
-    offsets look like a rendering bug.
+    A field is a *recessed* well, not a hole: a pale blush fill and a visible
+    hairline. On a white card a transparent field with a white border is an
+    input you cannot find, so the fill has to do the work the border did when
+    there was a pink page behind it.
 
-    Focus is a soft pink glow outside the border, not a hard outline — the
+    Focus is a soft pink ring outside the border, not a hard outline — the
     outline is still there for keyboard users (the global :focus-visible rule
     handles it), this is the visual emphasis on top.
   */
   .field {
     @apply w-full rounded-2xl px-4 py-3 text-[15px] text-ink-900
            transition-shadow duration-200 outline-none;
-    background-color: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background-color: #fdf6f8;
+    /* The boundary of an input is functional, not decorative, so it has to
+       clear 3:1 against the page: #a67f91 is 3.46:1 on white and 3.25:1 on
+       the field's own fill. The chip and tile hairlines stay soft on purpose
+       — those controls are named by their label, not by their edge. */
+    border: 1px solid #a67f91;
+    box-shadow: inset 0 1px 2px rgba(120, 40, 80, 0.05);
   }
 
   .field::placeholder {
@@ -545,10 +438,9 @@
   }
 
   .field:focus {
-    background-color: rgba(255, 255, 255, 0.26);
+    background-color: #fff;
     border-color: rgba(249, 98, 139, 0.55);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
       0 0 0 3px rgba(249, 98, 139, 0.18),
       0 4px 16px -6px rgba(249, 98, 139, 0.4);
   }
@@ -571,13 +463,16 @@
   .chip {
     @apply rounded-full px-3.5 py-1.5 text-[13px] font-medium text-ink-700
            transition-all duration-200;
-    background-color: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    /* On a white card, 30% white is white. A hairline and a whisper of blush
+       is what an unselected chip actually looks like in this design. */
+    background-color: #fff;
+    border: 1px solid rgba(249, 98, 139, 0.2);
+    box-shadow: 0 1px 2px rgba(120, 40, 80, 0.05);
   }
 
   .chip:hover {
-    background-color: rgba(255, 255, 255, 0.44);
+    background-color: #fff6f9;
+    border-color: rgba(249, 98, 139, 0.36);
   }
 
   .chip-active {
@@ -612,13 +507,20 @@
                  #f9628b is 2.94:1, which is the whole reason this class
                  exists rather than a `bg-blush-500` utility.
   */
+  /*
+    Their bubble, on a white card.
+    ------------------------------------------------------------------
+    78% white was a bubble floating on translucent glass — it read as a softer
+    white than the pane under it. On a solid white chat surface that is the
+    same colour twice and the bubble disappears. A blush-tinted fill instead:
+    it is unmistakably a message, and it is quiet enough that the pink one
+    (mine) is still the loud half of the conversation.
+  */
   .bubble {
     @apply relative rounded-3xl px-3.5 py-2 transition-shadow;
-    background-color: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    box-shadow:
-      0 2px 10px -4px rgba(120, 40, 80, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    background-color: #fff4f7;
+    border: 1px solid rgba(249, 98, 139, 0.18);
+    box-shadow: 0 2px 8px -4px rgba(120, 40, 80, 0.12);
     color: #332a31;
   }
 
@@ -700,22 +602,8 @@
     position: relative;
     border-radius: var(--radius-pill);
     border: 1px solid var(--glass-border);
-    background-image: linear-gradient(var(--glass-bg), var(--glass-bg)),
-      linear-gradient(var(--glass-wash), var(--glass-wash));
-    box-shadow:
-      0 6px 20px -10px rgba(120, 40, 80, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-  }
-
-  @media (prefers-reduced-transparency: reduce) {
-    .app-header-bar {
-      background-image: none;
-      background-color: rgba(255, 250, 252, 0.98);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-    }
+    background-color: var(--glass-bg);
+    box-shadow: 0 6px 20px -10px rgba(120, 40, 80, 0.25);
   }
 
   /*
@@ -725,12 +613,19 @@
     a slightly *darker* fill with the light coming from inside — the same cue,
     read the other way round.
   */
+  /*
+    A well is a recess in a WHITE card.
+    ------------------------------------------------------------------
+    It used to be 34% white, which worked when the card around it was also
+    translucent — the well read as one shade darker than the pane. On a solid
+    white card, 34% white is white: the recess disappears entirely. So it
+    turns into a soft blush tint instead, which is both visible against white
+    and the natural "inside" colour for this design.
+  */
   .well {
-    background-color: rgba(255, 255, 255, 0.34);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    box-shadow:
-      inset 0 2px 6px rgba(120, 40, 80, 0.1),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+    background-color: rgba(249, 98, 139, 0.07);
+    border: 1px solid rgba(249, 98, 139, 0.12);
+    box-shadow: inset 0 1px 3px rgba(120, 40, 80, 0.06);
   }
 
   /*
@@ -741,17 +636,35 @@
     as a rendering artefact rather than as depth. The fill and hairline are
     enough to lift a tile off the card.
   */
+  /*
+    A tile is a raised thing inside a card. On a white card the only useful
+    lift is a hairline and a whisper of shadow — a white-on-white fill would
+    be invisible.
+  */
   .tile {
-    background-color: rgba(255, 255, 255, 0.62);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.75),
-      0 1px 3px rgba(120, 40, 80, 0.06);
+    background-color: #fff;
+    border: 1px solid rgba(249, 98, 139, 0.16);
+    box-shadow: 0 1px 3px rgba(120, 40, 80, 0.07);
   }
 
   /* A tile that is an interactive control rather than a surface. */
   .tile-hover:hover {
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: #fffafb;
+    border-color: rgba(249, 98, 139, 0.28);
+  }
+
+  /*
+    The selected segment of a control group. Every group on the site is a
+    `.tile` sitting inside a `.card`, and both are now white — so "selected"
+    can no longer be white-on-white. It becomes a blush wash with the border
+    pulled to full strength: rank, not brightness, is what marks it.
+    text-blush-800 (#9e2749) on #ffd9e3 is 5.63:1.
+  */
+  .tile-active {
+    background-color: #ffd9e3;
+    border-color: #f9628b;
+    color: #9e2749;
+    box-shadow: 0 1px 3px rgba(120, 40, 80, 0.1);
   }
 
   /*
@@ -771,8 +684,15 @@
   .switch-rail {
     @apply relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
            transition-colors duration-200;
-    background-color: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    /*
+      Off is a recessed grey-pink track. Two things had to change from the
+      glass version: a 55%-white rail is invisible on a white card, and the
+      hairline has to clear 3:1 against that card on its own, because the
+      fill never will (#f4e6eb is 1.21:1). #a87f8f is 3.44:1 — the switch is
+      legible as a control before it is legible as a state.
+    */
+    background-color: #f4e6eb;
+    border: 1px solid #a87f8f;
     box-shadow: inset 0 1px 2px rgba(120, 40, 80, 0.12);
   }
 
@@ -793,7 +713,9 @@
     @apply pointer-events-none absolute h-5 w-5 rounded-full;
     inset-inline-end: 2px;
     background-color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    /* The knob used to be white-on-translucent-white and needed no edge. On a
+       solid track it does. */
+    border: 1px solid #cfb0bd;
     box-shadow:
       0 2px 5px rgba(90, 30, 55, 0.28),
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
@@ -813,13 +735,6 @@
   @media (prefers-reduced-motion: reduce) {
     .switch-knob {
       transition: none;
-    }
-  }
-
-  @media (prefers-reduced-transparency: reduce) {
-    .switch-rail {
-      background-color: #f1e2e7;
-      border-color: #e8d3da;
     }
   }
 
@@ -895,18 +810,19 @@
     the inactive labels fall to 3.1:1 and the bar stops being readable in the
     one place a user's thumb always covers.
   */
-  background-color: rgba(255, 255, 255, 0.78);
+  /*
+    The bar is solid, not glass.
+    ------------------------------------------------------------------
+    It used to be 78% white over a blur so the background showed through. At
+    78% that blur was doing almost nothing except costing a compositor pass on
+    every frame the page moved — and this is the one element permanently under
+    a thumb. Solid white is more readable and cheaper, and the two shadows
+    already do all the lifting the design needs.
+  */
+  background-color: rgba(255, 255, 255, 0.96);
   box-shadow:
     var(--glass-shadow),
     0 14px 40px -18px rgba(120, 40, 80, 0.45);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  /* A reflection along the top of the bar, same 135° as every other pane. */
-  background-image: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.45),
-    transparent 42%
-  );
 }
 
 .nav-item {
@@ -972,14 +888,12 @@
   z-index: 0;
   width: 0;
   border-radius: var(--radius-pill);
-  background-color: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow:
-    0 4px 14px -4px rgba(120, 40, 80, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
-  -webkit-backdrop-filter: blur(6px) brightness(1.15);
-  backdrop-filter: blur(6px) brightness(1.15);
+  /* A soft pink pill under the active tab — the one place colour marks
+     position. No blur: it sits on the solid bar, so there is nothing behind
+     it worth sampling. */
+  background-color: rgba(249, 98, 139, 0.14);
+  border: 1px solid rgba(249, 98, 139, 0.22);
+  box-shadow: 0 4px 14px -6px rgba(120, 40, 80, 0.25);
   pointer-events: none;
   opacity: 0;
   transform-origin: center;
