@@ -105,53 +105,74 @@ function daysInGregorianMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
 }
 
-/** The upcoming (or today's) monthly anniversary. */
+/**
+ * A month is 30 days — counted, not "the same day next month".
+ * ---------------------------------------------------------------------------
+ * This used to walk calendar months, which made October 31 days long and put
+ * the first monthiversary on day 31 instead of day 30. For a couple counting
+ * days, that is simply the wrong evening, and it disagreed with the database —
+ * the card said "day 31" while the room stayed shut.
+ *
+ * The rule now matches `celebration_candidates()` exactly: an anniversary is
+ * any day that lands on a multiple of the block. Keep the two in step.
+ */
+export const MONTH_DAYS = 30
+
+/** Adds days to a Gregorian ISO date without a date library. */
+export function addDaysIso(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
+/**
+ * The next monthiversary, counting in 30-day blocks.
+ *
+ * A 12-block anniversary is a *yearly* one — the same boundary the database
+ * uses — so `nextMonthlyAnniversary` skips those days rather than promising a
+ * "12 month" banner the room would refuse to open.
+ */
 export function nextMonthlyAnniversary(
   startIso: string,
   fromIso: string = todayIso(),
+  blockDays: number = MONTH_DAYS,
 ): { iso: string; daysUntil: number; monthNumber: number } {
-  const [sy, sm, sd] = startIso.split('-').map(Number)
-  const [fy, fm, fd] = fromIso.split('-').map(Number)
+  const block = Math.max(1, blockDays)
+  const elapsed = Math.max(0, daysBetweenIso(startIso, fromIso))
+  let blocks = Math.floor(elapsed / block)
 
-  // Which calendar month are we in relative to the start?
-  let monthsIn = (fy - sy) * 12 + (fm - sm)
-  if (fd < sd) monthsIn -= 1
-  if (monthsIn < 0) monthsIn = 0
-
-  // The monthiversary in the current month (clamped to that month's length).
-  let candidate = isoFromParts(fy, fm, Math.min(sd, daysInGregorianMonth(fy, fm)))
-
-  if (candidate < fromIso) {
-    // Already passed this month — move to the next one.
-    const nextMonth = fm === 12 ? 1 : fm + 1
-    const nextYear = fm === 12 ? fy + 1 : fy
-    candidate = isoFromParts(nextYear, nextMonth, Math.min(sd, daysInGregorianMonth(nextYear, nextMonth)))
-    monthsIn += 1
+  // Land on the next boundary, and never on a yearly one.
+  for (let guard = 0; guard < 24; guard += 1) {
+    blocks += 1
+    if (blocks % 12 !== 0) break
   }
 
+  const iso = addDaysIso(startIso, blocks * block)
   return {
-    iso: candidate,
-    daysUntil: Math.max(0, daysBetweenIso(fromIso, candidate)),
-    monthNumber: Math.max(1, monthsIn + 1),
+    iso,
+    daysUntil: Math.max(0, daysBetweenIso(fromIso, iso)),
+    monthNumber: blocks,
   }
 }
 
-/** The upcoming (or today's) yearly anniversary. */
+/** The next yearly anniversary: every twelfth block. */
 export function nextYearlyAnniversary(
   startIso: string,
   fromIso: string = todayIso(),
+  blockDays: number = MONTH_DAYS,
 ): { iso: string; daysUntil: number; yearNumber: number } {
-  const [sy, sm, sd] = startIso.split('-').map(Number)
-  const [fy] = fromIso.split('-').map(Number)
+  const block = Math.max(1, blockDays)
+  const elapsed = Math.max(0, daysBetweenIso(startIso, fromIso))
+  const blocks = Math.floor(elapsed / block)
+  const yearsIn = Math.floor(blocks / 12)
+  const nextYear = yearsIn + 1
 
-  const thisYear = isoFromParts(fy, sm, Math.min(sd, daysInGregorianMonth(fy, sm)))
-  const candidate = thisYear >= fromIso ? thisYear : isoFromParts(fy + 1, sm, Math.min(sd, daysInGregorianMonth(fy + 1, sm)))
-  const yearNumber = Number(candidate.slice(0, 4)) - sy
-
+  const iso = addDaysIso(startIso, nextYear * 12 * block)
   return {
-    iso: candidate,
-    daysUntil: Math.max(0, daysBetweenIso(fromIso, candidate)),
-    yearNumber: Math.max(1, yearNumber),
+    iso,
+    daysUntil: Math.max(0, daysBetweenIso(fromIso, iso)),
+    yearNumber: nextYear,
   }
 }
 
