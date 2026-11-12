@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { listenForNotificationNavigation } from './lib/sw-register'
@@ -24,8 +24,16 @@ import VaultPage from './pages/VaultPage'
 import GamePage from './pages/GamePage'
 import ChatPage from './pages/ChatPage'
 import DatesPage from './pages/DatesPage'
+
 import NotFoundPage from './pages/NotFoundPage'
 import ConfigMissingPage from './pages/ConfigMissingPage'
+
+/*
+ * The celebration room is lazy on purpose. It is opened a handful of evenings
+ * a year, and it carries a canvas animation engine with it — none of which
+ * belongs in the bundle every visit to the dashboard pays for.
+ */
+const CelebrationPage = lazy(() => import('./pages/CelebrationPage'))
 
 /**
  * Sends signed-out visitors to /login and keeps signed-in users inside the
@@ -259,6 +267,22 @@ export default function App() {
           element={
             <RequireAuth>
               <GamePage />
+            </RequireAuth>
+          }
+        />
+
+        {/*
+          جشن — full screen on purpose. It has no tab, and `NAV_PATHS` below
+          deliberately omits it: a celebration that keeps the bottom bar on
+          screen never stops being a tab you are looking at.
+        */}
+        <Route
+          path="/celebrate"
+          element={
+            <RequireAuth>
+              <Suspense fallback={<FullPageLoader label="داریم جشن را آماده می‌کنیم..." />}>
+                <CelebrationPage />
+              </Suspense>
             </RequireAuth>
           }
         />
