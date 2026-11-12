@@ -8,6 +8,8 @@ import JalaliDatePicker from '../components/JalaliDatePicker'
 import AnniversaryCard from '../components/AnniversaryCard'
 import AnniversarySetup from '../components/AnniversarySetup'
 import CelebrationMusicSettings from '../components/CelebrationMusicSettings'
+import PrankSettings from '../components/PrankSettings'
+
 import CycleShareSettings from '../components/CycleShareSettings'
 import ReminderSettings from '../components/ReminderSettings'
 import PushSettings from '../components/PushSettings'
@@ -285,6 +287,8 @@ export default function SettingsPage() {
             )}
           </section>
         )}
+
+        {partnerId && <PrankSettings />}
 
         {partnerId && <CelebrationMusicSettings />}
 

@@ -9,6 +9,8 @@ import { FullPageLoader } from './components/Spinner'
 import BottomNav from './components/BottomNav'
 import { LiquidBackground } from './components/Neo'
 import { usePrankActive } from './lib/prank'
+import { useIncomingPrank } from './hooks/useIncomingPrank'
+
 import { isSupabaseConfigured } from './lib/supabase'
 
 import LandingPage from './pages/LandingPage'
@@ -19,7 +21,6 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
-import SettingsPage from './pages/SettingsPage'
 import AlbumPage from './pages/AlbumPage'
 import VaultPage from './pages/VaultPage'
 import GamePage from './pages/GamePage'
@@ -35,6 +36,24 @@ import ConfigMissingPage from './pages/ConfigMissingPage'
  * belongs in the bundle every visit to the dashboard pays for.
  */
 const CelebrationPage = lazy(() => import('./pages/CelebrationPage'))
+
+/*
+ * Settings is the heaviest route by far — reminder prefs, push setup, cycle
+ * settings, the celebration music panel and the prank panel — and it is the
+ * route people visit least. Splitting it keeps all of that out of the bundle
+ * every dashboard visit pays for.
+ */
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+
+/*
+ * The prank components are lazy for the same reason the celebration page is:
+ * `IncomingPrank` is mounted for every signed-in visitor on every page, but it
+ * renders nothing unless somebody has actually armed a prank. Loading the
+ * terminal and the crack up front would put ~9 kB of scare in the bundle that
+ * 99% of visits never show.
+ */
+const ScareScreen = lazy(() => import('./components/ScareScreen'))
+const Reveal = lazy(() => import('./components/Reveal'))
 
 /**
  * Sends signed-out visitors to /login and keeps signed-in users inside the
@@ -190,6 +209,36 @@ function BackgroundUnlessPranking() {
   return <LiquidBackground />
 }
 
+/**
+ * The prank somebody sent me, played wherever I happen to be.
+ *
+ * Mounted once, outside `<Routes>`, for the same reason the tab bar is: the
+ * prank must land on the page she is already on. If this lived inside a route
+ * it would only fire on that route, and the plan — "open the app" — would
+ * depend on which screen the tab happened to restore.
+ */
+function IncomingPrank() {
+  const { status, profile } = useAuth()
+  const signedIn = status === 'signed-in' && Boolean(profile?.onboarding_completed)
+  const prank = useIncomingPrank(signedIn)
+
+  if (prank.phase === 'idle') return null
+
+  if (prank.phase === 'scare') {
+    return (
+      <Suspense fallback={null}>
+        <ScareScreen onReveal={prank.toReveal} name={profile?.display_name ?? null} />
+      </Suspense>
+    )
+  }
+
+  return (
+    <Suspense fallback={null}>
+      <Reveal title="یه سورپرایز" subtitle="از طرف اون یکی" onDone={prank.finish} />
+    </Suspense>
+  )
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
@@ -212,6 +261,7 @@ export default function App() {
         viewport flash.
       */}
       <BackgroundUnlessPranking />
+      <IncomingPrank />
       {/*
         The tab bar lives OUTSIDE <Routes> — once, for the whole app.
         It used to be mounted inside each page, which meant every navigation
@@ -324,7 +374,9 @@ export default function App() {
           path="/settings"
           element={
             <RequireAuth>
-              <SettingsPage />
+              <Suspense fallback={<FullPageLoader label="داریم تنظیمات را باز می‌کنیم..." />}>
+                <SettingsPage />
+              </Suspense>
             </RequireAuth>
           }
         />
