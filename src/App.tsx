@@ -8,6 +8,7 @@ import { syncSubscription } from './lib/push'
 import { FullPageLoader } from './components/Spinner'
 import BottomNav from './components/BottomNav'
 import { LiquidBackground } from './components/Neo'
+import { usePrankActive } from './lib/prank'
 import { isSupabaseConfigured } from './lib/supabase'
 
 import LandingPage from './pages/LandingPage'
@@ -164,13 +165,29 @@ function AppNav() {
   const { status, profile } = useAuth()
   const { pathname } = useLocation()
 
+  const pranking = usePrankActive()
+
   const eligible =
+    !pranking &&
     status === 'signed-in' &&
     Boolean(profile?.onboarding_completed) &&
     NAV_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
   if (!eligible) return null
   return <BottomNav />
+}
+
+/**
+ * The site's drifting background, except during the prank.
+ *
+ * Mounted here, once, outside `<Routes>` — the prank needs it gone for a few
+ * seconds without unmounting it, because unmounting would restart its 24s
+ * drift the moment the celebration appears.
+ */
+function BackgroundUnlessPranking() {
+  const pranking = usePrankActive()
+  if (pranking) return null
+  return <LiquidBackground />
 }
 
 function ScrollToTop() {
@@ -194,7 +211,7 @@ export default function App() {
         per page would restart its 24s drift on every tap and make the whole
         viewport flash.
       */}
-      <LiquidBackground />
+      <BackgroundUnlessPranking />
       {/*
         The tab bar lives OUTSIDE <Routes> — once, for the whole app.
         It used to be mounted inside each page, which meant every navigation

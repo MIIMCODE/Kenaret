@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  MONTH_DAYS,
   anniversaryLabel,
   daysUntilLabel,
   nextMonthlyAnniversary,
@@ -59,11 +60,18 @@ export default function AnniversaryCard({
    * month, drawn as a circle so the card has one graphic instead of four
    * numbers in a row.
    */
+  /*
+   * The ring is a 30-day block, filled by days — not a calendar month. A month
+   * here is 30 days by definition (see `MONTH_DAYS`), so the ring spans exactly
+   * that: 0 on the morning after one anniversary, full on the evening of the
+   * next. A ring measured in calendar months would fill on a different day
+   * from the one the room opens on.
+   */
   const ring = useMemo(() => {
-    const span = cycleLength(monthly.iso)
+    const span = MONTH_DAYS
     const elapsed = Math.min(span, Math.max(0, span - monthly.daysUntil))
     return { ratio: elapsed / span, elapsed, span }
-  }, [monthly.iso, monthly.daysUntil])
+  }, [monthly.daysUntil])
 
   return (
     <section className="card relative overflow-hidden rounded-[1.75rem] p-5">
@@ -215,23 +223,6 @@ function Countdown({
 
 function toFa(value: number): string {
   return value.toLocaleString('fa-IR', { useGrouping: false })
-}
-
-/**
- * The length of the current monthiversary cycle, in days.
- *
- * The ring needs both ends of the cycle: how much of it has passed and how
- * much is left. `daysUntil` only gives the second half. The cycle runs from
- * the previous monthiversary to the next one, and those two are not always 30
- * days apart (a February cycle is 28 or 29), so the span is measured rather
- * than assumed — a ring that fills on the wrong evening is a lie.
- */
-function cycleLength(nextIso: string): number {
-  const next = new Date(`${nextIso}T00:00:00Z`)
-  const previous = new Date(next)
-  previous.setUTCMonth(previous.getUTCMonth() - 1)
-  const span = Math.round((next.getTime() - previous.getTime()) / 86_400_000)
-  return span > 0 ? span : 30
 }
 
 /**

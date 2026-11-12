@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Confetti from '../components/Confetti'
+import Reveal from '../components/Reveal'
+import ScareScreen from '../components/ScareScreen'
 import Spinner from '../components/Spinner'
 import { useAuth } from '../hooks/useAuth'
 import { fetchAlbum, fetchPairingState } from '../lib/api'
@@ -18,6 +20,12 @@ import {
 } from '../lib/celebrate'
 import { toPersianError } from '../lib/errors'
 import { anniversaryLabel, nextMonthlyAnniversary, nextYearlyAnniversary } from '../lib/anniversary'
+import {
+  hasPranked,
+  markPranked,
+  prankDisabledByQuery,
+  setPrankActive,
+} from '../lib/prank'
 import type { AlbumPhoto } from '../types/database'
 
 /**
@@ -56,6 +64,12 @@ export default function CelebrationPage() {
   const [burst, setBurst] = useState(0)
   const [now, setNow] = useState(() => new Date())
   const [muted, setMuted] = useState(false)
+  /**
+   * The prank. 'scare' → 'reveal' → 'done'. Starts at 'done' for every path
+   * that is not a fresh automatic entrance, so a manual visit or a repeat
+   * never sees it.
+   */
+  const [prank, setPrank] = useState<'scare' | 'reveal' | 'done'>('done')
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const requestedRef = useRef(false)
@@ -105,6 +119,55 @@ export default function CelebrationPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  /* ── the prank ──────────────────────────────────────────────────────── */
+  /*
+   * When it plays: only on `?auto=1` — the dashboard opening the room by
+   * itself — and only when there is genuinely something to celebrate and this
+   * tab has not seen the prank yet.
+   *
+   * It never plays on a manual visit, because the second time is not a
+   * surprise, and it never plays when the database says tonight is not the
+   * night, because "fake hack → nothing happened" is not a joke, it is a lie.
+   */
+  useEffect(() => {
+    if (loading || prank !== 'done') return
+    if (!state?.ok || !state.today_candidate) return
+    if (params.get('auto') !== '1') return
+    if (prankDisabledByQuery(window.location.search)) return
+    if (hasPranked()) return
+
+    markPranked()
+    setPrank('scare')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, state?.ok, state?.today_candidate])
+
+  /*
+   * Hide the app shell while the prank is on. The background and the tab bar
+   * are mounted outside <Routes>, so a fake hack with the site's pink glass
+   * drifting behind it would give the game away in the first frame.
+   */
+  useEffect(() => {
+    const active = prank !== 'done'
+    setPrankActive(active)
+
+    /*
+     * Lock the page under it. Both overlays are `position: fixed`, but the
+     * celebration behind them is taller than the viewport — without this, a
+     * swipe over the fake terminal scrolls the real page underneath it, which
+     * is the one interaction that would instantly give the prank away.
+     */
+    if (active) {
+      const previous = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = previous
+        setPrankActive(false)
+      }
+    }
+
+    return () => setPrankActive(false)
+  }, [prank])
 
   /* ── the album wall ─────────────────────────────────────────────────── */
 
@@ -227,8 +290,30 @@ export default function CelebrationPage() {
   const headline = celebration?.title ?? state?.today_candidate?.title ?? 'جشن'
   const eyebrow = celebration?.subtitle ?? state?.today_candidate?.subtitle ?? ''
 
+  const prankTitle = celebration?.title ?? state?.today_candidate?.title ?? 'جشن'
+  const prankSubtitle = celebration?.subtitle ?? state?.today_candidate?.subtitle ?? ''
+
   return (
     <div className="celebrate-shell relative min-h-dvh w-full overflow-x-hidden pb-16">
+      {/*
+        The prank sits *over* the real page rather than replacing it, so the
+        page underneath is already loaded and the reveal has somewhere to
+        land — no spinner between "you have been hacked" and "happy month".
+      */}
+      {prank === 'scare' && (
+        <ScareScreen
+          onReveal={() => setPrank('reveal')}
+          name={partnerName}
+        />
+      )}
+      {prank === 'reveal' && (
+        <Reveal
+          title={prankTitle}
+          subtitle={prankSubtitle}
+          onDone={() => setPrank('done')}
+        />
+      )}
+
       {/* The one heavy filter on this screen; everything else is a plain fill. */}
       <Confetti burstKey={burst} fireworks={1} className="fixed z-0" />
 

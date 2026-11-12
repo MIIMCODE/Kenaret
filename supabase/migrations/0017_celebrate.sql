@@ -36,6 +36,16 @@
 -- ------------------------------------------------------------
 -- 1. The celebrations
 -- ------------------------------------------------------------
+-- How many days make "a month". 30, counted — not "the same day next month".
+-- It lives on the couple rather than on the user because both phones have to
+-- agree about which evening it is.
+alter table public.couples
+  add column if not exists celebration_month_days smallint not null default 30;
+alter table public.couples
+  drop constraint if exists couples_month_days_check;
+alter table public.couples
+  add constraint couples_month_days_check check (celebration_month_days between 28 and 31);
+
 create table if not exists public.celebrations (
   id          uuid primary key default gen_random_uuid(),
   couple_id   uuid not null references public.couples (id) on delete cascade,
@@ -247,55 +257,57 @@ comment on function public.celebration_today() is
 --
 -- Kept `stable` and side-effect free so `celebration_state` can call it freely.
 -- ------------------------------------------------------------
-create or replace function public.celebration_candidates(p_start date, p_today date)
+create or replace function public.celebration_candidates(
+  p_start date,
+  p_today date,
+  p_month_days int default 30
+)
 returns table (kind text, ordinal int, title text, subtitle text)
 language plpgsql
 stable
 set search_path = public, pg_temp
 as $$
 declare
-  v_months int;
-  v_years  int;
-  v_days   int;
-  v_dom    int;
-  v_start_dom int;
-  v_cand_day  int;
+  v_block int := greatest(1, coalesce(p_month_days, 30));
+  v_days  int;
+  v_blocks int;
+  v_years int;
 begin
   if p_start is null or p_today is null or p_today < p_start then
     return;
   end if;
 
-  v_dom := extract(day from p_today)::int;
-  v_start_dom := extract(day from p_start)::int;
+  v_days := (p_today - p_start);
 
   /*
-   * The day this month's anniversary actually falls on.
-   *
-   * A relationship that began on the 31st has its monthiversary on the 28th in
-   * February — and, crucially, the *comparison below* has to use that clamped
-   * day too. Comparing `28 < 31` instead counted a month as not-yet-started
-   * and reported «۳ ماه» where «۴ ماه» was right. Caught by the 2027-02-28
-   * case in the migration test.
+   * Day-count milestones first. They are independent of the month rule, so on
+   * a day that is both "500 days" and "16 months" the bigger round number is
+   * the one worth saying out loud.
    */
-  v_cand_day := least(
-    v_start_dom,
-    extract(day from (date_trunc('month', p_today) + interval '1 month - 1 day'))::int
-  );
-
-  -- Whole calendar months elapsed, borrowing the way a person counts them:
-  -- the anniversary of the start day, not a 30-day block.
-  v_months := (extract(year from p_today)::int - extract(year from p_start)::int) * 12
-            + (extract(month from p_today)::int - extract(month from p_start)::int);
-  if v_dom < v_cand_day then
-    v_months := v_months - 1;
+  if v_days in (100, 200, 365, 500, 730, 1000, 1095, 1500, 2000) then
+    kind := 'milestone';
+    ordinal := v_days;
+    title := v_days::text || ' روز با هم';
+    subtitle := 'روز شمردنی';
+    return next;
+    return;
   end if;
 
-  if v_months > 0 and v_dom = v_cand_day then
-    -- A yearly anniversary is also a monthiversary (12, 24, 36…). It is
-    -- reported once, as the anniversary — the bigger of the two — so the
-    -- screen never shows two competing banners for the same evening.
-    if v_months % 12 = 0 then
-      v_years := v_months / 12;
+  /*
+   * Anniversaries: every `v_block` days, counted from the first day. A day is
+   * an anniversary only if it lands exactly on a boundary — never "within" or
+   * "near". With the default 30 that is day 30, 60, 90 …
+   *
+   * `% 12 = 0` is what makes a year: twelve blocks. For a 30-day month that is
+   * 360 days, and it is *derived* rather than assumed — hard-coding 365 here
+   * would make the yearly banner and the 365-day milestone contradict each
+   * other, which is exactly the bug this replaced.
+   */
+  if v_days > 0 and v_days % v_block = 0 then
+    v_blocks := v_days / v_block;
+
+    if v_blocks % 12 = 0 then
+      v_years := v_blocks / 12;
       kind := 'anniversary';
       ordinal := v_years;
       title := v_years::text || ' سال با هم';
@@ -303,29 +315,18 @@ begin
       return next;
     else
       kind := 'monthiversary';
-      ordinal := v_months;
-      title := v_months::text || ' ماه با هم';
+      ordinal := v_blocks;
+      title := v_blocks::text || ' ماه با هم';
       subtitle := 'ماهگرد';
       return next;
     end if;
-  end if;
-
-  -- Day-count milestones: only the round ones already named in the dashboard,
-  -- and only on the exact day.
-  v_days := (p_today - p_start);
-  if v_days in (100, 200, 365, 500, 730, 1000, 1095, 1500, 2000) then
-    kind := 'milestone';
-    ordinal := v_days;
-    title := v_days::text || ' روز با هم';
-    subtitle := 'روز شمردنی';
-    return next;
   end if;
 
   return;
 end;
 $$;
 
-comment on function public.celebration_candidates(date, date) is
+comment on function public.celebration_candidates(date, date, int) is
   'What today is, in celebration terms. Read-only so it can be called from state queries.';
 
 -- ------------------------------------------------------------
@@ -373,7 +374,7 @@ begin
   -- monthiversary, then milestone. `celebration_candidates` already returns at
   -- most one of the first two.
   select * into v_cand
-  from public.celebration_candidates(v_couple.anniversary_date, v_today)
+  from public.celebration_candidates(v_couple.anniversary_date, v_today, coalesce(v_couple.celebration_month_days, 30))
   limit 1;
 
   if v_cand.kind is not null then
@@ -452,7 +453,7 @@ begin
   -- against the calendar rather than trusting it. Without this check a client
   -- could open «۳۶۵ سال با هم» on a Tuesday.
   select * into v_cand
-  from public.celebration_candidates(v_couple.anniversary_date, v_today)
+  from public.celebration_candidates(v_couple.anniversary_date, v_today, coalesce(v_couple.celebration_month_days, 30))
   where kind = p_kind and ordinal = p_ordinal
   limit 1;
 
@@ -662,7 +663,7 @@ $$;
 -- 12. Grants
 -- ------------------------------------------------------------
 revoke all on function public.celebration_today() from public, anon;
-revoke all on function public.celebration_candidates(date, date) from public, anon;
+revoke all on function public.celebration_candidates(date, date, int) from public, anon;
 revoke all on function public.celebration_state() from public, anon;
 revoke all on function public.open_celebration(text, int) from public, anon;
 revoke all on function public.write_celebration_note(uuid, text) from public, anon;
@@ -670,7 +671,7 @@ revoke all on function public.set_celebration_music(text, text, bigint, text) fr
 revoke all on function public.remove_celebration_music() from public, anon;
 
 grant execute on function public.celebration_today() to authenticated;
-grant execute on function public.celebration_candidates(date, date) to authenticated;
+grant execute on function public.celebration_candidates(date, date, int) to authenticated;
 grant execute on function public.celebration_state() to authenticated;
 grant execute on function public.open_celebration(text, int) to authenticated;
 grant execute on function public.write_celebration_note(uuid, text) to authenticated;

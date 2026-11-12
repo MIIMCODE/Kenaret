@@ -1219,6 +1219,276 @@
   }
 }
 
+/* ============================================================
+   «گوشیت هک شده» — the prank screen
+   ------------------------------------------------------------
+   Deliberately NOT glass. Every other surface on this site is a warm pane you
+   could touch; this one is cold, green, monospaced and slightly broken. The
+   whole joke depends on it not looking like something Kenaret would make, so
+   it borrows nothing from the design system on purpose.
+
+   The motion here is the joke, which is exactly why it is the one place that
+   checks `prefers-reduced-motion` hardest: the shake, the static and the
+   caret all stop, and the screen becomes a still green terminal. Somebody who
+   has asked not to be moved is not asking to be left out of the fun.
+
+   No backdrop-filter: this screen has to feel like it replaced the app, not
+   like a panel over it. It is opaque on purpose.
+   ============================================================ */
+
+@layer components {
+  .scare {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    overflow: hidden;
+    background: #04120c;
+    color: #7ef7b7;
+    /* The screen a hack lands on: near-black green, with the glow of a
+       terminal in the middle of it. */
+    background-image:
+      radial-gradient(120% 90% at 50% 0%, rgba(20, 255, 150, 0.16) 0%, rgba(20, 255, 150, 0) 60%),
+      linear-gradient(180deg, #06180f 0%, #020a06 100%);
+    animation: scare-in 0.18s ease-out both;
+  }
+
+  .scare--out {
+    animation: scare-out 0.5s ease-in both;
+  }
+
+  .scare__panel {
+    border: 1px solid rgba(126, 247, 183, 0.28);
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: rgba(4, 26, 16, 0.72);
+    box-shadow: 0 0 24px -6px rgba(20, 255, 150, 0.35), inset 0 0 30px -18px rgba(20, 255, 150, 0.9);
+  }
+
+  .scare__panel--wide {
+    padding: 1rem 1.1rem;
+  }
+
+  /*
+    Vazirmatn, not a mono stack.
+    ------------------------------------------------------------------
+    This first tried `ui-monospace`, which has no Persian glyphs at all — the
+    browser would fall back per-character and the line would come out as three
+    typefaces in one sentence. The terminal feel is carried by the colour, the
+    caret, the scanlines and the latin header instead, and the Persian stays in
+    the one face that can actually render it. Digits get `tabular-nums` so the
+    fake counts stay aligned.
+  */
+  .scare__mono {
+    font-family: Vazirmatn, system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    direction: rtl;
+    letter-spacing: 0;
+  }
+
+  /* The one genuinely latin line — the fake connection banner. */
+  .scare__mono--latin {
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    direction: ltr;
+    letter-spacing: 0.16em;
+  }
+
+  .scare__led {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #20ff9e;
+    box-shadow: 0 0 10px 2px rgba(32, 255, 158, 0.9);
+    animation: scare-led 1.1s steps(2, end) infinite;
+  }
+
+  .scare__caret {
+    display: inline-block;
+    width: 0.5em;
+    height: 1em;
+    margin-inline-start: 2px;
+    vertical-align: -2px;
+    background: #7ef7b7;
+    animation: scare-caret 0.9s steps(2, end) infinite;
+  }
+
+  .scare__bar {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(126, 247, 183, 0.14);
+  }
+
+  .scare__barfill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #14c877 0%, #7ef7b7 100%);
+    box-shadow: 0 0 12px rgba(32, 255, 158, 0.8);
+    transition: width 0.34s ease-out;
+  }
+
+  .scare__button {
+    border-radius: 0.75rem;
+    color: #04120c;
+    font-weight: 800;
+    background: #7ef7b7;
+    border: 1px solid #a9ffd0;
+    box-shadow: 0 0 22px -4px rgba(32, 255, 158, 0.85);
+  }
+
+  /* Static: three repeating gradients, cheaper than an image and it never
+     looks the same twice because it is animated by position only. */
+  .scare__static {
+    position: absolute;
+    inset: -20%;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(20, 255, 150, 0.06) 0 1px, transparent 1px 4px);
+    animation: scare-noise 0.42s steps(3, end) infinite;
+  }
+
+  .scare__static--still {
+    animation: none;
+    opacity: 0.28;
+  }
+
+  .scare__scan {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0 2px,
+      rgba(0, 0, 0, 0.22) 2px 4px
+    );
+  }
+
+  .scare__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(110% 80% at 50% 45%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.72) 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scare,
+    .scare--out {
+      animation-duration: 0.01ms;
+    }
+    .scare__shake,
+    .scare__led,
+    .scare__caret,
+    .scare__static {
+      animation: none !important;
+    }
+  }
+}
+
+/* ============================================================
+   The reveal — where the prank ends
+   ------------------------------------------------------------
+   Starts in the scare's world (cold green, monospace) and ends in the
+   celebration's (warm, gradient, Vazirmatn). The crack is the hinge, and it is
+   one clip-path on one element: no blur, no filter, no second canvas.
+   ============================================================ */
+
+@layer components {
+  .reveal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 50% 22%, rgba(20, 255, 150, 0.12) 0%, rgba(20, 255, 150, 0) 62%),
+      linear-gradient(180deg, #06180f 0%, #0a0a08 55%, #2a0f1c 100%);
+    animation: scare-in 0.2s ease-out both;
+  }
+
+  .reveal__mono {
+    /* Same reason as `.scare__mono`: no monospace face has Persian glyphs. */
+    font-family: Vazirmatn, system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    direction: rtl;
+    color: #bfe9d2;
+  }
+
+  .reveal__line {
+    color: #7ef7b7;
+  }
+
+  /*
+    The tear. A thin bright band that grows from a slit to a full gash — the
+    screen failing, not a curtain. `clip-path` on a rotated element keeps it
+    off the compositor's slow path and costs nothing to animate.
+  */
+  .reveal__crack {
+    position: absolute;
+    inset-inline: -10%;
+    top: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #eafff4 12%, #7ef7b7 50%, #eafff4 88%, transparent);
+    clip-path: polygon(0 40%, 100% 40%, 100% 60%, 0 60%);
+    opacity: 0;
+    transition: clip-path 0.85s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out;
+    box-shadow: 0 0 40px 6px rgba(200, 255, 230, 0.55);
+  }
+
+  .reveal__crack--open {
+    opacity: 1;
+    clip-path: polygon(0 0%, 100% 0%, 100% 100%, 0 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal__crack {
+      transition: opacity 0.2s ease-out;
+      clip-path: polygon(0 0%, 100% 0%, 100% 100%, 0 100%);
+    }
+  }
+}
+
+@keyframes scare-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scare-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes scare-noise {
+  0%   { transform: translate3d(0, 0, 0); }
+  33%  { transform: translate3d(-2%, 1%, 0); }
+  66%  { transform: translate3d(1%, -2%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* A small, sharp, horizontal-only jolt. A big shake reads as a broken page;
+   two pixels reads as a signal that cannot hold still. */
+@keyframes scare-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-1.5px); }
+  40%      { transform: translateX(2px); }
+  60%      { transform: translateX(-1px); }
+  80%      { transform: translateX(1.5px); }
+}
+
+.scare__shake {
+  animation: scare-shake 0.34s steps(2, end) infinite;
+}
+
+@keyframes scare-led {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+
+@keyframes scare-caret {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
 @keyframes polaroid-in {
   0% {
     opacity: 0;
