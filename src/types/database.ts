@@ -81,6 +81,48 @@ export interface PairingState {
   reunion?: ReunionState | null
 }
 
+/**
+ * One entry the couple wrote themselves.
+ *
+ * Everything else on the calendar is *derived* — from the anniversary date,
+ * from birth dates, from her cycle settings. This is the only kind of day that
+ * exists because somebody typed it, which is why it carries `created_by` and a
+ * visibility.
+ */
+export interface CalendarEntry {
+  id: string
+  title: string
+  note: string | null
+  /** Gregorian ISO (`YYYY-MM-DD`); may be in the past or the future. */
+  event_on: string
+  /** A single emoji. The set is open — this is not an icon name. */
+  emoji: string
+  visibility: CalendarVisibility
+  created_by: string
+  created_at?: string
+  updated_at?: string
+}
+
+export type CalendarVisibility = 'couple' | 'private'
+
+/**
+ * A predicted bleeding window, as a *window* rather than a cycle.
+ *
+ * The database hands these over instead of her stored dates on purpose: a
+ * start and an end are the minimum a calendar needs to shade cells, and they
+ * say nothing about cycle length or history. See migration 0019.
+ */
+export interface PeriodWindow {
+  start: string
+  end: string
+}
+
+export interface PeriodWindowsResult {
+  /** Only present on the partner's call. The owner's own call omits it. */
+  shared?: boolean
+  windows: PeriodWindow[]
+}
+
 export interface ReminderPrefs {
   enabled: boolean
   want_anniversary: boolean

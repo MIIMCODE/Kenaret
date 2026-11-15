@@ -37,6 +37,11 @@ const RPC_MESSAGES: Record<string, string> = {
   BAD_KEY_MATERIAL: 'ساخت قفل ناقص شد. یک بار دیگر امتحان کن.',
   VAULT_LOCKED: 'این اتاق هنوز قفل ندارد. اول برایش رمز بگذار.',
   EMPTY_NOTE: 'نوشته خالی است. یک چیزی بنویس.',
+  /* calendar events (migration 0019) */
+  EMPTY_TITLE: 'یک عنوان بنویس تا این روز ذخیره شود.',
+  BAD_VISIBILITY: 'این حالت دیده‌شدن شناخته نشد. صفحه را تازه کن.',
+  EVENT_NOT_FOUND: 'این روز پیدا نشد — شاید همان لحظه حذفش کرده.',
+  NOT_YOUR_EVENT: 'این روز خصوصیِ خودِ اویی است؛ فقط خودش می‌تواند حذفش کند.',
 }
 
 const AUTH_MESSAGES: Record<string, string> = {

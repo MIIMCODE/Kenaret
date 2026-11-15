@@ -3,11 +3,14 @@ import type { ReminderQueueRow } from './reminders'
 import type {
   AlbumPhoto,
   AlbumStats,
+  CalendarEntry,
+  CalendarVisibility,
   ChatMessage,
   Gender,
   PairingState,
   PartnerCycleStatus,
   PeriodSettings,
+  PeriodWindowsResult,
   ReminderLogRow,
   ReminderPrefs,
   PushConfig,
@@ -264,6 +267,85 @@ export async function fetchUpcomingReminders(days = 3): Promise<ReminderQueueRow
  * The server owns every rule here — date not in the past, one row per couple,
  * couple-scoped — so the UI only has to report what came back.
  */
+// ------------------------------------------------------------------
+// The shared calendar: entries the couple writes themselves
+// ------------------------------------------------------------------
+
+/**
+ * Everything on the caller's couple calendar.
+ *
+ * The table is select-only and its RLS already hides a partner's private
+ * rows, so there is no visibility filter here — a missing row is not
+ * "filtered out", it is genuinely not readable by this account.
+ */
+export async function fetchCalendarEvents(): Promise<CalendarEntry[]> {
+  const { data, error } = await supabase
+    .from('calendar_events')
+    .select('id, title, note, event_on, emoji, visibility, created_by, created_at, updated_at')
+    .order('event_on', { ascending: true })
+
+  if (error) throw error
+  return (data ?? []) as CalendarEntry[]
+}
+
+export interface NewCalendarEntry {
+  title: string
+  eventOn: string
+  emoji: string
+  note?: string | null
+  visibility: CalendarVisibility
+}
+
+/**
+ * Adds an entry. The server owns the rules — title length, emoji length, the
+ * active-couple check and who may write — so nothing here validates beyond
+ * what makes a useful error message.
+ */
+export async function addCalendarEvent(entry: NewCalendarEntry): Promise<CalendarEntry> {
+  const { data, error } = await supabase.rpc('add_calendar_event', {
+    p_title: entry.title,
+    p_event_on: entry.eventOn,
+    p_emoji: entry.emoji,
+    p_note: entry.note ?? null,
+    p_visibility: entry.visibility,
+  })
+
+  if (error) throw error
+  return (data as { event: CalendarEntry }).event
+}
+
+export async function deleteCalendarEvent(id: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_calendar_event', { p_id: id })
+  if (error) throw error
+}
+
+/**
+ * Her own predicted period windows.
+ *
+ * Owner-only: `period_settings` is readable by nobody else, and this function
+ * is SECURITY DEFINER with `auth.uid()` as the only argument, so there is no
+ * way to ask it about somebody else.
+ */
+export async function fetchMyPeriodWindows(months = 6): Promise<PeriodWindowsResult> {
+  const { data, error } = await supabase.rpc('my_period_windows', { p_months: months })
+  if (error) throw error
+  return (data as PeriodWindowsResult | null) ?? { windows: [] }
+}
+
+/**
+ * Her partner's windows — the *only* way a boy's calendar can shade a period
+ * day, because the partner cannot read `period_settings` at all.
+ *
+ * Returns `shared: false` when she has not turned the share on, and the
+ * server re-checks consent on every call, so revoking it takes effect on the
+ * next page load with no cache to invalidate.
+ */
+export async function fetchPartnerPeriodWindows(): Promise<PeriodWindowsResult> {
+  const { data, error } = await supabase.rpc('partner_period_windows')
+  if (error) throw error
+  return (data as PeriodWindowsResult | null) ?? { shared: false, windows: [] }
+}
+
 export async function saveReunion(meetOn: string, note?: string | null): Promise<ReunionState> {
   const { data, error } = await supabase.rpc('set_reunion', {
     p_date: meetOn,
