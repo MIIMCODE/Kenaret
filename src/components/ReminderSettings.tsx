@@ -67,7 +67,7 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
     return (
       <section className="card p-5">
         <h2 className="text-[14px] font-extrabold text-ink-900">یادآوری‌ها</h2>
-        <Spinner className="mx-auto my-4 h-5 w-5 text-blush-500" />
+        <Spinner className="mx-auto my-4 h-5 w-5 text-[#c4194a]" />
       </section>
     )
   }
@@ -123,13 +123,13 @@ export default function ReminderSettings({ isGirl }: { isGirl: boolean }) {
         )}
       </div>
 
-      <p className="rounded-xl bg-lilac-100/60 px-3 py-2 text-[10px] leading-5 text-ink-700">
+      <p className="rounded-none bg-[#f0eaff] px-3 py-2 text-[10px] leading-5 text-ink-700">
         این یادآوری‌ها همیشه در زنگوله‌ی بالای صفحه می‌آیند، حتی اگر ایمیلی نرسد. ایمیل یک کانال
         اضافه است، نه جایگزین.
       </p>
 
       {log.length > 0 && (
-        <details className="rounded-xl border border-blush-100 bg-blush-50/70 px-3 py-2">
+        <details className="rounded-none border border-[#1a1424] bg-[#ffefda] px-3 py-2">
           <summary className="cursor-pointer text-[11px] font-bold text-ink-700">
             آخرین یادآوری‌های فرستاده‌شده
           </summary>
@@ -185,7 +185,7 @@ function Row({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-start justify-between gap-3 rounded-2xl border border-blush-100 px-3.5 py-3 transition ${
+      className={`flex cursor-pointer items-start justify-between gap-3 rounded-none border border-[#1a1424] px-3.5 py-3 transition ${
         disabled ? 'cursor-not-allowed bg-[#fdf6f8]' : 'bg-[#fdf6f8] hover:bg-white'
       }`}
     >
@@ -195,7 +195,7 @@ function Row({
       </span>
 
       <span className="relative mt-0.5 flex shrink-0 items-center">
-        {busy && <Spinner className="absolute -right-6 h-4 w-4 text-blush-500" />}
+        {busy && <Spinner className="absolute -right-6 h-4 w-4 text-[#c4194a]" />}
         <input
           type="checkbox"
           className="peer sr-only"
@@ -214,7 +214,7 @@ function Row({
         <span
           aria-hidden="true"
           data-on={checked}
-          className="switch-rail peer-focus-visible:ring-4 peer-focus-visible:ring-blush-200"
+          className="switch-rail peer-focus-visible:ring-4 peer-focus-visible:ring-[#1a1424]"
         >
           <span aria-hidden="true" className="switch-knob" />
         </span>

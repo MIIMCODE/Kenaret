@@ -65,18 +65,18 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
       {/* Preview + upload */}
       <div className="flex items-center gap-4">
         <div className="relative h-[76px] w-[76px] shrink-0">
-          <div className="h-full w-full overflow-hidden rounded-full bg-blush-100 ring-4 ring-white shadow-soft">
+          <div className="h-full w-full overflow-hidden rounded-full bg-[#ffefda] ring-[3px] ring-[#1a1424]">
             {previewSrc ? (
               <img src={previewSrc} alt="پیش‌نمایش عکس پروفایل" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl text-blush-400">
+              <div className="flex h-full w-full items-center justify-center text-2xl text-[#c4194a]">
                 {(displayName?.trim()?.[0] ?? '؟').toUpperCase()}
               </div>
             )}
           </div>
           {uploading && (
             <div className="absolute inset-0 flex items-center justify-center rounded-full bg-white/70">
-              <Spinner className="h-5 w-5 text-blush-500" />
+              <Spinner className="h-5 w-5 text-[#c4194a]" />
             </div>
           )}
         </div>
@@ -114,9 +114,9 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
       {error && <Alert tone="error">{error}</Alert>}
 
       <div className="relative flex items-center gap-3">
-        <div className="h-px flex-1 bg-blush-100" />
+        <div className="h-px flex-1 bg-[#1a1424]" />
         <span className="text-[11.5px] font-semibold text-ink-500">یا یکی از این‌ها را انتخاب کن</span>
-        <div className="h-px flex-1 bg-blush-100" />
+        <div className="h-px flex-1 bg-[#1a1424]" />
       </div>
 
       <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
@@ -134,8 +134,8 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
               aria-pressed={active}
               aria-label={avatar.label}
               title={avatar.label}
-              className={`group relative aspect-square overflow-hidden rounded-2xl bg-blush-50 transition-all duration-200 ${
-                active ? 'ring-2 ring-blush-500 ring-offset-2 ring-offset-transparent shadow-soft scale-[1.03]' : 'ring-1 ring-blush-100 hover:ring-blush-300'
+              className={`group relative aspect-square overflow-hidden rounded-none bg-[#ffefda] transition-all duration-200 ${
+                active ? 'ring-[3px] ring-[#1a1424] shadow-[4px_4px_0_#1a1424]' : 'ring-2 ring-transparent hover:ring-[#1a1424]/30'
               }`}
             >
               <img
@@ -147,7 +147,7 @@ export default function AvatarStep({ value, onUpload, onChange, displayName }: P
                 height={256}
               />
               {active && (
-                <span className="absolute bottom-1 left-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#bf2f59] text-white shadow-soft">
+                <span className="absolute bottom-1 left-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#1a1424] bg-[#ffd23f] text-[#1a1424]">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path
                       d="M5 12.5l4.5 4.5L19 7"

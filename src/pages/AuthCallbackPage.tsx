@@ -134,7 +134,7 @@ export default function AuthCallbackPage() {
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4 py-4 text-center">
-          <Spinner className="h-7 w-7 text-blush-500" />
+          <Spinner className="h-7 w-7 text-[#c4194a]" />
           <p className="text-[13px] leading-6 text-ink-500">{message}</p>
         </div>
       )}

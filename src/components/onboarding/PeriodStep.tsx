@@ -20,7 +20,7 @@ export default function PeriodStep({ value, onChange, errors }: Props) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-blush-100 bg-blush-50/70 px-4 py-3">
+      <div className="rounded-none border border-[#1a1424] bg-[#ffefda] px-4 py-3">
         <p className="text-[12px] leading-6 text-ink-700">
           🔒 این اطلاعات <span className="font-bold">فقط برای خودت</span> قابل مشاهده است؛ حتی شریکت
           هم به آن دسترسی ندارد.
@@ -104,8 +104,8 @@ export default function PeriodStep({ value, onChange, errors }: Props) {
                 type="button"
                 onClick={() => onChange({ isRegular: option.value })}
                 aria-pressed={active}
-                className={`rounded-2xl border px-3 py-3 text-[13px] font-bold transition ${
-                  active ? 'border-blush-400 bg-[#bf2f59] text-white shadow-soft' : 'tile tile-hover border-blush-200 text-ink-700 hover:border-blush-300'
+                className={`rounded-none border px-3 py-3 text-[13px] font-bold transition ${
+                  active ? 'border-[#1a1424] bg-[#ffd23f] text-[#1a1424] shadow-[4px_4px_0_#1a1424]' : 'tile tile-hover border-[#1a1424] text-[#1a1424]'
                 }`}
               >
                 {option.label}

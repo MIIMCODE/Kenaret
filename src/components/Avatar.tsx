@@ -49,9 +49,9 @@ export default function Avatar({ src, name, size = 56, className = '', ring = fa
 
   return (
     <div
-      className={`relative shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${
-        showImage ? 'bg-blush-100' : gradientFor(name ?? initial)
-      } ${ring ? 'ring-4 ring-white shadow-soft' : ''} ${className}`}
+      className={`relative shrink-0 overflow-hidden rounded-full bg-brut-lilac ${
+        showImage ? 'bg-[#1a1424]' : gradientFor(name ?? initial)
+      } ${ring ? 'ring-[3px] ring-[#1a1424]' : ''} ${className}`}
       style={{ width: size, height: size }}
       aria-hidden={!name}
     >

@@ -14,7 +14,7 @@ export default function ConfigMissingPage() {
         </p>
         <pre
           dir="ltr"
-          className="mt-4 overflow-x-auto rounded-2xl bg-ink-900/95 p-4 text-left text-[12px] leading-6 text-blush-100"
+          className="mt-4 overflow-x-auto rounded-none bg-ink-900/95 p-4 text-left text-[12px] leading-6 text-[#ffb3c1]"
         >
           <code>
             VITE_SUPABASE_URL{'\n'}

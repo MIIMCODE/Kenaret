@@ -233,9 +233,9 @@ export default function JalaliDatePicker({
           closing ? 'animate-sheet-out' : 'animate-sheet-in'
         }`}
       >
-        <div className="glass glass-thick max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:rounded-3xl sm:pb-3">
+        <div className="glass glass-thick max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:rounded-none sm:pb-3">
           {/* drag handle (phones only) */}
-          <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-blush-100 sm:hidden" />
+          <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-[#1a1424] sm:hidden" />
 
           <div className="mb-2 flex items-center justify-between gap-2">
             <h2 className="text-[13.5px] font-extrabold text-ink-900">انتخاب تاریخ</h2>
@@ -243,19 +243,19 @@ export default function JalaliDatePicker({
               type="button"
               onClick={close}
               aria-label="بستن تقویم"
-              className="rounded-xl px-2.5 py-1.5 text-[12px] font-bold text-ink-500 transition hover:bg-blush-50 hover:text-ink-700"
+              className="rounded-none px-2.5 py-1.5 text-[12px] font-bold text-ink-500 transition hover:bg-[#ffefda] hover:text-ink-700"
             >
               بستن
             </button>
           </div>
 
           {/* Header: month stepping + jump-to-year */}
-          <div className="mb-2 flex items-center justify-between gap-1 rounded-2xl bg-blush-50/60 px-1 py-1">
+          <div className="mb-2 flex items-center justify-between gap-1 rounded-none bg-[#ffefda] px-1 py-1">
             <button
               type="button"
               onClick={() => stepMonth(-1)}
               aria-label="ماه قبل"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-blush-800 transition hover:bg-white active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-none text-blush-800 transition hover:bg-white active:scale-95"
             >
               <ChevronRight />
             </button>
@@ -264,7 +264,7 @@ export default function JalaliDatePicker({
               <button
                 type="button"
                 onClick={() => setYearMode((v) => !v)}
-                className="rounded-lg px-2 py-0.5 text-[13px] font-extrabold text-ink-900 transition hover:bg-white"
+                className="rounded-none px-2 py-0.5 text-[13px] font-extrabold text-ink-900 transition hover:bg-white"
               >
                 {JALALI_MONTHS[viewMonth - 1]} {toPersianDigits(viewYear)}
                 <span className="mr-1 inline-block text-[9px] text-ink-500">▾</span>
@@ -282,7 +282,7 @@ export default function JalaliDatePicker({
                     el.click()
                   }
                 }}
-                className="mt-0.5 rounded-lg px-1.5 text-[10.5px] font-semibold text-blush-800"
+                className="mt-0.5 rounded-none px-1.5 text-[10.5px] font-semibold text-blush-800"
               >
                 پرش به ماه و سال
               </button>
@@ -292,7 +292,7 @@ export default function JalaliDatePicker({
               type="button"
               onClick={() => stepMonth(1)}
               aria-label="ماه بعد"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-blush-800 transition hover:bg-white active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-none text-blush-800 transition hover:bg-white active:scale-95"
             >
               <ChevronLeft />
             </button>
@@ -320,8 +320,8 @@ export default function JalaliDatePicker({
                     setYearMode(false)
                     window.setTimeout(clampView, 0)
                   }}
-                  className={`rounded-xl py-2.5 text-[13px] font-semibold transition ${
-                    y === viewYear ? 'bg-[#bf2f59] text-white' : 'text-ink-700 hover:bg-blush-50'
+                  className={`rounded-none py-2.5 text-[13px] font-semibold transition ${
+                    y === viewYear ? 'bg-[#ff4d6d] text-[#1a1424]' : 'text-[#1a1424] hover:bg-[#ffefda]'
                   }`}
                 >
                   {toPersianDigits(y)}
@@ -362,8 +362,8 @@ export default function JalaliDatePicker({
                       aria-current={isToday ? 'date' : undefined}
                       aria-label={iso ? toPersianDigits(`${day} ${JALALI_MONTHS[viewMonth - 1]} ${viewYear}`) : undefined}
                       // 44 px targets: the iOS minimum for a comfortable tap.
-                      className={`h-11 rounded-xl text-[14px] font-semibold transition active:scale-95 ${
-                        isSelected ? 'bg-[#bf2f59] text-white shadow-soft' : disabled ? 'cursor-not-allowed text-ink-500/25' : isToday ? 'bg-blush-50 text-blush-800 ring-1 ring-blush-200' : 'text-ink-700 hover:bg-blush-50'
+                      className={`h-11 rounded-none text-[14px] font-semibold transition active:scale-95 ${
+                        isSelected ? 'bg-[#ff4d6d] text-[#1a1424] font-black' : disabled ? 'cursor-not-allowed text-ink-500/25' : isToday ? 'bg-[#ffd23f] text-[#1a1424] font-black' : 'text-[#1a1424] hover:bg-[#ffefda]'
                       }`}
                     >
                       {toPersianDigits(day)}
@@ -374,7 +374,7 @@ export default function JalaliDatePicker({
             </>
           )}
 
-          <div className="mt-3 flex items-center gap-2 border-t border-blush-100 pt-3">
+          <div className="mt-3 flex items-center gap-2 border-t border-[#1a1424] pt-3">
             <button type="button" onClick={pickToday} className="btn-soft flex-1 py-2.5 text-[13px]">
               امروز
             </button>

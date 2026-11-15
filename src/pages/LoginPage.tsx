@@ -139,7 +139,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="absolute inset-y-0 left-0 flex w-11 items-center justify-center text-ink-500 transition hover:text-blush-600"
+              className="absolute inset-y-0 left-0 flex w-11 items-center justify-center text-ink-500 transition hover:text-[#c4194a]"
               aria-label={showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'}
             >
               {showPassword ? <EyeOff /> : <Eye />}
@@ -151,7 +151,7 @@ export default function LoginPage() {
         {notice && <Alert tone="success">{notice}</Alert>}
 
         {needsConfirmation && (
-          <div className="space-y-2.5 rounded-2xl border border-blush-200 bg-blush-50/70 p-3.5">
+          <div className="space-y-2.5 rounded-none border border-[#1a1424] bg-[#ffefda] p-3.5">
             <p className="text-[11.5px] leading-6 text-ink-700">
               ایمیلت هنوز تأیید نشده. لازم نیست چیزی را از نو بسازی؛ فقط روی لینک داخل ایمیل بزن.
               اگر ایمیل نیامده، دوباره بفرست — این‌جا گیر نمی‌کنی.

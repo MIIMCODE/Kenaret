@@ -143,7 +143,7 @@ export default function DatesPage() {
       <div className="min-h-dvh">
         <AppHeader />
         <div className="page">
-          <Spinner className="mx-auto mt-20 h-8 w-8 text-blush-500" />
+          <Spinner className="mx-auto mt-20 h-8 w-8 text-[#c4194a]" />
         </div>
       </div>
     )
@@ -168,7 +168,7 @@ export default function DatesPage() {
 
         {/* what's today */}
         {today.length > 0 && (
-          <section className="animate-fade-up rounded-3xl border border-blush-200 bg-gradient-to-bl from-blush-50 to-lilac-100/60 p-4">
+          <section className="animate-fade-up border-[3px] border-[#1a1424] bg-white p-4 shadow-[6px_6px_0_#1a1424]">
             <p className="text-[11px] font-bold text-blush-800">امروز</p>
             <ul className="mt-1.5 space-y-1">
               {today.map((event) => (
@@ -193,7 +193,7 @@ export default function DatesPage() {
               </div>
               <Link
                 to="/settings"
-                className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-800"
+                className="rounded-none bg-[#ffefda] px-3 py-1.5 text-[11px] font-bold text-blush-800"
               >
                 تغییر
               </Link>
@@ -228,12 +228,12 @@ export default function DatesPage() {
               {!period?.isRegular && ' • تخمینی، چون چرخه‌ات نامنظم است'}
             </p>
             {sharingCycle ? (
-              <p className="mt-2 rounded-xl bg-lilac-100 px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-ink-700">
+              <p className="mt-2 rounded-none bg-[#f0eaff] px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-ink-700">
                 اشتراک‌گذاری روشن است: شریکت فقط همین خلاصه را می‌بیند — نه تاریخ‌ها و نه طول
                 چرخه. از تنظیمات می‌توانی خاموشش کنی.
               </p>
             ) : (
-              <p className="mt-2 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] font-semibold text-blush-800">
+              <p className="mt-2 rounded-none bg-[#ffefda] px-2.5 py-1.5 text-[10px] font-semibold text-blush-800">
                 این بخش فقط برای خودت دیده می‌شود، حتی شریکت هم دسترسی ندارد.
               </p>
             )}
@@ -273,7 +273,7 @@ export default function DatesPage() {
               <button
                 type="button"
                 onClick={() => setSelectedDay(null)}
-                className="text-[10.5px] font-bold text-ink-500 hover:text-blush-600"
+                className="text-[10.5px] font-bold text-ink-500 hover:text-[#c4194a]"
               >
                 بستن
               </button>
@@ -333,7 +333,7 @@ export default function DatesPage() {
             <section key={group.key}>
               <div className="mb-2 flex items-center gap-2">
                 <h2 className="text-[12px] font-extrabold text-ink-900">{group.label}</h2>
-                <span className="h-px flex-1 bg-gradient-to-l from-transparent via-blush-200 to-transparent" />
+                <span className="h-[3px] flex-1 bg-[#1a1424]" />
               </div>
               <ul className="space-y-2">
                 {group.events.map((event) => (
@@ -370,13 +370,13 @@ function EventRow({ event }: { event: CalendarEvent }) {
   const today = event.daysUntil === 0
   return (
     <li
-      className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 ${
-        today ? 'border-blush-300 bg-blush-50/80' : event.private ? 'border-lilac-200 bg-lilac-100/40' : 'border-blush-100 bg-white'
+      className={`flex items-center gap-3 rounded-none border px-3.5 py-3 ${
+        today ? 'border-[#1a1424] bg-[#ffd23f]' : event.private ? 'border-[#1a1424] bg-[#f0eaff]/40' : 'border-[#1a1424] bg-white'
       }`}
     >
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] ${
-          event.private ? 'bg-lilac-100' : 'bg-blush-50'
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-none text-[15px] ${
+          event.private ? 'bg-[#f0eaff]' : 'bg-[#ffefda]'
         }`}
         aria-hidden="true"
       >
@@ -392,8 +392,8 @@ function EventRow({ event }: { event: CalendarEvent }) {
       </div>
 
       <span
-        className={`shrink-0 rounded-lg px-2 py-1 text-[10.5px] font-extrabold ${
-          today ? 'bg-[#bf2f59] text-white' : 'tile text-blush-800'
+        className={`shrink-0 rounded-none px-2 py-1 text-[10.5px] font-extrabold ${
+          today ? 'bg-[#ff4d6d] text-[#1a1424]' : 'tile text-blush-800'
         }`}
       >
         {daysUntilLabel(event.daysUntil)}
@@ -416,8 +416,10 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-xl px-3 py-1.5 text-[11.5px] font-bold transition ${
-        active ? 'bg-[#bf2f59] text-white' : 'bg-white/80 text-ink-500 hover:bg-white'
+      className={`rounded-none px-3 py-1.5 text-[11.5px] font-bold transition ${
+        active
+          ? 'border-2 border-[#1a1424] bg-[#ff4d6d] font-black text-[#1a1424] shadow-[2px_2px_0_#1a1424]'
+          : 'border-2 border-[#1a1424] bg-white font-bold text-[#4a3f5c] hover:bg-[#ffefda]'
       }`}
     >
       {children}
@@ -470,7 +472,7 @@ function PartnerCycleCard({
     <section className="card p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold text-ink-500">حال {who}</p>
-        <span className="rounded-lg bg-lilac-100 px-2 py-0.5 text-[9.5px] font-bold text-ink-700">
+        <span className="rounded-none bg-[#f0eaff] px-2 py-0.5 text-[9.5px] font-bold text-ink-700">
           با اجازه‌ی خودش
         </span>
       </div>
@@ -485,7 +487,7 @@ function PartnerCycleCard({
         </div>
       </div>
 
-      <p className="mt-2.5 rounded-xl bg-blush-50 px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-blush-800">
+      <p className="mt-2.5 rounded-none bg-[#ffefda] px-2.5 py-1.5 text-[10px] leading-5 font-semibold text-blush-800">
         این خلاصه را خودش با تو به اشتراک گذاشته و هر لحظه می‌تواند خاموشش کند.
       </p>
     </section>

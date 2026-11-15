@@ -36,7 +36,7 @@ export default function RequestList({
         {items.map((item) => (
           <li
             key={item.couple_id}
-            className="well flex items-center gap-3 rounded-2xl px-3 py-2.5"
+            className="well flex items-center gap-3 rounded-none px-3 py-2.5"
           >
             <Avatar src={item.avatar_url} name={item.display_name} size={42} />
 
@@ -53,8 +53,8 @@ export default function RequestList({
               type="button"
               onClick={() => onAction(item)}
               disabled={pendingId === item.couple_id}
-              className={`tile shrink-0 rounded-xl px-3 py-1.5 text-[11.5px] font-bold transition active:scale-95 disabled:opacity-50 ${
-                variant === 'incoming' ? 'bg-mint-100 text-mint-700 hover:text-mint-700' : 'tile text-blush-800 hover:brightness-[1.03]'
+              className={`tile shrink-0 rounded-none px-3 py-1.5 text-[11.5px] font-bold transition active:scale-95 disabled:opacity-50 ${
+                variant === 'incoming' ? 'bg-[#ddfaf3] text-mint-700 hover:text-mint-700' : 'tile text-blush-800 hover:brightness-[1.03]'
               }`}
             >
               {pendingId === item.couple_id ? '...' : actionLabel}

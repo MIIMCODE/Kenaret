@@ -85,7 +85,7 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
         <section className="card animate-fade-up rounded-[1.75rem] p-5">
           <div className="flex items-start gap-3">
             <span
-              className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-lilac-100 text-lilac-700"
+              className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-none bg-[#f0eaff] text-lilac-700"
               aria-hidden="true"
             >
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
@@ -160,10 +160,28 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
 
   return (
     <section className="card relative animate-fade-up overflow-hidden rounded-[1.75rem] p-5">
-      {/* The two blobs are behind the content and clipped by the card, which
-          is what keeps the countdown from looking like plain text on paper. */}
-      <span className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-blush-200/50 blur-2xl" />
-      <span className="pointer-events-none absolute -bottom-12 -left-8 h-28 w-28 rounded-full bg-lilac-300/40 blur-2xl" />
+      {/* The two discs are behind the content and clipped by the card, which
+          keeps the countdown from being plain text on paper. They used to be
+          blurred colour fields; a screen of halftone dots does the same job
+          and belongs to the print language. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full border-[3px] border-[#1a1424]/25"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at center, rgba(26,20,36,0.22) 1.5px, transparent 1.6px)',
+          backgroundSize: '7px 7px',
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-10 -left-6 h-24 w-24 rounded-full border-[3px] border-[#1a1424]/20"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at center, rgba(26,20,36,0.18) 1.5px, transparent 1.6px)',
+          backgroundSize: '7px 7px',
+        }}
+      />
 
       <div className="relative">
         <div className="flex items-start justify-between gap-2">
@@ -173,7 +191,7 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="tile shrink-0 rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 transition hover:brightness-[1.03]"
+            className="tile shrink-0 rounded-none px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 transition hover:brightness-[1.03]"
           >
             {isPast ? 'تاریخ تازه' : 'ویرایش'}
           </button>
@@ -197,19 +215,19 @@ export default function ReunionCard({ reunion, onChanged, partnerName }: Props) 
         </p>
 
         {reunion.note && (
-          <p className="well mt-2.5 rounded-2xl px-3 py-2 text-[11.5px] leading-6 text-ink-700">
+          <p className="well mt-2.5 rounded-none px-3 py-2 text-[11.5px] leading-6 text-ink-700">
             {reunion.note}
           </p>
         )}
 
         {isNear && view.upcoming && (
-          <p className="well mt-3 rounded-2xl px-3 py-2 text-center text-[11.5px] font-bold text-blush-800">
+          <p className="well mt-3 rounded-none px-3 py-2 text-center text-[11.5px] font-bold text-blush-800">
             {view.days === 0 ? '🤍 امروز، بالاخره' : '🤍 فردا همین موقع کنار همید'}
           </p>
         )}
 
         {isPast && (
-          <p className="well mt-3 rounded-2xl px-3 py-2 text-center text-[11px] font-semibold text-ink-700">
+          <p className="well mt-3 rounded-none px-3 py-2 text-center text-[11px] font-semibold text-ink-700">
             این تاریخ گذشت. برای دیدار بعدی یک تاریخ تازه بگذار.
           </p>
         )}
@@ -252,7 +270,7 @@ function Editor({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg px-2 py-1 text-[11px] font-bold text-ink-700 hover:text-ink-900"
+          className="rounded-none px-2 py-1 text-[11px] font-bold text-ink-700 hover:text-ink-900"
         >
           بستن
         </button>
@@ -282,7 +300,7 @@ function Editor({
       </label>
 
       {error && (
-        <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-[11.5px] font-semibold text-red-600">
+        <p className="mt-2 rounded-none bg-red-50 px-3 py-2 text-[11.5px] font-semibold text-red-600">
           {error}
         </p>
       )}
@@ -301,7 +319,7 @@ function Editor({
           type="button"
           onClick={onClear}
           disabled={busy}
-          className="mt-2 w-full rounded-xl py-2 text-[11.5px] font-semibold text-ink-700 transition hover:text-red-500 disabled:opacity-60"
+          className="mt-2 w-full rounded-none py-2 text-[11.5px] font-semibold text-ink-700 transition hover:text-red-500 disabled:opacity-60"
         >
           پاک کردن شمارنده
         </button>

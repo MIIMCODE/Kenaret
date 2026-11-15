@@ -489,7 +489,7 @@ function clamp(value: number, min: number, max: number): number {
 function LoadingShell() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4">
-      <Spinner className="h-7 w-7 text-blush-500" />
+      <Spinner className="h-7 w-7 text-[#c4194a]" />
       <p className="text-[13px] text-ink-500">داریم فرمت را آماده می‌کنیم...</p>
     </div>
   )

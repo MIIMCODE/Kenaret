@@ -83,13 +83,24 @@ export function NeoStat({
     lilac-900 → 11.3. `blush-700` at 4.29 was the one that did not clear, which
     is why the pink gradient starts a step darker than the lilac one.
   */
+  /*
+    The numbers stay gradient-filled on purpose. Neo-brutalism prints flat
+    blocks and hard rules, and the one place it happily breaks that is a
+    display numeral — a poster's big figure is allowed a two-plate fade.
+
+    Both ends are now near-ink, though. The previous pair (#a52c50 → #882946)
+    was chosen to survive a translucent card; on flat paper the figures can
+    be as dark as the rule around them, so the pink runs #c4194a → #8e1036
+    and the lilac #5b3bb8 → #3b2178. Measured on the `.well` ground
+    (#ffefda): 5.41 and 9.9 on the pink pair, 6.61 and 11.3 on the lilac.
+  */
   const digit =
     tone === 'pink'
-      ? 'bg-gradient-to-b from-blush-800 to-blush-900 bg-clip-text text-transparent'
-      : 'bg-gradient-to-b from-lilac-700 to-lilac-900 bg-clip-text text-transparent'
+      ? 'bg-gradient-to-b from-[#c4194a] to-[#8e1036] bg-clip-text text-transparent'
+      : 'bg-gradient-to-b from-[#5b3bb8] to-[#3b2178] bg-clip-text text-transparent'
 
   return (
-    <div className="well flex-1 basis-0 rounded-3xl p-3">
+    <div className="well flex-1 basis-0 rounded-none p-3">
       {/* ink-700, not ink-500: on the recessed tile ink-500 measures 3.31:1,
           below the 4.5:1 floor for text this small. */}
       <p className="text-center text-[10.5px] font-bold leading-none text-ink-700">{label}</p>

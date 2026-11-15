@@ -21,13 +21,13 @@ export default function GenderStep({ value, onChange }: Props) {
             type="button"
             onClick={() => onChange(option.gender)}
             aria-pressed={active}
-            className={`flex w-full items-center gap-4 rounded-3xl border p-4 text-right transition-all duration-200 ${
-              active ? 'border-blush-400 bg-blush-50 shadow-soft' : 'tile tile-hover border-blush-200 hover:border-blush-300'
+            className={`flex w-full items-center gap-4 rounded-none border p-4 text-right transition-all duration-200 ${
+              active ? 'border-[#1a1424] bg-[#ffd23f] shadow-[4px_4px_0_#1a1424]' : 'tile tile-hover border-[#1a1424]'
             }`}
           >
             <span
-              className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl ${
-                active ? 'bg-blush-200' : 'bg-blush-100'
+              className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-none text-2xl ${
+                active ? 'bg-[#1a1424]' : 'bg-[#1a1424]'
               }`}
               aria-hidden="true"
             >
@@ -39,7 +39,7 @@ export default function GenderStep({ value, onChange }: Props) {
             </span>
             <span
               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ${
-                active ? 'border-blush-600 bg-blush-600' : 'tile border-blush-200'
+                active ? 'border-blush-600 bg-blush-600' : 'tile border-[#1a1424]'
               }`}
               aria-hidden="true"
             >

@@ -24,7 +24,7 @@ const TONES: Record<Tone, { wrap: string; icon: string; glyph: ReactNode }> = {
     ),
   },
   info: {
-    wrap: 'border-lilac-300 bg-lilac-100 text-ink-700',
+    wrap: 'border-[#1a1424] bg-[#f0eaff] text-ink-700',
     icon: 'text-lilac-500',
     glyph: (
       <>
@@ -48,7 +48,7 @@ export default function Alert({
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`flex items-start gap-2.5 rounded-2xl border px-3.5 py-3 text-[13px] font-medium leading-6 animate-fade-up ${
+      className={`flex items-start gap-2.5 rounded-none border px-3.5 py-3 text-[13px] font-medium leading-6 animate-fade-up ${
         style.wrap
       } ${className}`}
     >

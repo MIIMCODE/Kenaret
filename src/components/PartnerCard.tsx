@@ -26,7 +26,7 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
             {partner.display_name ?? 'شریک تو'}
           </h2>
 
-          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-mint-100 px-3 py-1 text-[11px] font-bold text-mint-700 shadow-[inset_1px_1px_3px_rgba(28,107,85,0.12)]">
+          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border-2 border-[#1a1424] bg-[#5eead4] px-3 py-1 text-[11px] font-black text-[#1a1424]">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint-700" />
             به هم وصل هستید
           </span>
@@ -35,7 +35,7 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
             <p className="mt-3 text-[12.5px] text-ink-700">
               تولد: <span className="font-bold text-ink-700">{formatJalaliLong(birthday)}</span>
               {nextBirthday !== null && nextBirthday <= 30 && (
-                <span className="mr-1.5 rounded-md bg-blush-100 px-1.5 py-0.5 text-[10.5px] font-bold text-blush-800">
+                <span className="mr-1.5 rounded-none bg-[#1a1424] px-1.5 py-0.5 text-[10.5px] font-bold text-blush-800">
                   {nextBirthday === 0 ? 'امروزه! 🎂' : `${fa(nextBirthday)} روز مانده`}
                 </span>
               )}
@@ -66,7 +66,7 @@ export default function PartnerCard({ partner, onUnlink }: { partner: Partner; o
         <button
           type="button"
           onClick={onUnlink}
-          className="w-full rounded-xl py-2 text-[12px] font-semibold text-ink-700 transition hover:bg-red-50 hover:text-red-500"
+          className="w-full rounded-none py-2 text-[12px] font-semibold text-ink-700 transition hover:bg-red-50 hover:text-red-500"
         >
           قطع ارتباط با {partner.display_name ?? 'شریک'}
         </button>

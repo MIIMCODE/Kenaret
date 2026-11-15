@@ -93,7 +93,7 @@ export default function CycleShareSettings({ hasCycle }: { hasCycle: boolean }) 
   const disabled = busy || !paired || !hasCycle
 
   return (
-    <div className="tile space-y-3 rounded-2xl p-4">
+    <div className="tile space-y-3 rounded-none p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[12.5px] font-extrabold text-ink-900">اشتراک‌گذاری با شریکم</p>
@@ -105,7 +105,7 @@ export default function CycleShareSettings({ hasCycle }: { hasCycle: boolean }) 
       </div>
 
       {shared ? (
-        <div className="rounded-2xl border border-blush-300 bg-blush-50 px-3.5 py-3">
+        <div className="rounded-none border border-[#1a1424] bg-[#ffefda] px-3.5 py-3">
           <p className="flex items-center gap-1.5 text-[12px] font-extrabold text-blush-800">
             <span aria-hidden="true">👁</span> الان روشن است — شریکت می‌بیند
           </p>
@@ -115,7 +115,7 @@ export default function CycleShareSettings({ hasCycle }: { hasCycle: boolean }) 
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl bg-blush-50/70 px-3.5 py-3">
+        <div className="rounded-none bg-[#ffefda] px-3.5 py-3">
           <p className="text-[12px] font-extrabold text-ink-700">
             {everShared ? 'خاموش است — از وقتی خاموش کردی چیزی نمی‌بیند' : 'خاموش است — چیزی نمی‌بیند'}
           </p>

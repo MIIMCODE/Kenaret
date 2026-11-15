@@ -193,7 +193,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/app"
-            className="flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-blush-600"
+            className="flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-[#c4194a]"
             aria-label="بازگشت"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -210,7 +210,7 @@ export default function SettingsPage() {
               <Avatar src={profile.avatar_url} name={profile.display_name} size={72} ring />
               {uploading && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-white/70">
-                  <Spinner className="h-5 w-5 text-blush-500" />
+                  <Spinner className="h-5 w-5 text-[#c4194a]" />
                 </div>
               )}
             </div>
@@ -225,7 +225,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => fileInput.current?.click()}
                 disabled={uploading}
-                className="mt-2 rounded-xl bg-blush-50 px-3 py-1.5 text-[11.5px] font-bold text-blush-800 transition hover:bg-blush-100"
+                className="mt-2 rounded-none bg-[#ffefda] px-3 py-1.5 text-[11.5px] font-bold text-blush-800 transition hover:bg-[#1a1424]"
               >
                 تغییر عکس پروفایل
               </button>
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                     setEditingAnniversary(true)
                     setAnniversaryNotice(null)
                   }}
-                  className="rounded-xl bg-blush-50 px-3 py-1.5 text-[11px] font-bold text-blush-800 transition hover:bg-blush-100"
+                  className="rounded-none bg-[#ffefda] px-3 py-1.5 text-[11px] font-bold text-blush-800 transition hover:bg-[#1a1424]"
                 >
                   تغییر تاریخ
                 </button>
@@ -372,7 +372,7 @@ export default function SettingsPage() {
               type="button"
               onClick={saveProfile}
               disabled={savingProfile}
-              className="btn-primary w-full shadow-soft"
+              className="btn-primary w-full"
             >
               {savingProfile ? <Spinner className="h-4 w-4" /> : null}
               {savingProfile ? 'در حال ذخیره...' : 'ذخیره‌ی تغییرات'}
@@ -392,7 +392,7 @@ export default function SettingsPage() {
 
             {periodLoading ? (
               <div className="flex items-center gap-2 text-[12px] text-ink-500">
-                <Spinner className="h-4 w-4 text-blush-400" /> در حال بارگذاری...
+                <Spinner className="h-4 w-4 text-[#c4194a]" /> در حال بارگذاری...
               </div>
             ) : (
               <>
@@ -449,8 +449,8 @@ export default function SettingsPage() {
                         type="button"
                         onClick={() => setIsRegular(option.value)}
                         aria-pressed={isRegular === option.value}
-                        className={`rounded-2xl border px-3 py-2.5 text-[12.5px] font-bold transition ${
-                          isRegular === option.value ? 'border-blush-400 bg-[#bf2f59] text-white' : 'tile border-blush-200 text-ink-700'
+                        className={`rounded-none border px-3 py-2.5 text-[12.5px] font-bold transition ${
+                          isRegular === option.value ? 'border-blush-400 bg-[#ff4d6d] text-[#1a1424]' : 'tile border-[#1a1424] text-ink-700'
                         }`}
                       >
                         {option.label}
@@ -490,7 +490,7 @@ export default function SettingsPage() {
         {/* ---------- Account ---------- */}
         <section className="card space-y-3 p-5">
           <h2 className="text-[14px] font-extrabold text-ink-900">حساب</h2>
-          <div className="rounded-2xl bg-blush-50 px-4 py-3">
+          <div className="rounded-none bg-[#ffefda] px-4 py-3">
             <p className="text-[11px] text-ink-500">ایمیل</p>
             <p dir="ltr" className="mt-0.5 text-left text-[12.5px] font-bold text-ink-900">
               {user.email}
@@ -508,7 +508,7 @@ export default function SettingsPage() {
                 void signOut().then(() => navigate('/', { replace: true }))
               }
             }}
-            className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] font-bold text-red-600 transition hover:bg-red-100"
+            className="w-full rounded-none border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] font-bold text-red-600 transition hover:bg-red-100"
           >
             خروج از حساب
           </button>

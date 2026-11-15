@@ -7,6 +7,32 @@ export default {
         vazir: ['Vazirmatn', 'system-ui', 'sans-serif'],
       },
       colors: {
+        /*
+         * Neo-brutalism.
+         * ------------------------------------------------------------------
+         * The palette is deliberately small and loud: a warm poster paper,
+         * one near-black that carries every border and every shadow, and
+         * four flat accents that are used as *fills*, never as tints.
+         *
+         * Every accent below is paired with ink text, never white: white on
+         * #FF4D6D is 3.21:1 and fails, while #1A1424 on it is 5.59:1. Using
+         * dark text on a saturated block is also the honest brutalist move —
+         * a poster is printed in two inks, not four plus knockout.
+         */
+        brut: {
+          ink: '#1a1424',
+          'ink-2': '#4a3f5c', // secondary text: 8.29:1 on paper
+          'ink-3': '#564a68', // tertiary: 6.94:1 on paper
+          paper: '#ffe9d6', // the page
+          'paper-2': '#ffefda', // one step lighter, for wells
+          pink: '#ff4d6d',
+          'pink-deep': '#c4194a', // 5.86:1 with white, when white is needed
+          cyan: '#3dd9eb',
+          yellow: '#ffd23f',
+          lilac: '#b79cff',
+          mint: '#5eead4',
+          orange: '#ff9f45',
+        },
         blush: {
           50: '#fff7f9',
           100: '#ffe9ef',
@@ -76,6 +102,23 @@ export default {
       boxShadow: {
         soft: '0 10px 30px -12px rgba(226, 106, 141, 0.28)',
         card: '0 2px 14px -4px rgba(58, 48, 56, 0.10)',
+
+        /*
+         * Hard offset shadows — zero blur, one solid colour.
+         * ------------------------------------------------------------------
+         * This is the single most load-bearing idea in neo-brutalism: the
+         * shadow is ink, not light. It has no spread and no blur because it
+         * is meant to read as a second, misregistered plate of a two-colour
+         * print run rather than as depth.
+         *
+         * Stated in px so the press animation can push a card INTO its own
+         * shadow (translate by +N, shrink the shadow by N) and have the two
+         * meet exactly at rest.
+         */
+        brut: '6px 6px 0 #1a1424',
+        'brut-sm': '3px 3px 0 #1a1424',
+        'brut-lg': '10px 10px 0 #1a1424',
+        'brut-none': '0 0 0 #1a1424',
 
         /*
          * The two lights of neo-morphism. One source, upper-left, casting a

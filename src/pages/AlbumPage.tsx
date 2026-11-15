@@ -211,7 +211,7 @@ export default function AlbumPage() {
       <div className="min-h-dvh">
         <AppHeader />
         <div className="page">
-          <Spinner className="mx-auto mt-20 h-8 w-8 text-blush-500" />
+          <Spinner className="mx-auto mt-20 h-8 w-8 text-[#c4194a]" />
         </div>
       </div>
     )
@@ -233,12 +233,12 @@ export default function AlbumPage() {
         </section>
 
         {error && (
-          <div className="rounded-2xl bg-red-50 px-4 py-2.5 text-[12px] font-bold text-red-600">
+          <div className="rounded-none bg-red-50 px-4 py-2.5 text-[12px] font-bold text-red-600">
             {error}
           </div>
         )}
         {notice && (
-          <div className="rounded-2xl bg-mint-100 px-4 py-2.5 text-[12px] font-bold text-mint-500">
+          <div className="rounded-none bg-[#ddfaf3] px-4 py-2.5 text-[12px] font-bold text-[#0f6b5c]">
             {notice}
           </div>
         )}
@@ -405,14 +405,14 @@ function TodaySlot({
     }
   }, [photo?.storage_path])
 
-  const ring = accent === 'blush' ? 'border-blush-200 bg-blush-50' : 'border-lilac-300 bg-lilac-100/50'
+  const ring = accent === 'blush' ? 'border-[#1a1424] bg-[#ffefda]' : 'border-[#1a1424] bg-[#f0eaff]'
 
   return (
     <button
       type="button"
       onClick={onPick}
       disabled={busy || (accent === 'lilac' && !filled)}
-      className={`relative flex aspect-[4/5] flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed transition ${ring} ${
+      className={`relative flex aspect-[4/5] flex-col items-center justify-center overflow-hidden rounded-none border-2 border-dashed transition ${ring} ${
         filled ? 'border-solid' : ''
       } disabled:opacity-90`}
       aria-label={filled ? `عکس ${label} برای امروز` : `${label} امروز عکسی نگذاشته`}
@@ -424,7 +424,7 @@ function TodaySlot({
           {accent === 'lilac' ? (
             <Avatar src={avatarSrc} name={label} size={40} />
           ) : (
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-blush-500">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-[#c4194a]">
               {busy ? (
                 <Spinner className="h-4 w-4" />
               ) : (
@@ -522,7 +522,7 @@ function Half({
   const aspect = photo.width && photo.height ? photo.width / photo.height : 4 / 5
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-blush-50">
+    <div className="relative overflow-hidden rounded-none bg-[#ffefda]">
       <button type="button" onClick={onOpen} className="block w-full" aria-label={alt}>
         {url ? (
           <img
@@ -533,7 +533,7 @@ function Half({
             className="w-full object-cover"
           />
         ) : (
-          <div className="w-full animate-pulse bg-blush-100" style={{ aspectRatio: String(aspect) }} />
+          <div className="w-full animate-pulse bg-[#1a1424]" style={{ aspectRatio: String(aspect) }} />
         )}
       </button>
 
@@ -575,11 +575,11 @@ function MemoryThumb({ photo }: { photo: AlbumPhoto }) {
 
   return (
     <div className="w-24 shrink-0">
-      <div className="h-24 w-24 overflow-hidden rounded-2xl bg-blush-50">
+      <div className="h-24 w-24 overflow-hidden rounded-none bg-[#ffefda]">
         {url ? (
           <img src={url} alt={dayFull(photo.day)} className="h-full w-full object-cover" loading="lazy" />
         ) : (
-          <div className="h-full w-full animate-pulse bg-blush-100" />
+          <div className="h-full w-full animate-pulse bg-[#1a1424]" />
         )}
       </div>
       <p className="mt-1 text-center text-[9.5px] font-bold text-ink-500">{label}</p>
@@ -659,7 +659,7 @@ function ViewerPhoto({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full overflow-hidden rounded-3xl bg-white/5">
+      <div className="w-full overflow-hidden rounded-none bg-white/5">
         {url ? (
           <img src={url} alt={`عکس ${name}`} className="max-h-[60dvh] w-full object-contain" />
         ) : (
@@ -674,8 +674,8 @@ function ViewerPhoto({
             type="button"
             onClick={() => onReact(photo)}
             aria-pressed={Boolean(photo.reacted_at)}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-bold transition ${
-              photo.reacted_at ? 'bg-white text-blush-800' : 'bg-white/15 text-white'
+            className={`flex items-center gap-1.5 border-2 border-[#1a1424] px-3 py-1.5 text-[11.5px] font-black transition ${
+              photo.reacted_at ? 'bg-[#ff4d6d] text-[#1a1424]' : 'bg-white text-[#1a1424]'
             }`}
           >
             <span aria-hidden="true">{photo.reacted_at ? '🤍' : '♡'}</span>

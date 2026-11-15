@@ -15,6 +15,39 @@
   color-scheme: light;
 
   /* ============================================================
+     NEO-BRUTALISM — poster ink on warm paper.
+     ------------------------------------------------------------
+     Everything below is one of three materials and nothing else:
+
+       · PAPER  — an opaque warm ground (#ffe9d6). It is the page, and it
+                  is a *colour*, not a whitespace. A poster has no "empty".
+       · INK    — #1a1424. Every border on the site is 3px of it, and every
+                  shadow is a hard offset of it. There is no light grey
+                  hairline anywhere: if a thing has an edge, the edge is
+                  drawn.
+       · BLOCK  — a flat accent fill (pink, cyan, yellow, lilac, mint) used
+                  as a solid rectangle. Never as a gradient, never as a
+                  tint, never at 8% alpha.
+
+     The rules that follow from that:
+
+       · NO BLUR. `--glass-blur` is `none` and no component reintroduces it.
+         A blurred edge is the opposite of a drawn one.
+       · NO SOFT SHADOW. Depth is a 6px hard offset in ink, or nothing.
+       · NO GRADIENT ON A SURFACE. Gradients are for text only, and there is
+         exactly one place that survives (`.digit-gradient`, the stat
+         readouts) because a faded poster numeral still reads as printed.
+       · RADIUS IS 0 (or a pill for things that are physically round). Soft
+         corners are the tell that gives away a gentle design.
+
+     Contrast on the page paper (#ffe9d6):
+       brut-ink 15.29:1 · brut-ink-2 8.29:1 · brut-ink-3 6.94:1
+     On white cards: 17.96 / 9.74 / 8.16. On the pink block (#ff4d6d):
+     ink 5.59:1 — which is why accent blocks carry DARK text, never white.
+     Ink on cyan 10.54, on yellow 12.44, on lilac 7.88, on mint 12.14.
+     ============================================================ */
+
+  /* ============================================================
      Surfaces — simple, solid, light.
      ------------------------------------------------------------
      The site is a warm paper page with white cards on it. That is the whole
@@ -33,22 +66,30 @@
      step clears AA. Solid white is the most legible surface this design has
      ever had on this page, which is the point of it.
      ============================================================ */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-wash: rgba(255, 255, 255, 0);
-  --glass-border: rgba(255, 255, 255, 1);
+  /* The token names survive (sixteen call sites reference them) but they now
+     mean brutalist things: `--glass-bg` is an opaque paper white, the border
+     is ink, and the shadow is a hard offset. */
+  --glass-bg: #ffffff;
+  --glass-wash: #ffffff;
+  --glass-border: #1a1424;
   --glass-blur: none;
-  --glass-shadow: 0 2px 14px -4px rgba(58, 48, 56, 0.1);
+  --glass-shadow: 6px 6px 0 #1a1424;
 
-  --radius-card: 28px;
+  /* Zero radius. The one deliberate exception is `--radius-pill`, because a
+     badge or an avatar is a circle in the physical world and squaring it
+     would read as a bug rather than as a style. */
+  --radius-card: 0px;
   --radius-pill: 999px;
 
-  /* Sheets and modals sit over a dimmed page rather than a bright one, so
-     their 85% white would let the dark scrim through and grey the text. They
-     get a nearly solid fill instead. */
-  --glass-bg-thick: rgba(255, 255, 255, 0.97);
+  --glass-bg-thick: #ffffff;
 
-  /* The dimmer behind every modal and bottom sheet. */
-  --glass-scrim: rgba(38, 24, 34, 0.32);
+  /* The dimmer behind a sheet: flat ink at 55%, no blur. A blurred scrim is
+     a gentle idea and this design does not have any. */
+  --glass-scrim: rgba(26, 20, 36, 0.55);
+
+  /* The brutalist line weight, in one place, because three different
+     components draw edges and they have to agree. */
+  --brut-line: 3px;
 
   /* The tint the page sits on. Kept as tokens because the blobs and the body
      must agree, or the glass has nothing believable to sample. */
@@ -85,17 +126,14 @@
     fixed attachment forces a full repaint per scroll on iOS.
   */
   body {
-    @apply text-ink-900 font-vazir antialiased;
+    @apply font-vazir antialiased;
     min-height: 100dvh;
+    color: #1a1424;
     /*
-      The page itself, under the drifting glow layer.
-
-      Cream, not pink. `#fdf3f6` was the liquid-glass wash — it read as "the
-      page is made of the same material as the cards". Cream is the paper the
-      original design put the cards ON, which is what makes a white card look
-      raised rather than cut out.
+      Poster paper. Warm, opaque, slightly darker than a white card, so a card
+      is the brightest thing on the page and therefore the thing in front.
     */
-    background-color: #fffaf6;
+    background-color: #ffe9d6;
   }
 
   /* Persian digits everywhere inputs are typed */
@@ -116,30 +154,40 @@
   }
 
   ::selection {
-    background-color: #ffd3de;
-    color: #882946;
+    background-color: #ffd23f;
+    color: #1a1424;
   }
 
+  /* A focus ring you can see across a room — 3px of ink held off the element.
+     On this palette the browser default would vanish against the yellow. */
   :focus-visible {
-    outline: 2px solid #f9628b;
-    outline-offset: 2px;
+    outline: 3px solid #1a1424;
+    outline-offset: 3px;
   }
 }
 
 /* ============================================================
-   The background the glass samples
+   The ground — printed paper, not a wash.
    ------------------------------------------------------------
-   Four very large, very soft colour fields, blurred ~80px, drifting out of
-   phase over 20–30s. They are `fixed` so they never scroll — a background that
-   moves under a sticky header makes the glass there look like it is boiling.
+   A neo-brutalist page does not fade into its cards; it sits UNDER them like
+   a sheet of stock with a pattern already printed on it. Two marks do all the
+   work, both at low enough contrast that no text ever lands on them:
 
-   Cost control, since this is the one place a cheap phone can be made to
-   stutter:
-     · only `transform` animates (compositor-only, no layout, no paint)
-     · `will-change` is set on the elements themselves and nothing else
-     · the animations stop entirely under prefers-reduced-motion, and the
-       elements are dropped from the compositor by `animation: none`
-     · pointer-events none + aria-hidden: it is decoration, not content
+     · a 45° HAIRLINE GRID, 24px pitch, ink at 6%. It reads as graph paper at
+       arm's length and as a completely flat surface up close — which is the
+       same trick a printed poster plays with its registration marks.
+     · a HALFTONE DOT FIELD, 16px pitch, ink at 8%, sized 1.2px. This is the
+       one that actually says "print": a halftone is how a two-ink run
+       approximates a third colour.
+
+   Both are `background-image` on ONE fixed element, so the whole ground is a
+   single paint. The old drifting blobs are gone: this design has no soft
+   movement on the page at all, and deleting four 40vmax blurred layers is
+   most of the performance the previous version was spending.
+
+   `background-attachment: fixed` is deliberately avoided (a full repaint per
+   scroll frame on iOS); the element itself is `position: fixed` instead,
+   which composites once.
    ============================================================ */
 .liquid-bg {
   position: fixed;
@@ -147,98 +195,33 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  /*
-    Cream paper with two soft corner glows — the site's original backdrop.
-    ------------------------------------------------------------------
-    It was a four-stop pink→lilac→sky wash with four huge drifting blobs on top.
-    With the cards now solid white, that backdrop stops being atmosphere and
-    starts being the loudest thing on the screen: the page reads as a colour
-    field with white rectangles on it. Two quiet glows in two corners do the
-    job the original design wanted — a warm page, not a flat one — without
-    competing with the content.
-  */
-  background:
-    radial-gradient(60rem 40rem at 100% -10%, #ffe4ec 0%, transparent 60%),
-    radial-gradient(50rem 34rem at -10% 10%, #f3eefb 0%, transparent 55%),
-    #fffaf6;
+  background-color: #ffe9d6;
+  background-image:
+    /* halftone dots */
+    radial-gradient(circle at center, rgba(26, 20, 36, 0.08) 1.2px, transparent 1.3px),
+    /* the grid */
+    repeating-linear-gradient(
+      45deg,
+      rgba(26, 20, 36, 0.06) 0 1px,
+      transparent 1px 24px
+    );
+  background-size:
+    16px 16px,
+    24px 24px;
 }
 
 /*
-  Two quiet glows, not four loud ones.
-  ------------------------------------------------------------------
-  The original backdrop is cream with a pink glow in one corner and a lilac one
-  in the other, and the drift layer now only *reproduces* those two — slowly,
-  out of phase, at low opacity. The peach and sky blobs are gone because a warm
-  page with two accent corners does not need four colours moving in it, and
-  because every extra full-viewport blurred layer is a compositor layer the
-  phone has to keep alive while you scroll.
-
-  They still drift: the page should not feel like a printed sheet. But the
-  amplitude and the opacity are both roughly half what they were, so the
-  movement is something you notice only if you look for it.
+  The blob elements are still mounted by `<LiquidBackground />`; they simply
+  paint nothing now. Kept as a no-op rather than deleted so the component and
+  the stylesheet still agree about what exists — and so restoring a drift
+  layer later is a CSS change, not a JSX one.
 */
-.liquid-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  will-change: transform;
-  opacity: 0.34;
-}
-
-.liquid-blob--pink {
-  width: 40vmax;
-  height: 40vmax;
-  top: -16vmax;
-  inset-inline-end: -14vmax;
-  background: radial-gradient(circle at 40% 40%, var(--bg-pink) 0%, rgba(249, 98, 139, 0) 68%);
-  animation: liquid-drift-a 26s ease-in-out infinite;
-}
-
-.liquid-blob--peach {
-  /* Kept for the component's sake, but it no longer paints: the warm corner
-     is already in the page background, and a third glow was one too many. */
-  display: none;
-}
-
-.liquid-blob--lilac {
-  width: 36vmax;
-  height: 36vmax;
-  bottom: -16vmax;
-  inset-inline-start: -12vmax;
-  background: radial-gradient(circle at 50% 50%, var(--bg-lilac) 0%, rgba(217, 201, 245, 0) 70%);
-  animation: liquid-drift-c 32s ease-in-out infinite;
-  animation-delay: -12s;
-}
-
+.liquid-blob,
+.liquid-blob--pink,
+.liquid-blob--peach,
+.liquid-blob--lilac,
 .liquid-blob--sky {
   display: none;
-}
-
-@keyframes liquid-drift-a {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-4%, 5%, 0) scale(1.09); }
-}
-
-@keyframes liquid-drift-b {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
-  50% { transform: translate3d(5%, -4%, 0) scale(0.95); }
-}
-
-@keyframes liquid-drift-c {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(0.97); }
-  50% { transform: translate3d(3%, -6%, 0) scale(1.08); }
-}
-
-/*
-  Motion sensitivity: the drift is gentle, but "gentle" is not a category the
-  vestibular system understands. Someone who has asked for reduced motion gets
-  the same colours, held perfectly still.
-*/
-@media (prefers-reduced-motion: reduce) {
-  .liquid-blob {
-    animation: none !important;
-    will-change: auto;
-  }
 }
 
 /* ============================================================
@@ -269,45 +252,41 @@
    ============================================================ */
 @layer components {
   /* ------------------------------------------------------------------
-     The surface. One thing, used everywhere.
+     THE SURFACE. One thing, used everywhere.
 
-     A card is 85% white, a white hairline and a soft warm shadow. That is the
-     whole system — the same one the site shipped with before two rounds of
-     reskinning decided it needed depth. Simple wins here for three reasons:
+     A card is a white block, a 3px ink outline and a 6px hard ink shadow
+     sitting down and to the right of it. That is the entire system:
 
-       · Legibility. Solid white is the best background this page has ever
-         given its text: ink-900 13.5:1, ink-700 7.8:1, ink-500 5.9:1 against
-         the worst thing underneath — the pink glow at its brightest. Every
-         step clears AA with room, with no wash, no underlayer, no fallback.
+       · The outline is what makes it a card. In this language an unstroked
+         white rectangle is not a surface, it is a hole in the page.
+       · The shadow is offset, not blurred, because it is a second printing
+         of the same shape. Blur would imply light; there is no light here.
+       · The radius is 0. Soft corners read as furniture; this page is
+         printed.
 
-       · Cost. A backdrop-filter makes the compositor re-sample the page
-         behind its element on every frame something moves. This site has
-         drifting blobs, a 24s animation loop, and phones with thumbs on them.
-
-       · Honesty. A pane that is 85% opaque and blurred is a blur nobody can
-         see, dressed up as a material. It is a white card. Saying so costs
-         nothing and removes a whole maintenance surface.
-
-     `.glass`, `.glass-thick` and `.glass-pill` survive as aliases because
-     sixteen call sites ask for them by name and they were always asking for
-     "the raised surface", not for a filter.
+     `.glass`, `.glass-thick` and `.glass-pill` survive as aliases. Sixteen
+     call sites ask for them by name and every one of them was always asking
+     for "the raised surface", never for a filter.
      ------------------------------------------------------------------ */
   .card,
   .glass,
   .glass-thick {
     position: relative;
-    background-color: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--glass-shadow);
+    background-color: #ffffff;
+    border: var(--brut-line) solid #1a1424;
+    border-radius: 0;
+    box-shadow: 6px 6px 0 #1a1424;
     background-clip: padding-box;
   }
 
-  /* Sheets sit over a dimmed page and must hide it, not merely tint it. */
+  /* A sheet over a dimmed page: same block, but it must not share the
+     shadow language of a page card — it floats above a scrim, where an
+     offset ink shadow would read as a misplaced object. */
   .glass-thick {
-    background-color: rgba(255, 255, 255, 0.97);
+    box-shadow: 10px 10px 0 rgba(26, 20, 36, 0.9);
   }
 
+  /* A pill keeps its round ends: a badge is not a poster. */
   .glass-pill {
     border-radius: var(--radius-pill);
   }
@@ -317,132 +296,111 @@
 @layer components {
   /* Padding stays at the call site: cards here come as p-3, p-4, p-5, p-6. */
   .card {
-    border-radius: var(--radius-card);
+    border-radius: 0;
   }
 
+  /* ------------------------------------------------------------------
+     Buttons.
+
+     Every button is a solid block with an ink outline. The press is the
+     whole interaction: the block moves 4px down-right and its shadow
+     shrinks to 2px, so the button physically lands ON its own shadow.
+     Nothing else changes — no colour shift, no scale, no fade.
+
+     `active:translate-*` lives in CSS rather than as utilities because the
+     three button kinds must press identically, and because the shadow
+     distance and the translate distance are the same number written twice:
+     they can only stay in step if they are written next to each other.
+     ------------------------------------------------------------------ */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold
-           transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed
-           disabled:opacity-50 disabled:active:scale-100;
-    /* The bottom radius stays softer than the top: a pressed glass button has
-       a slightly squarer top edge where the light catches it. */
+    @apply inline-flex items-center justify-center gap-2 rounded-none px-5 py-3 text-sm font-extrabold
+           transition-all duration-100 disabled:cursor-not-allowed
+           disabled:opacity-45 disabled:shadow-none;
+    border: var(--brut-line) solid #1a1424;
+    border-radius: 0;
+    box-shadow: 6px 6px 0 #1a1424;
+    letter-spacing: 0.01em;
   }
 
-  /*
-    Pink glass.
+  .btn:not(:disabled):active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0 #1a1424;
+  }
 
-    The brief asked for a gradient of #f9628b at ~85% opacity. White text on
-    #f9628b is 2.94:1 — the brand pink is simply too light to carry white text
-    at any opacity, and the same brief also requires 4.5:1. Both cannot hold,
-    so the colour moves and the requirement wins: the gradient runs
-    #d1345c → #bf2f59 → #a52c50, which measures 4.82, 5.58 and 6.83 against
-    white. It is the same hue, one step deeper — the rose you get when pink
-    glass sits on a dark table.
+  .btn:not(:disabled):hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 7px 7px 0 #1a1424;
+  }
 
-    The brand pink does not disappear: it comes back as the rim glow
-    (`box-shadow` outside the border) and in the gloss highlight, which is
-    exactly where a real coloured pane shows its colour most strongly.
-  */
+  /* The loud one: pink block, INK text.
+     White on #ff4d6d is 3.21:1 and fails; #1a1424 on it is 5.59:1. A poster
+     prints dark type on a coloured block for exactly this reason. */
   .btn-primary {
-    @apply btn relative overflow-hidden text-white;
-    /* A stacking context, so the gloss below can sit at z-index -1: above the
-       button's own gradient, below everything else including bare text nodes.
-       Without this the pseudo would paint OVER the label on the 13 buttons
-       that have no child wrapper (`.btn-primary > *` cannot help those). */
-    isolation: isolate;
-    background-image: linear-gradient(
-      135deg,
-      #d1345c 0%,
-      #bf2f59 55%,
-      #a52c50 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.42);
-    box-shadow:
-      0 8px 22px -8px rgba(165, 44, 80, 0.55),
-      0 0 0 1px rgba(249, 98, 139, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+    @apply btn;
+    background-color: #ff4d6d;
+    color: #1a1424;
   }
 
-  /* The glossy edge: a bright arc along the top of the lens. */
-  .btn-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 46%);
-    pointer-events: none;
+  .btn-primary:not(:disabled):hover {
+    background-color: #ff6b85;
   }
 
-  .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06);
-    transform: translateY(-1px);
-  }
-
-  /* Secondary: a white button with a visible rim. On white cards a 35%-white
-     fill is nothing at all, so the rim and the blush label carry it — the
-     button is quieter than primary because of its colour, not its opacity.
-     blush-800 on white is 7.93:1. */
+  /* The quiet one: paper block, ink text. */
   .btn-ghost {
-    @apply btn text-blush-800;
-    background-color: #fff;
-    border: 1px solid rgba(249, 98, 139, 0.24);
-    box-shadow:
-      0 3px 10px -5px rgba(120, 40, 80, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    @apply btn;
+    background-color: #ffffff;
+    color: #1a1424;
   }
 
-  .btn-ghost:hover:not(:disabled) {
-    background-color: #fff6f9;
-    border-color: rgba(249, 98, 139, 0.4);
+  .btn-ghost:not(:disabled):hover {
+    background-color: #fff4e8;
   }
 
-  /* Tertiary: the quietest of the three — a tint with no shadow at all. */
+  /* The tertiary one: no shadow at all, so it sits flat on the card it is
+     printed on. Still outlined — it just is not raised. */
   .btn-soft {
-    @apply btn text-blush-800;
-    background-color: rgba(249, 98, 139, 0.08);
-    border: 1px solid rgba(249, 98, 139, 0.16);
+    @apply btn;
+    background-color: #ffe9d6;
+    color: #1a1424;
     box-shadow: none;
   }
 
-  .btn-soft:hover:not(:disabled) {
-    background-color: rgba(249, 98, 139, 0.14);
+  .btn-soft:not(:disabled):active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
   }
 
-  /*
-    Form controls.
-    A field is a *recessed* well, not a hole: a pale blush fill and a visible
-    hairline. On a white card a transparent field with a white border is an
-    input you cannot find, so the fill has to do the work the border did when
-    there was a pink page behind it.
+  .btn-soft:not(:disabled):hover {
+    transform: none;
+    background-color: #ffd23f;
+    box-shadow: none;
+  }
 
-    Focus is a soft pink ring outside the border, not a hard outline — the
-    outline is still there for keyboard users (the global :focus-visible rule
-    handles it), this is the visual emphasis on top.
-  */
+  /* ------------------------------------------------------------------
+     Form controls.
+     A field is an inset slot: white, 3px ink, and a 3px inner shadow along
+     the top edge so it reads as cut into the card rather than laid on it.
+     Focus swaps the shadow for a hard yellow offset — the page's "live"
+     colour, and a state you cannot miss.
+     ------------------------------------------------------------------ */
   .field {
-    @apply w-full rounded-2xl px-4 py-3 text-[15px] text-ink-900
-           transition-shadow duration-200 outline-none;
-    background-color: #fdf6f8;
-    /* The boundary of an input is functional, not decorative, so it has to
-       clear 3:1 against the page: #a67f91 is 3.46:1 on white and 3.25:1 on
-       the field's own fill. The chip and tile hairlines stay soft on purpose
-       — those controls are named by their label, not by their edge. */
-    border: 1px solid #a67f91;
-    box-shadow: inset 0 1px 2px rgba(120, 40, 80, 0.05);
+    @apply w-full rounded-none px-4 py-3 text-[15px] outline-none;
+    background-color: #ffffff;
+    color: #1a1424;
+    border: var(--brut-line) solid #1a1424;
+    border-radius: 0;
+    box-shadow: inset 3px 3px 0 rgba(26, 20, 36, 0.14);
+    transition: box-shadow 100ms linear;
   }
 
   .field::placeholder {
-    color: rgba(92, 80, 88, 0.72);
+    color: #7a7089;
   }
 
   .field:focus {
-    background-color: #fff;
-    border-color: rgba(249, 98, 139, 0.55);
     box-shadow:
-      0 0 0 3px rgba(249, 98, 139, 0.18),
-      0 4px 16px -6px rgba(249, 98, 139, 0.4);
+      inset 3px 3px 0 rgba(26, 20, 36, 0.14),
+      4px 4px 0 #ffd23f;
   }
 
   .field:disabled {
@@ -450,286 +408,202 @@
   }
 
   .label {
-    @apply mb-1.5 block text-[13px] font-semibold text-ink-700;
+    @apply mb-1.5 block text-[12px] font-extrabold uppercase text-ink-900;
+    letter-spacing: 0.06em;
   }
 
   .hint {
-    @apply text-[12px] leading-5 text-ink-700;
+    @apply text-[12px] leading-5;
+    color: #4a3f5c;
   }
 
-  /* Chips: small rounded panes. No blur of their own — a row of ten filtered
-     chips is exactly the cost this design is trying not to pay; the fill and
-     the hairline are enough at this size. */
+  /* ------------------------------------------------------------------
+     Chips. A chip is a small paper sticker: white, outlined, flat.
+     Selected is a yellow block with an ink outline — the same two-colour
+     swap the whole page uses, and the only place yellow appears in UI
+     chrome, which is what keeps it meaning "this one".
+     ------------------------------------------------------------------ */
   .chip {
-    @apply rounded-full px-3.5 py-1.5 text-[13px] font-medium text-ink-700
-           transition-all duration-200;
-    /* On a white card, 30% white is white. A hairline and a whisper of blush
-       is what an unselected chip actually looks like in this design. */
-    background-color: #fff;
-    border: 1px solid rgba(249, 98, 139, 0.2);
-    box-shadow: 0 1px 2px rgba(120, 40, 80, 0.05);
+    @apply rounded-none px-3.5 py-1.5 text-[13px] font-bold transition-none;
+    background-color: #ffffff;
+    color: #1a1424;
+    border: 2px solid #1a1424;
+    border-radius: 0;
   }
 
   .chip:hover {
-    background-color: #fff6f9;
-    border-color: rgba(249, 98, 139, 0.36);
+    background-color: #fff4e8;
   }
 
   .chip-active {
-    @apply text-white;
-    background-color: #bf2f59;
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow:
-      0 4px 14px -6px rgba(165, 44, 80, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background-color: #ffd23f;
+    color: #1a1424;
+    border-color: #1a1424;
+    box-shadow: 2px 2px 0 #1a1424;
   }
 
-  /* White on #bf2f59 is 5.58:1; this keeps it there when the chip is hovered
-     rather than letting it drift back to the light brand pink. */
   .chip-active:hover {
-    background-color: #b32d52;
+    background-color: #ffd23f;
   }
 
-  /*
-    Chat bubbles — the smallest panes of glass on the site, and the only place
-    where "glass" has to survive being repeated thirty times in a scrolling
-    column. So they carry NO backdrop-filter of their own: the fill, the
-    hairline and the inner highlight are enough at this size, and a list of
-    thirty filtered bubbles is precisely the cost the brief asks us to avoid.
-    The depth still reads, because the bubbles sit on the glass page and pick up
-    the colour drifting behind them through their own transparency.
+  /* ------------------------------------------------------------------
+     Chat bubbles.
 
-    Two tones:
-      · theirs — clear glass, a hair lighter than the page
-      · mine   — the same glass tinted with the brand rose. It has to stay
-                 readable with white text, so the tint is a deep rose
-                 (#d93a63 → #bf2f59) rather than the brand pink: white on
-                 #f9628b is 2.94:1, which is the whole reason this class
-                 exists rather than a `bg-blush-500` utility.
-  */
-  /*
-    Their bubble, on a white card.
-    ------------------------------------------------------------------
-    78% white was a bubble floating on translucent glass — it read as a softer
-    white than the pane under it. On a solid white chat surface that is the
-    same colour twice and the bubble disappears. A blush-tinted fill instead:
-    it is unmistakably a message, and it is quiet enough that the pink one
-    (mine) is still the loud half of the conversation.
-  */
+     Theirs: white with an ink outline and a 3px hard shadow. Mine: a solid
+     pink block with ink text. Note what is NOT here — no gradient, no white
+     text on pink. The previous version needed a five-stop gradient running
+     #d1345c → #bf2f59 purely to keep white text above 4.5:1; printing dark
+     ink on the brand pink removes the entire constraint instead of managing
+     it, and 5.59:1 is the result.
+
+     The bubbles also lost their tails: a brutalist speech bubble is a
+     rectangle with a corner cut, which is what `clip-path` below draws.
+     ------------------------------------------------------------------ */
   .bubble {
-    @apply relative rounded-3xl px-3.5 py-2 transition-shadow;
-    background-color: #fff4f7;
-    border: 1px solid rgba(249, 98, 139, 0.18);
-    box-shadow: 0 2px 8px -4px rgba(120, 40, 80, 0.12);
-    color: #332a31;
+    @apply relative px-3.5 py-2;
+    background-color: #ffffff;
+    color: #1a1424;
+    border: 2px solid #1a1424;
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #1a1424;
   }
 
   .bubble-mine {
-    @apply relative rounded-3xl px-3.5 py-2 transition-shadow text-white;
-    /* Lightest stop is #d1345c, not #d93a63: white on #d93a63 measures
-       4.43:1, which rounds to a fail. #d1345c is 4.82. */
-    background-image: linear-gradient(135deg, #d1345c 0%, #c93560 60%, #bf2f59 100%);
-    border: 1px solid rgba(255, 255, 255, 0.38);
-    box-shadow:
-      0 6px 18px -8px rgba(165, 44, 80, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    @apply relative px-3.5 py-2;
+    background-color: #ff4d6d;
+    background-image: none;
+    color: #1a1424;
+    border: 2px solid #1a1424;
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #1a1424;
   }
 
-  /*
-    Metadata lines inside a bubble ("۱۰:۳۰", "ویرایش شد"). On my own bubble
-    these are white at reduced alpha — which is exactly the pattern that
-    quietly drops below 4.5:1. White at 70% over #bf2f59 composites to
-    #dcb3c0 against a #c93560 bubble: 1.9:1. A near-solid white (92%) restores
-    it to 4.5:1 on the lightest bubble stop and 5.0:1 on the middle one, and
-    still reads as secondary because it is a shade dimmer than the body text.
-  */
+  /* A darker red-ink than the bubble's own text, because this is 9px.
+     #5a1020 measured 4.27:1 on #ff4d6d — a fail at this size; #4d0d1a is
+     4.71:1 and still reads as a shade of the paper rather than as black. */
   .bubble-meta-mine {
-    color: rgba(255, 255, 255, 0.92);
+    color: #4d0d1a;
   }
 
   .bubble-meta-theirs {
-    color: #6b5f66;
+    color: #4a3f5c;
   }
 
-  /*
-    The dimming layer behind a sheet.
-    Written as a class rather than a `bg-ink-900/35` utility because every
-    modal in the app needs the identical scrim — the same darkness, the same
-    blur — and a per-call-site utility is how those drift apart. It carries a
-    2px blur: enough that the page behind reads as "out of focus, out of
-    reach", small enough that it costs nothing measurable.
-  */
+  /* ------------------------------------------------------------------
+     The dimmer behind a sheet. Flat ink, no blur: the page behind a modal
+     goes dark, it does not go soft.
+     ------------------------------------------------------------------ */
   .scrim {
     background-color: var(--glass-scrim);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
-  @media (prefers-reduced-transparency: reduce) {
-    .scrim {
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-    }
-  }
+  /* ------------------------------------------------------------------
+     The sticky header.
 
-  /*
-    The sticky header, as a floating bar of glass.
-    ------------------------------------------------------------------
-    Two things it cannot do:
-      · touch the top edge — a sticky bar welded to the viewport top with a
-        blur behind it looks like a browser chrome mis-render; inset and
-        rounded, it reads as a pane hovering over the page;
-      · be transparent enough to lose the wordmark over the pink blob. The
-        wash is the same one cards use, so the logo keeps its contrast at
-        every scroll position.
-
-    It is deliberately NOT `.glass`: `.glass` paints a `::before` reflection
-    and this bar sits at z-30 over content that scrolls beneath it, where an
-    extra stacking context on the sticky element has caused the blur to
-    flicker in Safari. Same recipe, hand-applied, one less moving part.
-  */
+     It is a full-width ink-outlined block flush to the top edge — the
+     opposite of the previous floating pill. A poster header is a banner
+     across the sheet, so the bar loses its inset margin, its rounding and
+     its transparency, and gains a 3px rule along its bottom edge.
+     ------------------------------------------------------------------ */
   .app-header {
     position: sticky;
     top: 0;
     z-index: 30;
-    padding: 0.5rem 0.75rem 0;
-    /* The page scrolls under the rounded corners: any gap would show the
-       content scrolling through it. A matching background on the wrapper
-       would defeat the blur, so the corners simply sit inset. */
+    padding: 0;
+    background-color: #ffe9d6;
+    border-bottom: var(--brut-line) solid #1a1424;
   }
 
   .app-header-bar {
     position: relative;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--glass-border);
-    background-color: var(--glass-bg);
-    box-shadow: 0 6px 20px -10px rgba(120, 40, 80, 0.25);
+    border-radius: 0;
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
   }
 
-  /*
-    A well is the opposite of a tile: a surface pressed INTO the glass, for
-    readouts and quoted text where the neo design used `shadow-neo-in`.
-    In glass terms there is no way to dent a translucent pane, so the well is
-    a slightly *darker* fill with the light coming from inside — the same cue,
-    read the other way round.
-  */
-  /*
-    A well is a recess in a WHITE card.
-    ------------------------------------------------------------------
-    It used to be 34% white, which worked when the card around it was also
-    translucent — the well read as one shade darker than the pane. On a solid
-    white card, 34% white is white: the recess disappears entirely. So it
-    turns into a soft blush tint instead, which is both visible against white
-    and the natural "inside" colour for this design.
-  */
+  /* ------------------------------------------------------------------
+     A well is a recess. On paper that is an inset ink shadow on a slightly
+     lighter ground, not a tint: a tint implies a translucent material and
+     this page has none.
+     ------------------------------------------------------------------ */
   .well {
-    background-color: rgba(249, 98, 139, 0.07);
-    border: 1px solid rgba(249, 98, 139, 0.12);
-    box-shadow: inset 0 1px 3px rgba(120, 40, 80, 0.06);
+    background-color: #ffefda;
+    border: 2px solid #1a1424;
+    border-radius: 0;
+    box-shadow: inset 3px 3px 0 rgba(26, 20, 36, 0.16);
   }
 
-  /*
-    A tile is a pane *inside* a pane: a button row, a list item, the tiny
-    round icon buttons. It deliberately carries no backdrop-filter. The card
-    under it already sampled the background; blurring the same background
-    twice, at two different offsets, produces a faint double edge that reads
-    as a rendering artefact rather than as depth. The fill and hairline are
-    enough to lift a tile off the card.
-  */
-  /*
-    A tile is a raised thing inside a card. On a white card the only useful
-    lift is a hairline and a whisper of shadow — a white-on-white fill would
-    be invisible.
-  */
+  /* ------------------------------------------------------------------
+     A tile is a block inside a card: white, 2px ink, flat. It carries no
+     shadow, because a shadow inside a card would imply a second sheet of
+     paper between them. Its lift comes from the outline alone.
+     ------------------------------------------------------------------ */
   .tile {
-    background-color: #fff;
-    border: 1px solid rgba(249, 98, 139, 0.16);
-    box-shadow: 0 1px 3px rgba(120, 40, 80, 0.07);
+    background-color: #ffffff;
+    border: 2px solid #1a1424;
+    border-radius: 0;
+    box-shadow: none;
   }
 
-  /* A tile that is an interactive control rather than a surface. */
   .tile-hover:hover {
-    background-color: #fffafb;
-    border-color: rgba(249, 98, 139, 0.28);
+    background-color: #fff4e8;
+    border-color: #1a1424;
   }
 
-  /*
-    The selected segment of a control group. Every group on the site is a
-    `.tile` sitting inside a `.card`, and both are now white — so "selected"
-    can no longer be white-on-white. It becomes a blush wash with the border
-    pulled to full strength: rank, not brightness, is what marks it.
-    text-blush-800 (#9e2749) on #ffd9e3 is 5.63:1.
-  */
+  /* ------------------------------------------------------------------
+     The selected segment. A yellow block that presses itself into the card.
+     ------------------------------------------------------------------ */
   .tile-active {
-    background-color: #ffd9e3;
-    border-color: #f9628b;
-    color: #9e2749;
-    box-shadow: 0 1px 3px rgba(120, 40, 80, 0.1);
+    background-color: #ffd23f;
+    border-color: #1a1424;
+    color: #1a1424;
+    box-shadow: 2px 2px 0 #1a1424;
   }
 
   /*
-    Switch — a coloured rail with a round glass knob that slides.
+    Switch — a hard-edged track with a square knob that snaps across.
     ------------------------------------------------------------------
-    Written as one component rather than utilities on the two call sites
-    (ReminderSettings, PushSettings) because a switch is the one control where
-    the *rail* and the *knob* must agree at every intermediate frame. Keeping
-    them in one file means they cannot drift.
+    A brutalist switch is a mechanical toggle, not a lens: the track is a
+    3px ink box and the knob is a solid ink square that travels to the far
+    end. "On" fills the track with mint — the one colour reserved for a
+    state that is simply working, so a page full of green switches reads as
+    a page that is set up.
 
-    The knob is a small glass lens: a white core with a 1px bright rim and a
-    little inner shadow where it meets the rail, which is what sells it as a
-    physical object rather than a white circle. RTL note: the rail fills
-    right-to-left, so "on" moves the knob to the LEFT — `translateX(-1.25rem)`,
-    matching the `right: 2px` start.
+    RTL note: the rail fills right-to-left, so "on" moves the knob to the
+    LEFT — `translateX(-1.5rem)`, matching the `inset-inline-end: 0` start.
+    The travel is 24px because the knob is 20px inside a 26px track: it
+    lands flush against the opposite wall.
   */
   .switch-rail {
-    @apply relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
-           transition-colors duration-200;
-    /*
-      Off is a recessed grey-pink track. Two things had to change from the
-      glass version: a 55%-white rail is invisible on a white card, and the
-      hairline has to clear 3:1 against that card on its own, because the
-      fill never will (#f4e6eb is 1.21:1). #a87f8f is 3.44:1 — the switch is
-      legible as a control before it is legible as a state.
-    */
-    background-color: #f4e6eb;
-    border: 1px solid #a87f8f;
-    box-shadow: inset 0 1px 2px rgba(120, 40, 80, 0.12);
+    @apply relative inline-flex h-7 w-12 shrink-0 items-center rounded-none;
+    background-color: #ffffff;
+    border: var(--brut-line) solid #1a1424;
   }
 
   .switch-rail[data-on='true'] {
-    /*
-      #c93560, not the brand pink and not blush-600's lighter neighbour:
-      white on #f9628b is 2.94:1 and even #d93a63 only reaches 4.43. This is
-      the darkest rose that still reads as "on" rather than as an error state.
-    */
-    background-color: #c93560;
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow:
-      inset 0 1px 2px rgba(120, 20, 50, 0.28),
-      0 0 0 3px rgba(217, 58, 99, 0.12);
+    background-color: #5eead4;
   }
 
   .switch-knob {
-    @apply pointer-events-none absolute h-5 w-5 rounded-full;
-    inset-inline-end: 2px;
-    background-color: #ffffff;
-    /* The knob used to be white-on-translucent-white and needed no edge. On a
-       solid track it does. */
-    border: 1px solid #cfb0bd;
-    box-shadow:
-      0 2px 5px rgba(90, 30, 55, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -2px 3px rgba(140, 100, 120, 0.18);
-    transition: transform 220ms cubic-bezier(0.34, 1.3, 0.64, 1);
+    @apply pointer-events-none absolute h-5 w-5 rounded-none;
+    inset-inline-end: 0;
+    background-color: #1a1424;
+    border: none;
+    box-shadow: none;
+    /* A stepped transition, not a spring: the knob snaps to its new wall. */
+    transition: transform 140ms steps(3, end);
   }
 
   /* RTL: the knob starts at the inline-end and travels to the inline-start. */
   .switch-rail[data-on='true'] .switch-knob {
-    transform: translateX(-1.25rem);
+    transform: translateX(-1.5rem);
   }
 
   [dir='ltr'] .switch-rail[data-on='true'] .switch-knob {
-    transform: translateX(1.25rem);
+    transform: translateX(1.5rem);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -756,20 +630,21 @@
 /* ============================================================
    Tab bar — hand-written CSS, not utilities.
    ------------------------------------------------------------
-   Same element, same JS, same motion contract as before the reskin. Only the
-   material changed: the bar is now a floating pane of glass and the active
-   bubble is a lens sitting *on* that glass.
+   Same element, same JS, same motion contract. The material changed: the bar
+   is no longer a floating pane of glass, it is a banner welded to the bottom
+   edge with a 3px rule along its top — the mirror of the header. A poster
+   has two edges and content printed between them.
 
-   Every rule here exists for a reason a bug taught us:
+   Two rules here exist because a bug taught us:
 
-   · `.nav-indicator` has an explicit background-color. An earlier version
-     used `bg-[#f9628b]/14`, which Tailwind never generated — the bubble was
-     in the DOM, correctly positioned, and completely transparent. Nothing
-     about the colour may live in a utility class.
+   · `.nav-indicator` carries an explicit background-color. An earlier
+     version used `bg-[#f9628b]/14`, which Tailwind never generated — the
+     bubble was in the DOM, correctly positioned, and completely invisible.
+     Nothing about the colour may live in a utility class.
 
-   · It is the FIRST child with z-index 0, and the tabs carry z-index 1. Being
-     first paints it under them without a negative z-index, which would drop it
-     behind the bar's own translucent background.
+   · It is the FIRST child with z-index 0, and the tabs carry z-index 1, so
+     it paints under them without a negative z-index (which would drop it
+     behind the bar).
 
    · Position and width are written by JS (translateX + width). This file
      supplies the look and the timing, never the geometry.
@@ -781,13 +656,13 @@
   z-index: 40;
   display: flex;
   justify-content: center;
-  /*
-    Inset from the edges, and clear of the home indicator on a Face ID phone.
-    The 14px is the "floating" part of the brief: a bar welded to the bottom
-    edge reads as a system chrome strip, one hovering above it reads as glass.
-  */
-  padding-inline: 14px;
-  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  /* Flush to the bottom edge, but clear of the home indicator: the bar is a
+     banner, so it runs edge to edge and takes the safe area into its own
+     padding rather than floating above it. */
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: #ffe9d6;
+  border-top: var(--brut-line) solid #1a1424;
   pointer-events: none;
 }
 
@@ -796,33 +671,14 @@
   position: relative;
   display: flex;
   align-items: stretch;
-  gap: 2px;
+  gap: 0;
   width: 100%;
-  max-width: 21.5rem;
-  padding: 6px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  /*
-    78% white, not the 22% of `--glass-bg`. The bar carries 10.5px labels, the
-    smallest text on the site, over whatever colour happens to be drifting
-    behind it. At 78% the worst backdrop we ship (the pink blob at full
-    strength) still gives ink-700 6.8:1 and the active blush-800 6.1:1; at 22%
-    the inactive labels fall to 3.1:1 and the bar stops being readable in the
-    one place a user's thumb always covers.
-  */
-  /*
-    The bar is solid, not glass.
-    ------------------------------------------------------------------
-    It used to be 78% white over a blur so the background showed through. At
-    78% that blur was doing almost nothing except costing a compositor pass on
-    every frame the page moved — and this is the one element permanently under
-    a thumb. Solid white is more readable and cheaper, and the two shadows
-    already do all the lifting the design needs.
-  */
-  background-color: rgba(255, 255, 255, 0.96);
-  box-shadow:
-    var(--glass-shadow),
-    0 14px 40px -18px rgba(120, 40, 80, 0.45);
+  max-width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 0;
+  background-color: #ffe9d6;
+  box-shadow: none;
 }
 
 .nav-item {
@@ -835,16 +691,13 @@
   align-items: center;
   gap: 4px;
   padding: 8px 6px;
-  border-radius: var(--radius-pill);
-  /* ink-700, one step darker than the ink-500 this used to be: the bar now
-     sits over drifting colour, and 3.1:1 is not a label. */
-  color: #5c5058;
-  transition: color 200ms ease;
+  border-radius: 0;
+  color: #4a3f5c;
+  transition: color 120ms linear;
 }
 
 .nav-item[aria-current='page'] {
-  /* blush-800 on the lens measures 6.2:1. The old #e84874 read at 4.05. */
-  color: #a52c50;
+  color: #1a1424;
 }
 
 .nav-icon {
@@ -856,29 +709,26 @@
 
 .nav-item .nav-label {
   font-size: 10.5px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1;
-  transition: font-weight 200ms ease;
+  transition: none;
 }
 
 .nav-item[aria-current='page'] .nav-label {
-  font-weight: 800;
+  font-weight: 900;
 }
 
 /*
-  The lens.
-  ------------------------------------------------------------------
-  This is the one element in the whole design that is allowed to be
-  *brighter than the surface it sits on*. Glass over glass normally darkens;
-  a lens concentrates the light, so the bubble is `brightness(1.15)` over a
-  6px blur, with a thin bright edge and a slightly larger footprint than the
-  tab it covers (the JS sizes it from the tab's offsetWidth, so the glow is
-  done with a scale on the shadow box rather than by inflating the measured
-  width — inflating would break the 350ms slide).
+  The active tab.
 
-  Timing is untouched: 350ms cubic-bezier(.34,1.3,.64,1), applied only while
-  `.is-sliding` is set (JS removes it for the first placement and on resize so
-  those jump instead of sliding).
+  A yellow block behind the tab, hard-edged, with a 2px ink outline and the
+  label in heavy ink. No glow, no brightness filter, no scale: the tab is
+  simply a different printed block than its neighbours.
+
+  The slide still happens (it is the only thing that says which tab you
+  landed on) but it is a snap now — `steps()` running over 180ms reads as a
+  mechanical marker moving one notch, which is the same motion language as
+  the switch.
 */
 .nav-indicator {
   position: absolute;
@@ -887,44 +737,28 @@
   bottom: 6px;
   z-index: 0;
   width: 0;
-  border-radius: var(--radius-pill);
-  /* A soft pink pill under the active tab — the one place colour marks
-     position. No blur: it sits on the solid bar, so there is nothing behind
-     it worth sampling. */
-  background-color: rgba(249, 98, 139, 0.14);
-  border: 1px solid rgba(249, 98, 139, 0.22);
-  box-shadow: 0 4px 14px -6px rgba(120, 40, 80, 0.25);
+  border-radius: 0;
+  background-color: #ffd23f;
+  border: 2px solid #1a1424;
+  box-shadow: none;
   pointer-events: none;
   opacity: 0;
-  transform-origin: center;
-  transition:
-    opacity 200ms ease,
-    scale 260ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  transition: opacity 120ms linear;
 }
 
 /* Set only while the indicator is *moving*. */
 .nav-indicator.is-sliding {
   transition:
-    transform 350ms cubic-bezier(0.34, 1.3, 0.64, 1),
-    width 350ms cubic-bezier(0.34, 1.3, 0.64, 1),
-    opacity 200ms ease,
-    scale 260ms cubic-bezier(0.34, 1.3, 0.64, 1);
+    transform 180ms steps(4, end),
+    width 180ms steps(4, end),
+    opacity 120ms linear;
 }
 
-/*
-  Press feedback: the lens swells slightly under the thumb and springs back.
-  `scale` (not `transform`) is used so it composes with the JS-written
-  translateX — animating `transform` here would overwrite the slide position.
-*/
+/* Press feedback: one notch of travel, no swell. */
 .nav-bar:active .nav-indicator {
-  scale: 1.08;
+  scale: 1;
 }
 
-/*
-  Honouring reduced motion: the slide still happens (it is the only thing that
-  tells you which tab you landed on) but it is a short fade-in-place instead of
-  a 350ms travel, and the lens does not swell.
-*/
 @media (prefers-reduced-motion: reduce) {
   .nav-indicator.is-sliding {
     transition:
@@ -932,44 +766,26 @@
       width 120ms linear,
       opacity 120ms ease;
   }
-
-  .nav-bar:active .nav-indicator {
-    scale: 1;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .nav-bar {
-    background-color: rgba(255, 250, 252, 0.98);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background-image: none;
-  }
-
-  .nav-indicator {
-    background-color: #f9e3ea;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
 }
 
 .nav-badge {
   position: absolute;
-  top: -6px;
-  left: -8px;
+  top: -7px;
+  left: -9px;
   display: flex;
-  height: 16px;
-  min-width: 16px;
+  height: 18px;
+  min-width: 18px;
   align-items: center;
   justify-content: center;
   padding: 0 4px;
   border-radius: var(--radius-pill);
-  background-color: #bf2f59;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 800;
+  background-color: #ff4d6d;
+  color: #1a1424;
+  font-size: 9.5px;
+  font-weight: 900;
   line-height: 1;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 2px solid #1a1424;
+  box-shadow: none;
 }
 
 /* ============================================================
@@ -1430,6 +1246,40 @@
 }
 
 @layer utilities {
+  /* ------------------------------------------------------------------
+     POSTER TYPE.
+     The three utilities that carry the style's voice. They are utilities
+     rather than components because they are used on bare elements that
+     already have layout classes, and nothing about them is structural.
+     ------------------------------------------------------------------ */
+
+  /* A headline that fills its measure, set tight and heavy. The tracking is
+     negative because large Vazirmatn at 900 weight opens up at display
+     sizes, and a poster headline is a solid mass, not a row of letters. */
+  .poster-type {
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+    text-wrap: balance;
+  }
+
+  /* The small all-caps label above a block. Latin only reaches true caps in
+     Vazirmatn; for Persian the tracking and the weight do the work, which is
+     why this stays usable on both. */
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  /* A rule that looks printed rather than drawn: 3px of ink, full bleed. */
+  .rule-ink {
+    height: 3px;
+    background-color: #1a1424;
+  }
+
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }

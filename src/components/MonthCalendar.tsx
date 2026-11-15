@@ -62,7 +62,7 @@ export default function MonthCalendar({
           type="button"
           onClick={() => step(-1)}
           aria-label="ماه قبل"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500 transition hover:bg-blush-50 hover:text-blush-600"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500 transition hover:bg-[#ffefda] hover:text-[#c4194a]"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
@@ -90,7 +90,7 @@ export default function MonthCalendar({
           type="button"
           onClick={() => step(1)}
           aria-label="ماه بعد"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500 transition hover:bg-blush-50 hover:text-blush-600"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500 transition hover:bg-[#ffefda] hover:text-[#c4194a]"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
@@ -158,14 +158,14 @@ function DayCell({
       aria-pressed={selected}
       aria-current={cell.isToday ? 'date' : undefined}
       className={[
-        'relative flex aspect-square flex-col items-center justify-center rounded-xl text-[12px] transition',
+        'relative flex aspect-square flex-col items-center justify-center rounded-none text-[12px] transition',
         cell.inMonth ? 'text-ink-900' : 'text-ink-500/35',
         cell.isToday ? 'font-extrabold' : 'font-semibold',
         selected
-          ? 'bg-[#bf2f59] text-white shadow-soft'
+          ? 'bg-[#ff4d6d] text-[#1a1424] font-black'
           : cell.isToday
-            ? 'bg-blush-100 text-blush-800'
-            : 'hover:bg-blush-50',
+            ? 'bg-[#1a1424] text-blush-800'
+            : 'hover:bg-[#ffefda]',
         !cell.inMonth && !selected ? 'hover:bg-transparent' : '',
       ].join(' ')}
     >
@@ -179,14 +179,14 @@ function DayCell({
             <span
               key={event.key + index}
               className={`block h-1 w-1 rounded-full ${
-                selected ? 'bg-white' : event.private ? 'bg-lilac-500' : 'bg-blush-500'
+                selected ? 'bg-[#1a1424]' : event.private ? 'bg-[#5b3bb8]' : 'bg-[#c4194a]'
               }`}
             />
           ))}
           {extra > 0 && (
             <span
-              className={`text-[7px] leading-none font-bold ${
-                selected ? 'text-white' : 'text-ink-500'
+              className={`text-[7px] leading-none font-black ${
+                selected ? 'text-[#1a1424]' : 'text-[#4a3f5c]'
               }`}
             >
               +

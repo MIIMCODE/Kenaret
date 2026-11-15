@@ -166,15 +166,15 @@ export default function ReminderBell() {
           closing ? 'animate-sheet-out' : 'animate-sheet-in'
         }`}
       >
-        <div className="glass glass-thick max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:rounded-3xl sm:pb-3">
-          <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-blush-100 sm:hidden" />
+        <div className="glass glass-thick max-h-[var(--knr-vvh,100dvh)] overflow-y-auto overscroll-contain rounded-t-[28px] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:rounded-none sm:pb-3">
+          <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-[#1a1424] sm:hidden" />
 
           <div className="mb-1 flex items-center justify-between gap-2">
             <h2 className="text-[13.5px] font-extrabold text-ink-900">یادآوری‌ها</h2>
             <button
               type="button"
               onClick={close}
-              className="rounded-xl px-2.5 py-1.5 text-[12px] font-bold text-ink-500 transition hover:bg-blush-50 hover:text-ink-700"
+              className="rounded-none px-2.5 py-1.5 text-[12px] font-bold text-ink-500 transition hover:bg-[#ffefda] hover:text-ink-700"
             >
               بستن
             </button>
@@ -190,7 +190,7 @@ export default function ReminderBell() {
               {warmth.map((line) => (
                 <li
                   key={line.key}
-                  className="flex items-center gap-3 rounded-2xl border border-blush-200 bg-gradient-to-l from-blush-50 to-white px-3 py-2.5"
+                  className="flex items-center gap-3 rounded-none border-2 border-[#1a1424] bg-white px-3 py-2.5"
                 >
                   <span className="text-[17px]" aria-hidden="true">
                     {line.emoji}
@@ -205,7 +205,7 @@ export default function ReminderBell() {
           )}
 
           {total === 0 ? (
-            <div className="rounded-2xl bg-blush-50 px-4 py-6 text-center">
+            <div className="rounded-none bg-[#ffefda] px-4 py-6 text-center">
               <p className="text-[22px]" aria-hidden="true">
                 🌱
               </p>
@@ -220,7 +220,7 @@ export default function ReminderBell() {
               {items.map((item) => (
                 <li
                   key={item.key}
-                  className="tile flex items-center gap-3 rounded-2xl px-3 py-2.5"
+                  className="tile flex items-center gap-3 rounded-none px-3 py-2.5"
                 >
                   <span className="text-[17px]" aria-hidden="true">
                     {item.emoji}
@@ -230,8 +230,8 @@ export default function ReminderBell() {
                     <p className="mt-0.5 text-[10px] text-ink-500">{item.dateLabel}</p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-lg px-2 py-1 text-[10px] font-extrabold ${
-                      item.daysUntil === 0 ? 'bg-[#bf2f59] text-white' : 'bg-blush-50 text-blush-800'
+                    className={`shrink-0 rounded-none px-2 py-1 text-[10px] font-extrabold ${
+                      item.daysUntil === 0 ? 'bg-[#ff4d6d] text-[#1a1424]' : 'bg-[#ffefda] text-blush-800'
                     }`}
                   >
                     {item.when}
@@ -265,7 +265,7 @@ export default function ReminderBell() {
         onClick={() => setOpen(true)}
         aria-label={label}
         title={label}
-        className="relative flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-blush-600"
+        className="relative flex h-9 w-9 items-center justify-center tile rounded-full text-ink-500 transition hover:text-[#c4194a]"
       >
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path
@@ -283,7 +283,7 @@ export default function ReminderBell() {
         </svg>
 
         {loaded && count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#bf2f59] px-1 text-[9.5px] font-extrabold text-white shadow-soft">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-[#1a1424] bg-[#ff4d6d] px-1 text-[9.5px] font-black text-[#1a1424]">
             {toPersianDigits(count)}
           </span>
         )}

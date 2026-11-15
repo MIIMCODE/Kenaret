@@ -230,7 +230,7 @@ export default function DashboardPage() {
             </div>
             {/* The day, as a raised pill — it is the one thing that changes
                 every morning, so it gets its own object. */}
-            <div className="well rounded-2xl px-3 py-2 text-center">
+            <div className="well rounded-none px-3 py-2 text-center">
               <p className="text-[13px] font-extrabold leading-none text-blush-800">
                 {toPersianDigits(new Date().toLocaleDateString('fa-IR', { day: 'numeric' }))}
               </p>
@@ -281,7 +281,7 @@ export default function DashboardPage() {
             >
               {/* The icon tile is inset, so the glyph looks stamped into the
                   card rather than floating on top of it. */}
-              <span className="well flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-blush-800">
+              <span className="well flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-blush-800">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="3.5" stroke="currentColor" strokeWidth="1.7" />
                   <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
@@ -310,9 +310,9 @@ export default function DashboardPage() {
                  the point of it — but its edges now follow the same two-light
                  rule, so it belongs to the same surface instead of being a
                  rectangle pasted on top. */
-              className="flex items-center gap-3 rounded-[1.75rem] bg-gradient-to-l from-[#1d1017] via-[#2a1721] to-[#331b27] p-4 text-[#f4e7e2] shadow-[8px_8px_20px_rgba(180,150,150,0.45),-8px_-8px_20px_rgba(255,255,255,0.85)] transition duration-200 active:scale-[0.995] active:shadow-[inset_6px_6px_14px_rgba(0,0,0,0.55),inset_-4px_-4px_12px_rgba(255,255,255,0.06)]"
+              className="flex items-center gap-3 border-[3px] border-[#1a1424] bg-[#1a1424] p-4 text-[#ffe9d6] shadow-[6px_6px_0_#ff4d6d] transition duration-100 active:translate-x-[4px] active:translate-y-[4px] active:shadow-[2px_2px_0_#ff4d6d]"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-[#f4c3d1]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border-2 border-[#ffe9d6] bg-[#2f2440] text-[#ffd23f]">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="4.5" y="10" width="15" height="10" rx="3" stroke="currentColor" strokeWidth="1.6" />
                   <path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -321,7 +321,7 @@ export default function DashboardPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px] font-extrabold">فضای خصوصی</p>
-                <p className="truncate text-[11px] text-[#f4e7e2]/60">فقط با رمز شما دو نفر باز می‌شود</p>
+                <p className="truncate text-[11px] text-[#ffe9d6]/70">فقط با رمز شما دو نفر باز می‌شود</p>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-[#f4e7e2]/55">
                 <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
@@ -334,7 +334,7 @@ export default function DashboardPage() {
               to="/chat"
               className="card flex items-center gap-3 rounded-[1.75rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
             >
-              <span className="tile flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-blush-600 to-blush-800 text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center border-2 border-[#1a1424] bg-[#ff4d6d] text-[#1a1424]">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
                     d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.8-.8L3 21l1.9-5a8.3 8.3 0 0 1-.9-3.8A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"
@@ -393,7 +393,7 @@ export default function DashboardPage() {
               state.anniversary.needs_answer &&
               !state.anniversary.is_your_turn && (
                 <section className="card animate-fade-up rounded-[1.75rem] p-5 text-center">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blush-100 text-blush-500">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-none bg-[#1a1424] text-[#c4194a]">
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
                       <path d="M12 7.6V12l3 1.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -437,7 +437,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setEditingAnniversary(false)}
-                    className="rounded-lg px-2 py-1 text-[11px] font-bold text-ink-700 hover:text-ink-900"
+                    className="rounded-none px-2 py-1 text-[11px] font-bold text-ink-700 hover:text-ink-900"
                   >
                     بستن
                   </button>
@@ -474,7 +474,7 @@ export default function DashboardPage() {
                   birth={profile?.birth_date}
                   me
                 />
-                <div className="flex flex-col items-center gap-1 text-blush-400">
+                <div className="flex flex-col items-center gap-1 text-[#c4194a]">
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="animate-pulse-heart" aria-hidden="true">
                     <path
                       d="M12 20.5C7 16.9 3.5 13.6 3.5 10.2 3.5 7.4 5.7 5.2 8.4 5.2c1.6 0 3 .8 3.6 2.1.6-1.3 2-2.1 3.6-2.1 2.7 0 4.9 2.2 4.9 5 0 3.4-3.5 6.7-8.5 10.3z"
@@ -524,7 +524,7 @@ export default function DashboardPage() {
                   const first = state.incoming[0]
                   if (first) void handleDecline(first)
                 }}
-                className="-mt-2 w-full rounded-xl py-1.5 text-[11.5px] font-semibold text-ink-700 transition hover:text-red-500"
+                className="-mt-2 w-full rounded-none py-1.5 text-[11.5px] font-semibold text-ink-700 transition hover:text-red-500"
               >
                 رد کردن جدیدترین درخواست
               </button>
@@ -571,7 +571,7 @@ export default function DashboardPage() {
           to="/game"
           className="card flex items-center gap-3 rounded-[1.75rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-lilac-700 to-lilac-900 text-white shadow-[6px_6px_14px_rgba(103,67,159,0.22),-6px_-6px_14px_rgba(255,255,255,0.85)]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center border-2 border-[#1a1424] bg-[#b79cff] text-[#1a1424]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <rect
                 x="3.5"
@@ -630,7 +630,7 @@ export default function DashboardPage() {
             to="/settings"
             className="card flex items-center gap-2.5 rounded-[1.5rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
           >
-            <span className="well flex h-9 w-9 items-center justify-center rounded-xl text-blush-800">
+            <span className="well flex h-9 w-9 items-center justify-center rounded-none text-blush-800">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="8" r="3.6" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -646,7 +646,7 @@ export default function DashboardPage() {
             to="/dates"
             className="card flex items-center gap-2.5 rounded-[1.5rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
           >
-            <span className="well flex h-9 w-9 items-center justify-center rounded-xl text-lilac-700">
+            <span className="well flex h-9 w-9 items-center justify-center rounded-none text-lilac-700">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="3.5" y="5" width="17" height="15" rx="4" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M8 3v4M16 3v4M3.5 10h17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
