@@ -174,7 +174,7 @@ export default function GamePage() {
         {/* Title slab */}
         <section className="card animate-fade-up rounded-[1.75rem] p-5">
           <div className="flex items-start gap-3">
-            <span className="well flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-blush-800">
+            <span className="well flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-blush-800">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
                   d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-4 4v-4H5.5A1.5 1.5 0 0 1 4 14.5z"
@@ -256,7 +256,7 @@ export default function GamePage() {
               type="button"
               onClick={() => setTab(key)}
               aria-pressed={tab === key}
-              className={`tile flex-1 basis-0 rounded-2xl px-3 py-2.5 text-[12px] font-bold transition-shadow duration-200 ${
+              className={`tile flex-1 basis-0 rounded-none px-3 py-2.5 text-[12px] font-bold transition-shadow duration-200 ${
                 tab === key ? 'tile-active' : 'text-ink-700 hover:brightness-[1.03]'
               }`}
             >
@@ -323,7 +323,7 @@ function LevelPicker({
               onClick={() => onChange(level.value)}
               disabled={disabled}
               aria-pressed={active}
-              className={`tile rounded-2xl px-2 py-2.5 text-center transition-shadow duration-200 disabled:opacity-60 ${
+              className={`tile rounded-none px-2 py-2.5 text-center transition-shadow duration-200 disabled:opacity-60 ${
                 active ? 'tile-active' : 'hover:brightness-[1.03]'
               }`}
             >
@@ -396,7 +396,7 @@ function DealCard({
         type="button"
         onClick={() => onDeal(null)}
         disabled={busy || empty}
-        className="tile mt-2 w-full rounded-2xl py-3 text-[12.5px] font-extrabold text-ink-900 transition duration-200 hover:brightness-[1.03] disabled:opacity-50"
+        className="tile mt-2 w-full rounded-none py-3 text-[12.5px] font-extrabold text-ink-900 transition duration-200 hover:brightness-[1.03] disabled:opacity-50"
       >
         {busy ? 'دارم می‌کشم…' : 'هر چی شد، بکش'}
       </button>
@@ -427,24 +427,25 @@ function DealButton({
     highlight in `.btn-glass`, not from a shadow cast onto the page: a coloured
     pane does not cast a pink shadow, it tints what is behind it.
   */
+  /* Flat blocks, ink text. The three tones are the poster's three accent
+     plates, not gradients — and every one of them measures 5.59:1 or better
+     against #1a1424, which is why the label is ink rather than white. */
   const tone =
     accent === 'blush'
-      ? 'from-[#bf2f59] to-blush-800'
+      ? 'bg-[#ff4d6d]'
       : accent === 'lilac'
-        ? 'from-lilac-700 to-lilac-900'
-        : 'from-[#1c6b55] to-[#145246]'
+        ? 'bg-[#b79cff]'
+        : 'bg-[#5eead4]'
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b ${
-        tone
-      } px-2 py-3 text-white transition duration-200 active:scale-[0.98] disabled:opacity-50`}
+      className={`flex flex-col items-center gap-1 border-[3px] border-[#1a1424] ${tone} px-2 py-3 text-[#1a1424] shadow-[4px_4px_0_#1a1424] transition duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_#1a1424] disabled:opacity-50 disabled:shadow-none`}
     >
-      <span className="text-[13px] font-extrabold">{label}</span>
-      <span className="text-[9.5px] font-medium text-white/90">{hint}</span>
+      <span className="text-[13px] font-black">{label}</span>
+      <span className="text-[9.5px] font-bold opacity-70">{hint}</span>
     </button>
   )
 }
@@ -485,7 +486,7 @@ function TurnCard({
 
       {/* The card itself: pressed into the surface, because the words are the
           object here and the panel around them should recede. */}
-      <p className="well mt-3 rounded-2xl p-4 text-center text-[15px] font-extrabold leading-8 text-ink-900">
+      <p className="well mt-3 rounded-none p-4 text-center text-[15px] font-extrabold leading-8 text-ink-900">
         {turn.body}
       </p>
 
@@ -501,7 +502,7 @@ function TurnCard({
           {turn.together_answers.map((a) => (
             <li
               key={a.user_id}
-              className="well rounded-xl px-3 py-2 text-[11.5px] leading-6 text-ink-700"
+              className="well rounded-none px-3 py-2 text-[11.5px] leading-6 text-ink-700"
             >
               <span className="font-bold text-ink-900">
                 {a.user_id === turn.asked_by ? 'کسی که کشید' : 'اون یکی'}:
@@ -531,7 +532,7 @@ function TurnCard({
               type="button"
               onClick={onAnswer}
               disabled={!draft.trim() || busy !== null}
-              className="tile flex-1 basis-0 rounded-2xl bg-gradient-to-b from-[#bf2f59] to-blush-800 py-3 text-[12.5px] font-extrabold text-white transition duration-200 active:scale-[0.98] disabled:opacity-50"
+              className="flex-1 basis-0 border-[3px] border-[#1a1424] bg-[#ff4d6d] py-3 text-[12.5px] font-black text-[#1a1424] shadow-[4px_4px_0_#1a1424] transition duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_#1a1424] disabled:opacity-50"
             >
               {busy === 'answer' ? 'دارم می‌فرستم…' : 'ثبتش کن'}
             </button>
@@ -539,14 +540,14 @@ function TurnCard({
               type="button"
               onClick={onSkip}
               disabled={busy !== null}
-              className="card rounded-2xl px-4 py-3 text-[12px] font-bold text-ink-700 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95 disabled:opacity-50"
+              className="card rounded-none px-4 py-3 text-[12px] font-bold text-ink-700 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95 disabled:opacity-50"
             >
               رد کن
             </button>
           </div>
         </div>
       ) : (
-        <div className="well mt-3 rounded-2xl p-3.5 text-center">
+        <div className="well mt-3 rounded-none p-3.5 text-center">
           <p className="text-[11.5px] font-bold text-ink-900">
             {askedOfMe ? 'جوابت ثبت شد' : 'منتظر جوابش'}
           </p>
@@ -559,7 +560,7 @@ function TurnCard({
             type="button"
             onClick={onSkip}
             disabled={busy !== null}
-            className="tile mt-2.5 rounded-xl px-3.5 py-2 text-[11px] font-bold text-blush-800 transition hover:brightness-[1.03] disabled:opacity-50"
+            className="tile mt-2.5 rounded-none px-3.5 py-2 text-[11px] font-bold text-blush-800 transition hover:brightness-[1.03] disabled:opacity-50"
           >
             برو کارت بعدی
           </button>
@@ -670,7 +671,7 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
           <Spinner className="h-5 w-5" />
         </div>
       ) : cards.length === 0 ? (
-        <p className="well mt-4 rounded-2xl px-3 py-4 text-center text-[11.5px] leading-6 text-ink-700">
+        <p className="well mt-4 rounded-none px-3 py-4 text-center text-[11.5px] leading-6 text-ink-700">
           با این فیلتر کارتی نیست. از تب «کارت جدید» یکی بنویس.
         </p>
       ) : (
@@ -678,11 +679,11 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
           {cards.map((card) => (
             <li
               key={card.id}
-              className="well flex items-start gap-2 rounded-2xl px-3 py-2.5"
+              className="well flex items-start gap-2 rounded-none px-3 py-2.5"
             >
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-1.5">
-                  <span className="card rounded-md px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800">
+                  <span className="card rounded-none px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800">
                     {card.kind === 'truth' ? 'حقیقت' : card.kind === 'dare' ? 'جرئت' : 'باهم'}
                   </span>
                   <span className="text-[9px] font-bold text-ink-700">
@@ -702,7 +703,7 @@ function DeckList({ counts, onChanged }: { counts: GameCounts; onChanged: () => 
                   onClick={() => void handleRetire(card)}
                   disabled={removing === card.id}
                   aria-label="برداشتن این کارت"
-                  className="tile mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[13px] font-bold text-ink-700 transition hover:text-red-500 disabled:opacity-50"
+                  className="tile mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-none text-[13px] font-bold text-ink-700 transition hover:text-red-500 disabled:opacity-50"
                 >
                   {removing === card.id ? '·' : '×'}
                 </button>
@@ -729,7 +730,7 @@ function SmallFilter({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`tile rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
+      className={`tile rounded-none px-2.5 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
         active ? 'tile-active' : 'text-ink-700 hover:brightness-[1.03]'
       }`}
     >
@@ -756,9 +757,9 @@ function HistoryList({ turns, me }: { turns: GameTurn[]; me: string | null }) {
         {turns.map((turn) => {
           const answeredByMe = turn.asked_of === me
           return (
-            <li key={turn.id} className="well rounded-2xl px-3 py-2.5">
+            <li key={turn.id} className="well rounded-none px-3 py-2.5">
               <div className="mb-1 flex items-center gap-1.5">
-                <span className="card rounded-md px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800">
+                <span className="card rounded-none px-1.5 py-0.5 text-[9px] font-extrabold text-blush-800">
                   {turn.kind === 'truth' ? 'حقیقت' : turn.kind === 'dare' ? 'جرئت' : 'باهم'}
                 </span>
                 {turn.outcome === 'skipped' && (
@@ -767,7 +768,7 @@ function HistoryList({ turns, me }: { turns: GameTurn[]; me: string | null }) {
               </div>
               <p className="text-[11.5px] leading-6 text-ink-900">{turn.body}</p>
               {turn.answer && (
-                <p className="well mt-1.5 rounded-lg px-2 py-1.5 text-[11px] leading-6 text-ink-700">
+                <p className="well mt-1.5 rounded-none px-2 py-1.5 text-[11px] leading-6 text-ink-700">
                   <span className="font-bold text-ink-900">
                     {answeredByMe ? 'جواب تو' : 'جوابش'}:
                   </span>{' '}
@@ -836,7 +837,7 @@ function AddCardForm({
             type="button"
             onClick={() => setKind(option.value)}
             aria-pressed={kind === option.value}
-            className={`tile rounded-2xl px-2 py-2 text-center transition-shadow duration-200 ${
+            className={`tile rounded-none px-2 py-2 text-center transition-shadow duration-200 ${
               kind === option.value ? 'tile-active' : 'hover:brightness-[1.03]'
             }`}
           >
@@ -859,7 +860,7 @@ function AddCardForm({
             type="button"
             onClick={() => setLevel(option.value)}
             aria-pressed={level === option.value}
-            className={`tile flex-1 basis-0 rounded-xl px-2 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
+            className={`tile flex-1 basis-0 rounded-none px-2 py-1.5 text-[10.5px] font-bold transition-shadow duration-200 ${
               level === option.value ? 'tile-active' : 'text-ink-700 hover:brightness-[1.03]'
             }`}
           >
@@ -900,7 +901,7 @@ function AddCardForm({
         type="button"
         onClick={() => void submit()}
         disabled={busy || tooShort}
-        className="tile mt-3 w-full rounded-2xl bg-gradient-to-b from-[#bf2f59] to-blush-800 py-3 text-[12.5px] font-extrabold text-white transition duration-200 active:scale-[0.98] disabled:opacity-50"
+        className="mt-3 w-full border-[3px] border-[#1a1424] bg-[#ff4d6d] py-3 text-[12.5px] font-black text-[#1a1424] shadow-[4px_4px_0_#1a1424] transition duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_#1a1424] disabled:opacity-50"
       >
         {busy ? 'دارم اضافه می‌کنم…' : 'اضافه‌اش کن'}
       </button>

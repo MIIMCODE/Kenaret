@@ -76,7 +76,7 @@ export default function PrankSettings() {
       {error && <Alert tone="error">{error}</Alert>}
 
       {/* The state, in one line somebody can actually read. */}
-      <div className="well rounded-2xl px-3 py-2.5">
+      <div className="well rounded-none px-3 py-2.5">
         {armed ? (
           <p className="text-[12px] font-bold text-blush-800">
             🎭 آماده است — منتظر باز شدن اپ توسط او.
@@ -103,7 +103,7 @@ export default function PrankSettings() {
         {busy ? 'دارم آماده می‌کنم…' : armed ? 'دوباره آماده کن' : 'شوخی را آماده کن'}
       </button>
 
-      <details className="rounded-2xl bg-clay-100 px-3 py-2.5">
+      <details className="rounded-none bg-clay-100 px-3 py-2.5">
         <summary className="cursor-pointer text-[11.5px] font-bold text-ink-900">
           چه چیزی می‌بیند؟ (قبل از فرستادن بخوان)
         </summary>

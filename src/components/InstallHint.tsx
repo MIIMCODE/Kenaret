@@ -62,7 +62,7 @@ export default function InstallHint() {
           alt=""
           width={44}
           height={44}
-          className="well h-11 w-11 shrink-0 rounded-xl p-1"
+          className="well h-11 w-11 shrink-0 rounded-none p-1"
         />
 
         <div className="min-w-0 flex-1">
@@ -80,7 +80,7 @@ export default function InstallHint() {
           type="button"
           onClick={handleDismiss}
           aria-label="بستن"
-          className="-mt-1 -mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-700 transition hover:bg-blush-50 hover:text-ink-900"
+          className="-mt-1 -mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-700 transition hover:bg-[#ffefda] hover:text-ink-900"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
@@ -94,12 +94,12 @@ export default function InstallHint() {
       </div>
 
       {ios ? (
-        <ol className="well mt-3 space-y-2 rounded-2xl px-3.5 py-3">
+        <ol className="well mt-3 space-y-2 rounded-none px-3.5 py-3">
           <li className="flex items-center gap-2 text-[11px] leading-5 text-ink-700">
             <Step n="۱" />
             <span>
               در سافاری دکمه‌ی{' '}
-              <span className="card inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-bold">
+              <span className="card inline-flex items-center gap-1 rounded-none px-1.5 py-0.5 font-bold">
                 <ShareGlyph />
                 اشتراک‌گذاری
               </span>{' '}

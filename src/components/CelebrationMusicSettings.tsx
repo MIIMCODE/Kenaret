@@ -109,7 +109,7 @@ export default function CelebrationMusicSettings() {
       {loading ? (
         <p className="text-[12px] text-ink-700">دارم می‌گردم…</p>
       ) : music ? (
-        <div className="well space-y-3 rounded-2xl p-3">
+        <div className="well space-y-3 rounded-none p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-[12.5px] font-bold text-ink-900">♪ {music.display_name}</p>
@@ -119,7 +119,7 @@ export default function CelebrationMusicSettings() {
               type="button"
               onClick={() => void remove()}
               disabled={busy}
-              className="tile shrink-0 rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 transition hover:brightness-[1.03] disabled:opacity-50"
+              className="tile shrink-0 rounded-none px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 transition hover:brightness-[1.03] disabled:opacity-50"
             >
               حذف
             </button>

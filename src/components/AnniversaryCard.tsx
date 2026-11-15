@@ -76,8 +76,27 @@ export default function AnniversaryCard({
   return (
     <section className="card relative overflow-hidden rounded-[1.75rem] p-5">
       {/* soft decorative blobs */}
-      <span className="pointer-events-none absolute -left-6 -top-8 h-24 w-24 rounded-full bg-blush-200/40 blur-2xl" />
-      <span className="pointer-events-none absolute -bottom-10 -right-6 h-28 w-28 rounded-full bg-lilac-300/30 blur-2xl" />
+      {/* Halftone discs, not glows: a printed poster decorates with a dot
+          screen, and a blurred blob is the one shape this design cannot
+          justify. Offset off the corner so it reads as a print overrun. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-5 -top-6 h-20 w-20 rounded-full border-[3px] border-[#1a1424]/25"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at center, rgba(26,20,36,0.22) 1.5px, transparent 1.6px)',
+          backgroundSize: '7px 7px',
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-8 -right-4 h-24 w-24 rounded-full border-[3px] border-[#1a1424]/20"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at center, rgba(26,20,36,0.18) 1.5px, transparent 1.6px)',
+          backgroundSize: '7px 7px',
+        }}
+      />
 
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
@@ -101,7 +120,7 @@ export default function AnniversaryCard({
               <button
                 type="button"
                 onClick={onEdit}
-                className="tile self-start rounded-xl px-2.5 py-1.5 text-[10.5px] font-bold text-blush-800 transition hover:brightness-[1.03]"
+                className="tile-hover tile self-start px-2.5 py-1.5 text-[10.5px] font-black text-[#1a1424] transition"
               >
                 ویرایش
               </button>
@@ -117,20 +136,16 @@ export default function AnniversaryCard({
         {celebration ? (
           <Link
             to="/celebrate?auto=1"
-            className="mt-3 flex items-center justify-between gap-2 overflow-hidden rounded-2xl px-3.5 py-3 text-white transition active:scale-[0.99]"
-            style={{
-              backgroundImage: 'linear-gradient(135deg, #c93560 0%, #a52c50 55%, #67439f 100%)',
-              boxShadow: '0 10px 26px -12px rgba(201, 53, 96, 0.85)',
-            }}
+            className="mt-3 flex items-center justify-between gap-2 overflow-hidden border-[3px] border-[#1a1424] bg-[#b79cff] px-3.5 py-3 text-[#1a1424] shadow-[4px_4px_0_#1a1424] transition duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_#1a1424]"
           >
             <span className="min-w-0">
-              <span className="block text-[10px] font-bold text-[#ffd9e3]">
+              <span className="block text-[10px] font-black uppercase tracking-wider opacity-70">
                 {celebration.subtitle} امشب
               </span>
-              <span className="mt-0.5 block truncate text-[14px] font-extrabold">
+              <span className="mt-0.5 block truncate text-[14px] font-black">
                 {celebration.title} 🎉
               </span>
-              <span className="mt-0.5 block text-[10px] text-[#ffd9e3]">
+              <span className="mt-0.5 block text-[10px] font-semibold opacity-70">
                 {celebration.opened ? 'جشن باز شده — دوباره سر بزن' : 'آماده‌ی جشن است'}
               </span>
             </span>
@@ -138,7 +153,7 @@ export default function AnniversaryCard({
           </Link>
         ) : (
           isToday && (
-            <p className="well mt-3 rounded-2xl px-3 py-2 text-center text-[12px] font-bold text-blush-800">
+            <p className="well mt-3 px-3 py-2 text-center text-[12px] font-black text-[#1a1424]">
               🎉 امروز یکی از روزهای خاص شماست!
             </p>
           )
@@ -167,7 +182,7 @@ export default function AnniversaryCard({
               {milestones.map((item) => (
                 <li
                   key={item.key}
-                  className="well flex items-center justify-between gap-2 rounded-xl px-3 py-2"
+                  className="well flex items-center justify-between gap-2 px-3 py-2"
                 >
                   <span className="flex min-w-0 items-center gap-1.5 text-[11.5px] font-semibold text-ink-700">
                     <span aria-hidden="true">{item.emoji}</span>
@@ -208,15 +223,18 @@ function Countdown({
   // panes — a card shadow on a 40px chip buries it in its own darkness.
   // Text colours are the deep steps: blush-800 is 5.3:1 on the worst glass and
   // lilac-700 is 5.7:1; their lighter neighbours do not clear 4.5.
+  /* Flat accent plates. The two countdowns are the loudest numbers on the
+     dashboard, so each gets its own poster colour rather than a tint; ink
+     on #ff4d6d is 5.59:1 and on #b79cff 7.88:1. */
   const styles =
     accent === 'blush'
-      ? 'tile text-blush-800'
-      : 'tile text-lilac-700'
+      ? 'border-[#1a1424] bg-[#ff4d6d] shadow-[3px_3px_0_#1a1424]'
+      : 'border-[#1a1424] bg-[#b79cff] shadow-[3px_3px_0_#1a1424]'
   return (
-    <div className={`rounded-2xl px-3 py-2.5 ${styles}`}>
-      <p className="text-[10px] font-semibold text-ink-700">{eyebrow}</p>
-      <p className="mt-0.5 text-[14px] font-extrabold">{value}</p>
-      <p className="mt-0.5 text-[10px] font-medium text-ink-700">{sub}</p>
+    <div className={`border-2 px-3 py-2.5 text-[#1a1424] ${styles}`}>
+      <p className="text-[10px] font-bold opacity-70">{eyebrow}</p>
+      <p className="mt-0.5 text-[14px] font-black">{value}</p>
+      <p className="mt-0.5 text-[10px] font-semibold opacity-70">{sub}</p>
     </div>
   )
 }
@@ -241,27 +259,21 @@ function ProgressRing({ ratio, label, sub }: { ratio: number; label: string; sub
   return (
     <div className="relative grid h-[74px] w-[74px] shrink-0 place-items-center">
       <svg viewBox="0 0 74 74" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="37" cy="37" r={radius} fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="5" />
+        <circle cx="37" cy="37" r={radius} fill="none" stroke="#1a1424" strokeOpacity="0.18" strokeWidth="6" />
         <circle
           cx="37"
           cy="37"
           r={radius}
           fill="none"
-          stroke="url(#ringGradient)"
-          strokeWidth="5"
-          strokeLinecap="round"
+          stroke="#ff4d6d"
+          strokeWidth="6"
+          strokeLinecap="butt"
           strokeDasharray={`${dash} ${circumference - dash}`}
         />
-        <defs>
-          <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f9628b" />
-            <stop offset="100%" stopColor="#a98ce0" />
-          </linearGradient>
-        </defs>
       </svg>
       <div className="text-center leading-none">
-        <p className="text-[13px] font-extrabold text-ink-900">{label}</p>
-        <p className="mt-0.5 text-[8.5px] font-semibold text-ink-700">{sub}</p>
+        <p className="text-[13px] font-black text-[#1a1424]">{label}</p>
+        <p className="mt-0.5 text-[8.5px] font-bold text-[#4a3f5c]">{sub}</p>
       </div>
     </div>
   )

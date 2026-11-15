@@ -71,7 +71,7 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
               onClick={() => void handleTap(option)}
               disabled={busy !== null}
               aria-pressed={active}
-              className={`tile flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[11px] font-bold transition-shadow duration-200 disabled:opacity-60 ${
+              className={`tile flex flex-col items-center gap-1 rounded-none px-1.5 py-2.5 text-[11px] font-bold transition-shadow duration-200 disabled:opacity-60 ${
                 active ? 'tile-active' : 'tile text-ink-700 hover:brightness-[1.03]'
               }`}
             >
@@ -85,12 +85,12 @@ export default function WarmthButtons({ partnerName }: { partnerName?: string | 
       </div>
 
       {notice && (
-        <p role="status" className="mt-2 rounded-xl bg-mint-100 px-3 py-1.5 text-[11px] font-bold text-mint-700">
+        <p role="status" className="mt-2 rounded-none bg-[#ddfaf3] px-3 py-1.5 text-[11px] font-bold text-mint-700">
           {notice}
         </p>
       )}
       {error && (
-        <p role="alert" className="mt-2 rounded-xl bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600">
+        <p role="alert" className="mt-2 rounded-none bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600">
           {error}
         </p>
       )}

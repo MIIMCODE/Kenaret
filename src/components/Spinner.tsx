@@ -20,7 +20,7 @@ export default function Spinner({ className = 'h-5 w-5' }: { className?: string 
 
 export function FullPageLoader({ label = 'یک لحظه...' }: { label?: string }) {
   return (
-    <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 text-blush-500">
+    <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 text-[#c4194a]">
       <Spinner className="h-8 w-8" />
       <p className="text-[13px] font-medium text-ink-500">{label}</p>
     </div>

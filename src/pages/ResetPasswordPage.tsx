@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
         <Alert tone="success">رمزت عوض شد ✨ داریم می‌بریمت داخل کنارت...</Alert>
       ) : !ready ? (
         <div className="space-y-4">
-          <div className="flex items-center gap-3 text-blush-500">
+          <div className="flex items-center gap-3 text-[#c4194a]">
             <Spinner className="h-5 w-5" />
             <span className="text-[13px] text-ink-500">داریم لینک را بررسی می‌کنیم...</span>
           </div>

@@ -17,7 +17,7 @@ export default function ProgressBar({ step, total, labels }: Props) {
       </div>
 
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-blush-100"
+        className="h-2 w-full overflow-hidden rounded-full bg-[#1a1424]"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -39,7 +39,7 @@ export default function ProgressBar({ step, total, labels }: Props) {
             <span
               key={index}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                index + 1 <= step ? 'w-6 bg-blush-400' : 'w-1.5 bg-blush-200'
+                index + 1 <= step ? 'w-6 bg-blush-400' : 'w-1.5 bg-[#1a1424]'
               }`}
             />
           ))}

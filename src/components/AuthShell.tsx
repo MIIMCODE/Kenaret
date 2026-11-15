@@ -16,7 +16,7 @@ export default function AuthShell({ title, subtitle, children, footer }: Props) 
         <Link to="/" aria-label="بازگشت به صفحه‌ی اصلی">
           <Logo />
         </Link>
-        <Link to="/" className="text-[12.5px] font-semibold text-ink-500 transition hover:text-blush-600">
+        <Link to="/" className="text-[12.5px] font-semibold text-ink-500 transition hover:text-[#c4194a]">
           صفحه‌ی اصلی
         </Link>
       </header>

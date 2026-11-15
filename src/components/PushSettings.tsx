@@ -110,7 +110,7 @@ export default function PushSettings() {
     return (
       <section className="card p-5">
         <div className="flex items-center gap-2 text-[12px] text-ink-500">
-          <Spinner className="h-4 w-4 text-blush-400" /> در حال بررسی گوشی…
+          <Spinner className="h-4 w-4 text-[#c4194a]" /> در حال بررسی گوشی…
         </div>
       </section>
     )
@@ -140,7 +140,7 @@ export default function PushSettings() {
     return (
       <section className="card space-y-2 p-5">
         <h2 className="text-[14px] font-extrabold text-ink-900">نوتیفیکیشن روی گوشی</h2>
-        <div className="rounded-2xl bg-blush-50 px-3.5 py-3">
+        <div className="rounded-none bg-[#ffefda] px-3.5 py-3">
           <p className="text-[12.5px] font-extrabold text-ink-900">{copy.title}</p>
           <p className="mt-1 text-[11px] leading-6 text-ink-700">{copy.body}</p>
         </div>
@@ -167,7 +167,7 @@ export default function PushSettings() {
       {notice && <Alert tone="success">{notice}</Alert>}
 
       {blocked ? (
-        <div className="rounded-2xl bg-blush-50 px-3 py-3">
+        <div className="rounded-none bg-[#ffefda] px-3 py-3">
           <p className="text-[12px] font-extrabold text-ink-900">دسترسی مسدود شده</p>
           <p className="mt-1 text-[11px] leading-6 text-ink-700">
             یک بار «Block» را زده‌ای، و مرورگر دیگر اجازه‌ی پرسیدن نمی‌دهد. از تنظیمات خودِ مرورگر
@@ -181,8 +181,8 @@ export default function PushSettings() {
           aria-checked={on}
           disabled={busy}
           onClick={() => void toggle(!on)}
-          className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 text-right transition disabled:opacity-60 ${
-            on ? 'border-blush-300 bg-blush-50/80' : 'tile tile-hover'
+          className={`flex w-full items-center justify-between gap-3 rounded-none border px-3.5 py-3 text-right transition disabled:opacity-60 ${
+            on ? 'border-[#1a1424] bg-[#ffd23f]' : 'tile tile-hover'
           }`}
         >
           <span className="min-w-0">
@@ -226,7 +226,7 @@ export default function PushSettings() {
         </p>
       )}
 
-      <p className="rounded-xl bg-lilac-100/60 px-3 py-2 text-[10px] leading-5 text-ink-700">
+      <p className="rounded-none bg-[#f0eaff] px-3 py-2 text-[10px] leading-5 text-ink-700">
         نوتیفیکیشن هیچ‌وقت متن پیام نمی‌فرستد: فقط عنوان و یک جمله‌ی کوتاه. تاریخ‌های چرخه فقط
         وقتی در آن می‌آید که خودت اشتراک‌گذاری را روشن کرده باشی، و اگر یادآوری‌ها را خاموش کنی
         هیچ نوتیفیکیشن تاریخی نمی‌آید.

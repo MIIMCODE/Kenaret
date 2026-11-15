@@ -63,30 +63,30 @@ export default function PairingCodeCard({ code, displayName }: Props) {
 
   return (
     <div
-      className="relative overflow-hidden rounded-[1.75rem] p-5 text-white shadow-[8px_8px_20px_rgba(201,53,96,0.28),-8px_-8px_20px_rgba(255,255,255,0.9)]"
-      style={{ backgroundImage: 'linear-gradient(135deg, #e84874 0%, #c93560 52%, #a52c50 100%)' }}
+      className="relative overflow-hidden border-[3px] border-[#1a1424] bg-[#3dd9eb] p-5 text-[#1a1424] shadow-[6px_6px_0_#1a1424]"
     >
-      {/* decorative bubbles */}
-      <div className="pointer-events-none absolute -left-8 -top-10 h-28 w-28 rounded-full bg-white/15" />
-      <div className="pointer-events-none absolute -bottom-12 -right-6 h-32 w-32 rounded-full bg-white/10" />
+      {/* Print noise, not glass bubbles: the code block is the one place on
+          the site where the number has to look stamped. */}
+      <div className="pointer-events-none absolute -left-8 -top-10 h-28 w-28 rounded-full border-[3px] border-[#1a1424]/20" />
+      <div className="pointer-events-none absolute -bottom-12 -right-6 h-32 w-32 rounded-full border-[3px] border-[#1a1424]/15" />
 
       <div className="relative">
         <div className="flex items-center justify-between">
-          <p className="text-[12px] font-bold text-white/90">کد جفت‌شدن تو</p>
-          <span className="rounded-full bg-black/15 px-2.5 py-1 text-[10.5px] font-bold">
+          <p className="eyebrow">کد جفت‌شدن تو</p>
+          <span className="border-2 border-[#1a1424] bg-white px-2.5 py-1 text-[10.5px] font-black">
             ۸ کاراکتر
           </span>
         </div>
 
         <div
           dir="ltr"
-          className="mt-2 select-all font-mono text-[30px] font-extrabold leading-tight tracking-[0.18em] text-center"
+          className="mt-3 select-all text-[30px] font-black leading-tight tracking-[0.18em] text-center"
           aria-label={`کد جفت‌شدن: ${code ?? ''}`}
         >
           {grouped}
         </div>
 
-        <p className="mt-2 text-center text-[11.5px] leading-5 text-white/90">
+        <p className="mt-2 text-center text-[11.5px] font-semibold leading-5 opacity-75">
           این کد را برای شریکت بفرست تا بتواند درخواست وصل شدن بدهد.
         </p>
 
@@ -94,7 +94,7 @@ export default function PairingCodeCard({ code, displayName }: Props) {
           <button
             type="button"
             onClick={copy}
-            className="tile flex flex-1 items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-[13px] font-extrabold text-blush-800 transition active:scale-[0.98]"
+            className="flex flex-1 items-center justify-center gap-1.5 border-2 border-[#1a1424] bg-white px-4 py-2.5 text-[13px] font-black text-[#1a1424] shadow-[3px_3px_0_#1a1424] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#1a1424]"
           >
             {copied ? (
               <>
@@ -112,7 +112,7 @@ export default function PairingCodeCard({ code, displayName }: Props) {
           <button
             type="button"
             onClick={share}
-            className="flex items-center justify-center gap-1.5 rounded-2xl bg-black/20 px-4 py-2.5 text-[13px] font-bold text-white transition active:scale-[0.98]"
+            className="flex items-center justify-center gap-1.5 border-2 border-[#1a1424] bg-[#ffd23f] px-4 py-2.5 text-[13px] font-black text-[#1a1424] shadow-[3px_3px_0_#1a1424] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#1a1424]"
           >
             <ShareIcon />
             فرستادن

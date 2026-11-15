@@ -95,7 +95,7 @@ export default function ConnectForm({ ownCode, onConnected, onSuccessMessage }: 
             <span
               key={index}
               className={`h-1 flex-1 rounded-full transition-colors ${
-                index < progress ? 'bg-blush-400' : 'bg-blush-100'
+                index < progress ? 'bg-blush-400' : 'bg-[#1a1424]'
               }`}
             />
           ))}
