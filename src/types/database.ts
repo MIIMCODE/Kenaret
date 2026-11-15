@@ -293,90 +293,57 @@ export interface VaultItem {
 }
 
 // ------------------------------------------------------------------
-// رودررو (the game)
+// خانه — the house that gets built
 // ------------------------------------------------------------------
 
-export type GameKind = 'truth' | 'dare' | 'together'
-export type GameSource = 'builtin' | 'ours'
-
-/** One card in the couple's deck. */
-export interface GameCard {
-  id: string
-  kind: GameKind
-  level: 1 | 2 | 3
-  body: string
-  /** Seeded by the app rather than written by either of them. */
-  builtin: boolean
-  created_by: string | null
-  created_at: string
+/**
+ * One stage of the build. Thresholds are cumulative and live in the database
+ * (`house_stages()`), not here: the server owns the plan so the app cannot
+ * disagree with the bricks it is drawing.
+ */
+export interface HouseStage {
+  at_bricks: number
+  slug: string
+  title: string
+  note: string
 }
 
-/** One answer from one person, on a `together` card. */
-export interface GameTogetherAnswer {
-  user_id: string
-  body: string
-}
+export type HouseState = 'building' | 'home' | 'ruined'
 
-/** A turn that is waiting for an answer. */
-export interface GameOpenTurn {
+/** The live house, with everything derived on the server. */
+export interface House {
   id: string
-  card_id: string
-  kind: GameKind
-  level: 1 | 2 | 3
-  body: string
-  /** Whose turn it is. */
-  asked_of: string
-  /** Who dealt it. */
-  asked_by: string
+  state: HouseState
+  /** The anniversary date the count starts from. */
+  began_on: string
+  became_home_on: string | null
   /**
-   * Whether *this* user may answer it, decided by the server.
-   *
-   * The client does not compare ids to work this out: a `together` card is
-   * answerable by either of them until they have answered, and duplicating
-   * that rule here would eventually disagree with the database.
+   * Days together + 1. Never stored — recomputed from `began_on` on every
+   * read, so it cannot drift or need a nightly job. Frozen once the house is
+   * a home, or ruined.
    */
-  can_answer: boolean
-  together_answers: GameTogetherAnswer[]
-  created_at: string
+  bricks: number
+  /** The highest stage reached, or null on the very first day. */
+  stage: HouseStage | null
+  /** The next thing to be built, or null once the plan is exhausted. */
+  next: HouseStage | null
+  /** Everything already standing, oldest first. */
+  stages: HouseStage[]
 }
 
-/** A finished turn, as shown in the history. */
-export interface GameTurn {
+/** A house that ended. Frozen forever, readable by both members. */
+export interface HouseRuin {
   id: string
-  card_id: string
-  kind: GameKind
-  level: 1 | 2 | 3
-  body: string
-  answer: string | null
-  asked_of: string
-  asked_by: string
-  outcome: 'answered' | 'skipped'
-  answered_at: string | null
-  created_at: string
+  bricks: number
+  began_on: string
+  ruined_on: string
+  state: 'ruined'
 }
 
-export interface GameSettings {
-  /** The loudest card that may be dealt: 1 آرام, 2 جسور, 3 رک. */
-  max_level: 1 | 2 | 3
-  avoid_repeats: boolean
-}
-
-export interface GameCounts {
-  total: number
-  builtin: number
-  ours: number
-  played: number
-}
-
-export interface GameState {
-  settings: GameSettings
-  counts: GameCounts
-  /** JSON null, not `undefined`, when the table is free — see `game_state()`. */
-  open_turn: GameOpenTurn | null
-  recent: GameTurn[]
-}
-
-export interface GameCardsPage {
-  total: number
-  cards: GameCard[]
+export interface HouseStateResult {
+  house: House | null
+  /** True when there is an active couple with an anniversary to count from. */
+  can_found: boolean
+  has_anniversary: boolean
+  ruins: HouseRuin[]
 }
