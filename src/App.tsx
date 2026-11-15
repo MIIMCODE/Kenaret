@@ -23,7 +23,6 @@ import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import AlbumPage from './pages/AlbumPage'
 import VaultPage from './pages/VaultPage'
-import GamePage from './pages/GamePage'
 import ChatPage from './pages/ChatPage'
 import DatesPage from './pages/DatesPage'
 
@@ -44,6 +43,7 @@ const CelebrationPage = lazy(() => import('./pages/CelebrationPage'))
  * every dashboard visit pays for.
  */
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const HousePage = lazy(() => import('./pages/HousePage'))
 
 /*
  * The prank components are lazy for the same reason the celebration page is:
@@ -171,14 +171,11 @@ function PushBridge() {
 /**
  * Routes that show the tab bar.
  *
- * `/game` is deliberately in this list even though it has no tab of its own.
- * The bar has five fixed destinations and R18 says they do not change, so the
- * game lives one tap from the dashboard, inside the same shell. `BottomNav`
- * simply finds no tab matching `/game` — its indicator stays on the last tab
- * it knew, which is exactly what "you are in a room off the hallway" should
- * look like.
+ * The bar has five fixed destinations and R18 says they do not change. A
+ * room off the hallway (like the house) can be reached from the dashboard
+ * without becoming a sixth tab.
  */
-const NAV_PATHS = ['/app', '/chat', '/dates', '/album', '/settings', '/game']
+const NAV_PATHS = ['/app', '/chat', '/dates', '/album', '/settings', '/house']
 
 function AppNav() {
   const { status, profile } = useAuth()
@@ -328,12 +325,14 @@ export default function App() {
           }
         />
 
-        {/* رودررو — the game. Reached from the dashboard, not from a tab. */}
+        {/* خانه — a room off the hallway, reached from the dashboard. */}
         <Route
-          path="/game"
+          path="/house"
           element={
             <RequireAuth>
-              <GamePage />
+              <Suspense fallback={<FullPageLoader label="داریم خانه را باز می‌کنیم..." />}>
+                <HousePage />
+              </Suspense>
             </RequireAuth>
           }
         />

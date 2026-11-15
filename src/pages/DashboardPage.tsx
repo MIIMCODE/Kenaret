@@ -565,46 +565,40 @@ export default function DashboardPage() {
 
         <InstallHint />
 
-        {/* رودررو. Its own row, not a grid cell: the game is a place you go
-            together, and it should not read as a settings shortcut. */}
+        {/* خانه — the slow game. Its own row, not a grid cell: it is a place
+            the two of them go, not a utility. */}
         <Link
-          to="/game"
+          to="/house"
           className="card flex items-center gap-3 rounded-[1.75rem] p-4 transition-shadow duration-200 hover:brightness-[1.03] active:brightness-95"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center border-2 border-[#1a1424] bg-[#b79cff] text-[#1a1424]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect
-                x="3.5"
-                y="5"
-                width="13"
-                height="15"
-                rx="2.5"
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center border-2 border-[#1a1424] bg-[#ffd23f] text-[#1a1424]">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M3 11.2 12 4l9 7.2"
                 stroke="currentColor"
-                strokeWidth="1.7"
-                transform="rotate(-8 10 12)"
-              />
-              <rect
-                x="8"
-                y="4.5"
-                width="12.5"
-                height="15"
-                rx="2.5"
-                fill="currentColor"
-                fillOpacity="0.18"
-                stroke="currentColor"
-                strokeWidth="1.7"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
-                d="M11.5 10.5h5.5M11.5 13.5h3.5"
+                d="M5.5 10.4V20h13v-9.6"
                 stroke="currentColor"
-                strokeWidth="1.6"
+                strokeWidth="1.9"
                 strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 20v-4.6h4V20"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-extrabold text-ink-900">رودررو</p>
-            <p className="truncate text-[11px] text-ink-700">یک بازی برای دو نفر — سؤال‌ها از خودتون</p>
+            <p className="text-[13.5px] font-extrabold text-ink-900">خانه</p>
+            <p className="truncate text-[11px] text-ink-700">هر روز با هم، یک آجر — خانه‌ای که ساخته می‌شود</p>
           </div>
           <svg
             width="16"
