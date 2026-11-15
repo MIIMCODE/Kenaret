@@ -4,25 +4,37 @@ import AppHeader from '../components/AppHeader'
 import Alert from '../components/Alert'
 import Spinner from '../components/Spinner'
 import { useAuth } from '../hooks/useAuth'
+import AddEventSheet from '../components/AddEventSheet'
 import {
+  deleteCalendarEvent,
+  fetchCalendarEvents,
   fetchCycleShared,
+  fetchMyPeriodWindows,
   fetchPairingState,
   fetchPartnerCycleStatus,
+  fetchPartnerPeriodWindows,
   fetchPeriodSettings,
 } from '../lib/api'
 import { toPersianError } from '../lib/errors'
 import {
   groupByJalaliMonth,
+  isInWindow,
   nextPeriod,
   todayJalaliParts,
   upcomingEvents,
   type CalendarEvent,
   type PeriodTimings,
+  type WindowRange,
 } from '../lib/calendar'
 import MonthCalendar from '../components/MonthCalendar'
 import { anniversaryLabel, daysUntilLabel } from '../lib/anniversary'
-import { addDaysIso, todayIso } from '../lib/jalali'
-import type { PairingState, PartnerCycleStatus } from '../types/database'
+import { addDaysIso, todayIso, weekdayName } from '../lib/jalali'
+import type {
+  CalendarEntry,
+  PairingState,
+  PartnerCycleStatus,
+  PeriodWindow,
+} from '../types/database'
 
 type Filter = 'all' | 'private'
 
@@ -49,6 +61,17 @@ export default function DatesPage() {
   const [sharingCycle, setSharingCycle] = useState(false)
   /** Boys: the coarse status her share allows — or `{ shared: false }`. */
   const [partnerCycle, setPartnerCycle] = useState<PartnerCycleStatus>({ shared: false })
+  /** Days the couple wrote themselves. */
+  const [entries, setEntries] = useState<CalendarEntry[]>([])
+  /** Her own predicted windows (girls) — the grid shades these. */
+  const [myWindows, setMyWindows] = useState<PeriodWindow[]>([])
+  /** His partner's windows (boys, only while she shares). */
+  const [herWindows, setHerWindows] = useState<PeriodWindow[]>([])
+  /** True once she has shared, so the legend can say «چرخه‌ی او». */
+  const [herWindowsShared, setHerWindowsShared] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  /** A delete that is in flight, so the row can dim instead of vanishing. */
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -82,6 +105,29 @@ export default function DatesPage() {
       } else {
         setPartnerCycle({ shared: false })
       }
+
+      /*
+        Three reads that are allowed to fail independently.
+
+        The calendar must still render if any one of them is unavailable — an
+        entry list that failed to load should cost the entry list, not the
+        whole page. `Promise.all` with per-call catches keeps the page useful.
+      */
+      const [eventRows, ownWindows, herWindowResult] = await Promise.all([
+        fetchCalendarEvents().catch(() => [] as CalendarEntry[]),
+        profile?.gender === 'girl'
+          ? fetchMyPeriodWindows(6).catch(() => ({ windows: [] as PeriodWindow[] }))
+          : Promise.resolve({ windows: [] as PeriodWindow[] }),
+        profile?.gender === 'boy' && next.partner
+          ? fetchPartnerPeriodWindows().catch(() => ({ shared: false, windows: [] as PeriodWindow[] }))
+          : Promise.resolve({ shared: false, windows: [] as PeriodWindow[] }),
+      ])
+
+      setEntries(eventRows)
+      setMyWindows(ownWindows.windows ?? [])
+      setHerWindows(herWindowResult.windows ?? [])
+      setHerWindowsShared(herWindowResult.shared === true)
+
       setError(null)
     } catch (loadError) {
       setError(toPersianError(loadError, 'روزهای مهم بارگذاری نشد.'))
@@ -103,9 +149,18 @@ export default function DatesPage() {
       partnerName: state.partner?.display_name ?? null,
       period,
       horizon,
+      entries,
+      reunion: state.reunion ?? null,
+      viewerId: user?.id ?? null,
     })
-    return filter === 'private' ? all.filter((event) => event.private) : all
-  }, [state, profile?.birth_date, period, horizon, filter])
+    /*
+      The list is "what is coming up", so a day that has already passed is
+      dropped here rather than in the producer — the grid keeps them, because
+      a calendar shows history and an agenda does not.
+    */
+    const upcoming = all.filter((event) => event.daysUntil >= 0)
+    return filter === 'private' ? upcoming.filter((event) => event.private) : upcoming
+  }, [state, profile?.birth_date, period, horizon, filter, entries, user?.id])
 
   /**
    * The grid needs every event in the visible month, including days that have
@@ -125,18 +180,77 @@ export default function DatesPage() {
       // and the whole previous month still carry their dots.
       from: addDaysIso(todayIso(), -45),
       horizon: 460,
+      entries,
+      reunion: state.reunion ?? null,
+      viewerId: user?.id ?? null,
     })
-  }, [state, profile?.birth_date, period])
+  }, [state, profile?.birth_date, period, entries, user?.id])
 
   const selectedEvents = useMemo(
     () => (selectedDay ? gridEvents.filter((event) => event.iso === selectedDay) : []),
     [gridEvents, selectedDay],
   )
 
+  /**
+   * The windows the grid shades.
+   *
+   * Memoised on the two arrays rather than rebuilt per render: `monthGrid`
+   * receives them as a prop and re-buckets 42 cells whenever the identity
+   * changes, so an inline object here would defeat its own `useMemo`.
+   */
+  const gridWindows = useMemo(() => {
+    const own: WindowRange[] = myWindows.map((w) => ({ start: w.start, end: w.end }))
+    const partner: WindowRange[] = herWindows.map((w) => ({ start: w.start, end: w.end }))
+    return { own, partner }
+  }, [myWindows, herWindows])
+
+  /** Today, if it falls in a window — the header of the day sheet uses it. */
+  const todayInWindow = useMemo(() => {
+    const iso = todayIso()
+    if (isInWindow(gridWindows.own, iso)) return 'own' as const
+    if (isInWindow(gridWindows.partner, iso)) return 'partner' as const
+    return null
+  }, [gridWindows])
+
   const groups = useMemo(() => groupByJalaliMonth(events), [events])
   const today = useMemo(() => events.filter((event) => event.daysUntil === 0), [events])
   const cycle = period ? nextPeriod(period) : null
   const hasPartner = Boolean(state?.partner)
+
+  /** Which window, if any, covers a day — used by the day sheet's subtitle. */
+  const shadeOfDay = useCallback(
+    (iso: string) => {
+      if (isInWindow(gridWindows.own, iso)) return 'own' as const
+      if (isInWindow(gridWindows.partner, iso)) return 'partner' as const
+      return null
+    },
+    [gridWindows],
+  )
+
+  /**
+   * Removes an authored entry.
+   *
+   * Optimistic, because the row is small and the user just confirmed by
+   * tapping "حذف" twice (the sheet is already open, the button names the
+   * event). A failure puts it back and says why.
+   */
+  const removeEntry = useCallback(
+    async (event: CalendarEvent) => {
+      if (!event.entryId || deletingId) return
+      const id = event.entryId
+      setDeletingId(id)
+      try {
+        await deleteCalendarEvent(id)
+        setEntries((prev) => prev.filter((entry) => entry.id !== id))
+        setError(null)
+      } catch (deleteError) {
+        setError(toPersianError(deleteError, 'این روز حذف نشد.'))
+      } finally {
+        setDeletingId(null)
+      }
+    },
+    [deletingId],
+  )
 
   if (loading && !state) {
     return (
@@ -154,30 +268,70 @@ export default function DatesPage() {
       <AppHeader />
 
       <main className="page space-y-4">
-        <section>
-          <p className="text-[12px] font-semibold text-ink-500">تقویم مشترک</p>
-          <h1 className="mt-0.5 text-[23px] font-extrabold leading-9 text-ink-900">روزهای مهم</h1>
-          <p className="mt-1 text-[11.5px] leading-6 text-ink-500">
-            {hasPartner
-              ? 'سالگرد، ماهگرد، تولدها و روزهای شمردنی — همه در یک جا.'
-              : 'تاریخ تولد و روزهای خودت. با وصل شدن به شریکت، سالگرد و ماهگرد هم اینجا می‌آید.'}
-          </p>
+        <section className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#4a3f5c]">
+              تقویم مشترک
+            </p>
+            <h1 className="poster-type mt-1 text-[26px] text-[#1a1424]">روزهای مهم</h1>
+            <p className="mt-1.5 text-[11.5px] leading-6 font-semibold text-[#4a3f5c]">
+              {hasPartner
+                ? 'سالگرد، ماهگرد، تولدها و روزهایی که خودتان نوشته‌اید.'
+                : 'تاریخ تولد و روزهای خودت. با وصل شدن به شریکت، سالگرد هم اینجا می‌آید.'}
+            </p>
+          </div>
+
+          {/* The one write action on the page, so it gets the loud button. */}
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="btn-primary mt-1 shrink-0 !px-3 !py-2 text-[12px]"
+            aria-label="افزودن روز به تقویم"
+          >
+            <span aria-hidden="true" className="text-[15px] leading-none">
+              +
+            </span>
+            روز جدید
+          </button>
         </section>
 
         {error && <Alert tone="error">{error}</Alert>}
 
         {/* what's today */}
-        {today.length > 0 && (
-          <section className="animate-fade-up border-[3px] border-[#1a1424] bg-white p-4 shadow-[6px_6px_0_#1a1424]">
-            <p className="text-[11px] font-bold text-blush-800">امروز</p>
+        {(today.length > 0 || todayInWindow) && (
+          <section className="animate-fade-up border-[3px] border-[#1a1424] bg-[#ffd23f] p-4 shadow-[6px_6px_0_#1a1424]">
+            <p className="eyebrow">امروز</p>
             <ul className="mt-1.5 space-y-1">
               {today.map((event) => (
-                <li key={event.key} className="flex items-center gap-2 text-[13px] font-semibold text-ink-900">
+                <li
+                  key={event.key}
+                  className="flex items-center gap-2 text-[13px] font-black text-[#1a1424]"
+                >
                   <span aria-hidden="true">{event.emoji}</span>
                   {event.title}
                 </li>
               ))}
+              {/* A period window is a fact about today even when the exact
+                  start was yesterday, so it belongs in this block and not only
+                  as a hatch on the grid. */}
+              {todayInWindow === 'own' && (
+                <li className="flex items-center gap-2 text-[13px] font-black text-[#1a1424]">
+                  <span aria-hidden="true">🌸</span>
+                  در روزهای چرخه‌ات هستی
+                </li>
+              )}
+              {todayInWindow === 'partner' && (
+                <li className="flex items-center gap-2 text-[13px] font-black text-[#1a1424]">
+                  <span aria-hidden="true">🌷</span>
+                  او در روزهای چرخه‌اش است
+                </li>
+              )}
             </ul>
+            {todayInWindow === 'partner' && (
+              <p className="mt-1.5 text-[10px] leading-5 font-semibold text-[#1a1424]/70">
+                این را فقط چون خودش اشتراک گذاشته می‌بینی.
+              </p>
+            )}
           </section>
         )}
 
@@ -240,6 +394,15 @@ export default function DatesPage() {
           </section>
         )}
 
+        {/* A quiet line when she shares: the grid is now shading her windows,
+            and that should never be a surprise the user has to infer. */}
+        {profile?.gender === 'boy' && herWindowsShared && herWindows.length > 0 && (
+          <p className="border-2 border-[#1a1424] bg-[#f0eaff] px-3 py-2 text-[10px] leading-5 font-semibold text-[#4a3f5c]">
+            روزهای چرخه‌ی او روی تقویم با خط‌های مورب بنفش نشانه خورده — اینکه خودش
+            اشتراک گذاشته. طول چرخه و تاریخ‌هایش هیچ‌جا نوشته نمی‌شود.
+          </p>
+        )}
+
         {/* what she chose to share with him — a phase, never a date */}
         {profile?.gender === 'boy' && partnerCycle.shared && (
           <PartnerCycleCard status={partnerCycle} name={state?.partner?.display_name ?? null} />
@@ -261,37 +424,83 @@ export default function DatesPage() {
             setMonth(todayJalaliParts())
             setSelectedDay(todayIso())
           }}
+          windows={gridWindows}
         />
 
         {/* what is on the selected day */}
         {selectedDay && (
           <section className="card p-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[12px] font-extrabold text-ink-900">
-                {anniversaryLabel(selectedDay)}
-              </p>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-black text-[#1a1424]">
+                  {anniversaryLabel(selectedDay)}
+                </p>
+                <p className="mt-0.5 text-[10px] font-semibold text-[#4a3f5c]">
+                  {weekdayName(selectedDay)}
+                  {shadeOfDay(selectedDay) === 'own' && ' • در چرخه‌ی تو'}
+                  {shadeOfDay(selectedDay) === 'partner' && ' • در چرخه‌ی او'}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setSelectedDay(null)}
-                className="text-[10.5px] font-bold text-ink-500 hover:text-[#c4194a]"
+                className="shrink-0 px-2 py-1 text-[10.5px] font-bold text-[#4a3f5c] hover:bg-[#ffefda] hover:text-[#1a1424]"
               >
                 بستن
               </button>
             </div>
 
             {selectedEvents.length === 0 ? (
-              <p className="mt-2 text-[11.5px] leading-6 text-ink-500">
-                این روز چیزی در تقویم نیست. می‌توانی همان روز یک دیدار بگذاری یا فقط برای خودت
-                علامتش بزنی.
-              </p>
+              <div className="mt-2">
+                <p className="text-[11.5px] leading-6 font-semibold text-[#4a3f5c]">
+                  این روز چیزی در تقویم نیست.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSheetOpen(true)
+                  }}
+                  className="btn-soft mt-2 w-full !py-2 text-[12px]"
+                >
+                  برای این روز چیزی بنویس
+                </button>
+              </div>
             ) : (
               <ul className="mt-2 space-y-1.5">
                 {selectedEvents.map((event) => (
-                  <li key={event.key} className="flex items-center gap-2">
-                    <span aria-hidden="true">{event.emoji}</span>
-                    <span className="text-[12.5px] font-bold text-ink-900">{event.title}</span>
-                    {event.detail && (
-                      <span className="text-[10.5px] text-ink-500">— {event.detail}</span>
+                  <li key={event.key} className="flex items-start gap-2">
+                    <span aria-hidden="true" className="mt-0.5">
+                      {event.emoji}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12.5px] font-bold text-[#1a1424]">
+                        {event.title}
+                        {event.private && (
+                          <span className="mr-1.5 align-middle text-[9px] font-black text-[#5b3bb8]">
+                            خصوصی
+                          </span>
+                        )}
+                      </p>
+                      {event.detail && (
+                        <p className="mt-0.5 text-[10.5px] leading-5 font-semibold text-[#4a3f5c]">
+                          {event.detail}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Only authored rows can be removed, and a private one
+                        only by its author — the server enforces both, this
+                        just avoids offering a button that will fail. */}
+                    {event.entryId && (event.private === false || event.mine) && (
+                      <button
+                        type="button"
+                        disabled={deletingId === event.entryId}
+                        onClick={() => void removeEntry(event)}
+                        className="shrink-0 px-1.5 py-1 text-[10px] font-bold text-[#c4194a] hover:bg-[#ffefda] disabled:opacity-40"
+                        aria-label={`حذف ${event.title}`}
+                      >
+                        {deletingId === event.entryId ? '…' : 'حذف'}
+                      </button>
                     )}
                   </li>
                 ))}
@@ -299,6 +508,17 @@ export default function DatesPage() {
             )}
           </section>
         )}
+
+        {/* the sheet that adds one */}
+        <AddEventSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          initialDate={selectedDay}
+          onCreated={(entry) => {
+            setEntries((prev) => [...prev, entry])
+            setSelectedDay(entry.event_on)
+          }}
+        />
 
         {/* filters */}
         <div className="flex gap-2">
@@ -366,17 +586,36 @@ export default function DatesPage() {
   )
 }
 
+/**
+ * One row in the agenda.
+ *
+ * Four kinds of day now share this row, and the only thing that has to be
+ * legible at a glance is *which* — hence three accent plates rather than one
+ * neutral chip:
+ *   · today      → yellow, because today is the loudest fact on the page
+ *   · authored   → cyan, and it says who wrote it
+ *   · private    → lilac, so nobody has to guess why they cannot see it
+ *   · everything else (derived) → white
+ */
 function EventRow({ event }: { event: CalendarEvent }) {
   const today = event.daysUntil === 0
+  const authored = event.kind === 'custom'
+
+  const plate = today
+    ? 'bg-[#ffd23f]'
+    : event.private
+      ? 'bg-[#f0eaff]'
+      : authored
+        ? 'bg-[#d3f7fd]'
+        : 'bg-white'
+
   return (
     <li
-      className={`flex items-center gap-3 rounded-none border px-3.5 py-3 ${
-        today ? 'border-[#1a1424] bg-[#ffd23f]' : event.private ? 'border-[#1a1424] bg-[#f0eaff]/40' : 'border-[#1a1424] bg-white'
-      }`}
+      className={`flex items-center gap-3 border-2 border-[#1a1424] px-3.5 py-3 ${plate}`}
     >
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-none text-[15px] ${
-          event.private ? 'bg-[#f0eaff]' : 'bg-[#ffefda]'
+        className={`flex h-9 w-9 shrink-0 items-center justify-center border-2 border-[#1a1424] text-[15px] ${
+          today ? 'bg-white' : event.private ? 'bg-[#b79cff]' : 'bg-[#ffefda]'
         }`}
         aria-hidden="true"
       >
@@ -384,16 +623,26 @@ function EventRow({ event }: { event: CalendarEvent }) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12.5px] font-bold text-ink-900">{event.title}</p>
-        <p className="mt-0.5 text-[10.5px] text-ink-500">
+        <p className="flex items-center gap-1.5 text-[12.5px] font-black text-[#1a1424]">
+          <span className="truncate">{event.title}</span>
+          {event.private && (
+            <span className="shrink-0 bg-[#5b3bb8] px-1 py-0.5 text-[8.5px] font-black text-white">
+              خصوصی
+            </span>
+          )}
+        </p>
+        <p className="mt-0.5 truncate text-[10.5px] font-semibold text-[#4a3f5c]">
           {anniversaryLabel(event.iso)}
+          {authored && event.mine !== undefined && (
+            <span className="opacity-75"> • {event.mine ? 'خودت' : 'او'} نوشت</span>
+          )}
           {event.detail && ` • ${event.detail}`}
         </p>
       </div>
 
       <span
-        className={`shrink-0 rounded-none px-2 py-1 text-[10.5px] font-extrabold ${
-          today ? 'bg-[#ff4d6d] text-[#1a1424]' : 'tile text-blush-800'
+        className={`shrink-0 border-2 border-[#1a1424] px-2 py-1 text-[10.5px] font-black ${
+          today ? 'bg-[#ff4d6d] text-[#1a1424]' : 'bg-white text-[#1a1424]'
         }`}
       >
         {daysUntilLabel(event.daysUntil)}

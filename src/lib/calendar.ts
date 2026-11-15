@@ -12,6 +12,7 @@ import {
   todayIso,
 } from './jalali'
 import { anniversaryLabel } from './anniversary'
+import type { CalendarEntry } from '../types/database'
 
 /**
  * The shared calendar: everything either partner is allowed to see on one
@@ -29,6 +30,8 @@ export type EventKind =
   | 'milestone' // ۱۰۰ روز با هم …
   | 'period' // شروع پریود (خصوصی)
   | 'period_end' // پایان پریود (خصوصی)
+  | 'reunion' // قرار بعدی
+  | 'custom' // نوشته‌ی خودِ زوج
 
 export interface CalendarEvent {
   /** Stable key, e.g. `yearly`, `birthday:me`, `period:2026-01-04`. */
@@ -44,6 +47,14 @@ export interface CalendarEvent {
   private?: boolean
   /** Extra line shown under the title. */
   detail?: string
+  /**
+   * For `custom` events: the row id, so the day sheet can offer a delete, and
+   * whether the viewer is the one who wrote it.
+   */
+  entryId?: string
+  mine?: boolean
+  /** Who wrote a custom entry, for «محمدرضا اضافه کرد». */
+  authorName?: string | null
 }
 
 export interface PeriodTimings {
@@ -72,6 +83,27 @@ export interface UpcomingOptions {
   from?: string
   /** How many days ahead to look. */
   horizon?: number
+  /**
+   * Entries the couple wrote. Optional so every existing call site keeps
+   * working without touching it.
+   */
+  entries?: CalendarEntry[]
+  /** The next reunion, if one is pinned. */
+  reunion?: { meet_on: string; note?: string | null } | null
+  /** The reader's own profile id, to label «خودت» vs the other one. */
+  viewerId?: string | null
+}
+
+/**
+ * The shading used by the grid for a whole period *window*.
+ *
+ * `upcomingEvents` only emits the start and the end of each window — enough
+ * for a list, not enough to colour five cells. The grid asks this instead,
+ * which is pure arithmetic on the same numbers.
+ */
+export interface WindowRange {
+  start: string
+  end: string
 }
 
 const DAY_MILESTONES: { days: number; title: string; emoji: string }[] = [
@@ -110,6 +142,21 @@ export function periodStarts(
     out.push({ iso, daysUntil: daysBetweenIso(from, iso) })
   }
   return out
+}
+
+/**
+ * True when `iso` falls inside one of the windows.
+ *
+ * The grid needs this per cell (5 cells per window, per visible month), so it
+ * is a plain string comparison against pre-sorted ranges rather than a call
+ * into the predictive maths. ISO dates compare lexicographically, which is the
+ * only reason this is cheap.
+ */
+export function isInWindow(windows: WindowRange[], iso: string): boolean {
+  for (const w of windows) {
+    if (iso >= w.start && iso <= w.end) return true
+  }
+  return false
 }
 
 /** True when `iso` falls inside a predicted bleeding window. */
@@ -256,6 +303,47 @@ export function upcomingEvents(options: UpcomingOptions): CalendarEvent[] {
     }
   }
 
+  // ---- the next reunion ------------------------------------------------
+  // It was only ever rendered on the dashboard, so a date the couple had
+  // explicitly pinned was invisible in the one place that is *for* dates.
+  if (options.reunion?.meet_on) {
+    const days = daysOf(options.reunion.meet_on)
+    // Past reunions drop off the calendar rather than sitting at 0 forever;
+    // the dashboard keeps its own "last time" copy for the memory.
+    if (days >= 0) {
+      events.push({
+        key: 'reunion',
+        kind: 'reunion',
+        title: days === 0 ? 'قرار امروز' : 'قرار بعدی',
+        iso: options.reunion.meet_on,
+        daysUntil: days,
+        emoji: '🫂',
+        detail: options.reunion.note ?? undefined,
+      })
+    }
+  }
+
+  // ---- entries the couple wrote ---------------------------------------
+  for (const entry of options.entries ?? []) {
+    const days = daysOf(entry.event_on)
+    // Past entries are kept: the grid is a calendar, not a to-do list, and
+    // «اولین دیدار» belongs on the day it happened. The *list* filters them
+    // out itself — see DatesPage.
+    if (days < -370) continue
+    events.push({
+      key: `custom:${entry.id}`,
+      kind: 'custom',
+      title: entry.title,
+      iso: entry.event_on,
+      daysUntil: days,
+      emoji: entry.emoji || '📌',
+      private: entry.visibility === 'private',
+      detail: entry.note ?? undefined,
+      entryId: entry.id,
+      mine: options.viewerId ? entry.created_by === options.viewerId : undefined,
+    })
+  }
+
   return events.sort((a, b) => a.daysUntil - b.daysUntil)
 }
 
@@ -322,6 +410,21 @@ function fa(value: number): string {
   return toPersianDigits(value)
 }
 
+/**
+ * Which window, if any, covers `iso`.
+ *
+ * Own before partner: on a day the reader is bleeding and her partner is too,
+ * the cell is about the reader. «من» beats «او» in a personal calendar.
+ */
+function shadeOf(
+  iso: string,
+  windows: { own?: WindowRange[]; partner?: WindowRange[] },
+): 'own' | 'partner' | undefined {
+  if (windows.own && isInWindow(windows.own, iso)) return 'own'
+  if (windows.partner && isInWindow(windows.partner, iso)) return 'partner'
+  return undefined
+}
+
 // ------------------------------------------------------------------
 // Month grid — a real calendar, not a list of far-off dates
 //
@@ -341,6 +444,12 @@ export interface MonthCell {
   isToday: boolean
   /** Everything that lands on this day, in render order. */
   events: CalendarEvent[]
+  /**
+   * The day sits inside a period window. `own` is the reader's own cycle,
+   * `partner` is her shared one — they are drawn in different colours because
+   * «من» and «او» are different facts.
+   */
+  period?: 'own' | 'partner'
 }
 
 export interface MonthGrid {
@@ -367,6 +476,7 @@ export function monthGrid(
   jm: number,
   events: CalendarEvent[],
   today: string = todayIso(),
+  windows: { own?: WindowRange[]; partner?: WindowRange[] } = {},
 ): MonthGrid {
   const byIso = new Map<string, CalendarEvent[]>()
   for (const event of events) {
@@ -392,6 +502,7 @@ export function monthGrid(
       inMonth: false,
       isToday: iso === today,
       events: byIso.get(iso) ?? [],
+      period: shadeOf(iso, windows),
     })
   }
 
@@ -404,6 +515,7 @@ export function monthGrid(
       inMonth: true,
       isToday: iso === today,
       events: byIso.get(iso) ?? [],
+      period: shadeOf(iso, windows),
     })
     if (row.length === 7) {
       cells.push(row)
